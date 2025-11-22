@@ -45,7 +45,9 @@
 
         /* UI Layering */
         .ui-layer { position: absolute; z-index: 3000; pointer-events: none; }
+        /* WICHTIG: Elemente müssen interagierbar sein */
         .ui-element { pointer-events: auto; }
+        .pointer-events-auto { pointer-events: auto !important; }
 
         /* --- STYLING --- */
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
@@ -96,8 +98,8 @@
         </div>
     </div>
 
-    <!-- INFO BOX (Fixed Layout) -->
-    <div id="info-box" class="hidden ui-layer top-20 left-4 right-4 md:left-auto md:right-4 md:w-[400px] max-h-[75vh] flex flex-col rounded-xl shadow-2xl z-[4000] bg-white border border-stone-300">
+    <!-- INFO BOX (Fixed Layout) - HIER WAR DER FEHLER: pointer-events-auto hinzugefügt -->
+    <div id="info-box" class="hidden ui-layer top-20 left-4 right-4 md:left-auto md:right-4 md:w-[400px] max-h-[75vh] flex flex-col rounded-xl shadow-2xl z-[4000] bg-white border border-stone-300 pointer-events-auto">
         
         <!-- ARTEFAKT BILD (Inline SVG) -->
         <div id="info-artifact-container" class="relative w-full h-48 bg-stone-100 shrink-0 border-b border-stone-200">
@@ -127,7 +129,7 @@
 
         <!-- FOOTER (Always visible AI Button) -->
         <div id="tribe-ai-section" class="p-3 border-t border-stone-100 bg-stone-50 rounded-b-xl">
-            <button onclick="askGeminiTribe()" id="tribe-ai-btn" class="w-full bg-white hover:bg-purple-50 border border-purple-200 text-purple-900 px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-all shadow-sm hover:shadow">
+            <button onclick="askGeminiTribe()" id="tribe-ai-btn" class="w-full bg-white hover:bg-purple-50 border border-purple-200 text-purple-900 px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-all shadow-sm hover:shadow cursor-pointer">
                 <i class="ph-fill ph-sparkle text-purple-600 text-lg"></i>
                 <span id="tribe-ai-text">KI-Analyse: Situation im Jahr <span id="tribe-ai-year">...</span></span>
             </button>

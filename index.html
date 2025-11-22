@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Der komplette historische Diskurs</title>
+    <title>Völkerwanderung: Topographie & Analyse</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -68,12 +68,14 @@
 
     <style>
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
-        #map { height: 100vh; width: 100vw; background: #d6d3d1; z-index: 1; }
         
-        /* UI Layer ganz oben */
+        /* Standard Hintergrund grau bis Karte lädt */
+        #map { height: 100vh; width: 100vw; background: #e5e5e5; z-index: 1; }
+        
+        /* UI Layer: WICHTIG: pointer-events: none, damit Klicks durchgehen */
         .ui-layer { position: absolute; z-index: 5000; pointer-events: none; }
+        /* Elemente IN der UI Layer müssen klickbar sein */
         .ui-element { pointer-events: auto; }
-        .pointer-events-auto { pointer-events: auto !important; }
         
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: #d97706; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); cursor: pointer; margin-top: -10px; }
@@ -100,35 +102,27 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .leaflet-tooltip.custom-label { background-color: rgba(255, 255, 255, 0.95); border: 1px solid #999; color: #333; font-family: serif; font-weight: bold; font-size: 12px; padding: 2px 6px; border-radius: 2px; }
-        .leaflet-tooltip.region-label { background: transparent; border: none; box-shadow: none; font-family: 'Times New Roman', serif; font-weight: bold; color: #333; text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px; opacity: 0.9; pointer-events: none; text-shadow: 1px 1px 0px rgba(255,255,255,0.8); }
+        .leaflet-tooltip.region-label { background: transparent; border: none; box-shadow: none; font-family: 'Times New Roman', serif; font-weight: bold; color: #111; text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px; opacity: 0.9; pointer-events: none; text-shadow: 1px 1px 0px rgba(255,255,255,0.8); }
+        
+        /* FIX: Marker müssen über allem liegen */
+        .leaflet-marker-pane { z-index: 9000 !important; }
+        /* FIX: Marker müssen interaktiv sein */
+        .leaflet-marker-icon { pointer-events: auto !important; cursor: pointer !important; }
         
         .culture-marker { background: #fff; border: 2px solid #d97706; color: #d97706; box-shadow: 0 0 10px rgba(217, 119, 6, 0.4); animation: pulse-culture 3s infinite; }
         @keyframes pulse-culture { 0% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(217, 119, 6, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); } }
 
-        /* KLARHEIT & NATÜRLICHKEIT */
-        .leaflet-layer { 
-            /* Hoher Kontrast für plastisches Relief, leichte Abdunklung für Tiefe, etwas mehr Sättigung */
-            filter: contrast(1.3) brightness(0.95) saturate(1.1);
-        }
-
-        /* Overlay deaktiviert (Opacity 0), um maximale Klarheit zu gewähren */
-        .parchment-overlay {
-            position: absolute; inset: 0; pointer-events: none; z-index: 350;
-            opacity: 0; 
-            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
-            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.1);
-            mix-blend-mode: multiply;
-        }
+        /* KEINE FILTER MEHR AUF DER KARTE */
+        .leaflet-layer { filter: none; }
 
         .road-relief { mix-blend-mode: multiply; opacity: 0.7; stroke-linecap: round; stroke-linejoin: round; }
-        .river-style { stroke: #3b82f6; opacity: 0.75; stroke-linecap: round; stroke-linejoin: round; mix-blend-mode: normal; }
+        .river-style { stroke: #3b82f6; opacity: 0.8; stroke-linecap: round; stroke-linejoin: round; mix-blend-mode: normal; }
         .limes-style { stroke: #3f3f46; opacity: 0.8; stroke-linecap: square; }
         .division-style { stroke: #7e22ce; opacity: 0.6; dash-array: 5, 10; }
 
     </style>
 </head>
 <body class="bg-stone-100">
-    <div class="parchment-overlay"></div>
 
     <div id="map"></div>
 
@@ -276,6 +270,7 @@
 
     <script>
         const apiKey = ""; 
+        let currentTribeForAI = null;
         let map;
         const layers = {};
         const eventMarkers = {};
@@ -286,12 +281,10 @@
         let currentYear = 375;
         let activeAlertEvent = null;
         let chatContext = []; 
+        let activeSidebarContext = null;
         const speedConfig = { slow: 0.15, medium: 0.5, fast: 1.2 };
         let yearStep = speedConfig.slow; 
         let empireDivisionLine = null;
-        
-        // NEU: Zentraler Context-Speicher für die Sidebar
-        let activeSidebarContext = null;
 
         // --- GEO-DATEN ---
         const limesPath = [ [52.18, 4.41], [52.05, 5.10], [51.87, 5.80], [51.60, 6.20], [51.20, 6.80], [50.93, 6.96], [50.36, 7.60], [50.00, 8.20], [49.97, 8.90], [50.18, 8.95], [50.50, 9.50], [49.80, 10.90], [48.90, 11.50], [48.90, 12.00], [48.50, 13.50], [48.30, 14.30], [48.10, 16.40], [47.80, 17.60], [47.80, 19.00], [44.80, 20.40], [44.60, 22.60], [45.20, 29.60] ];
@@ -319,7 +312,7 @@
         const culturalEvents = [
             { year: 325, lat: 40.4, lng: 29.7, title: "Konzil von Nicäa", type: "religion", icon: "ph-cross", desc: "Definition des katholischen Glaubens.", prompt: "Erkläre den Konflikt Arianismus vs Katholizismus." },
             { year: 380, lat: 41.0, lng: 28.9, title: "Edikt Cunctos populos", type: "religion", icon: "ph-scroll", desc: "Theodosius I. macht das Christentum zur Staatsreligion.", prompt: "Analysiere das Edikt von Thessaloniki rechtshistorisch." },
-            { year: 395, lat: 42.5, lng: 19.5, title: "Reichsteilung", type: "treaty", icon: "ph-arrows-split", desc: "Tod Theodosius I. Endgültige Trennung in West- und Ostrom.", prompt: "Welche staatsrechtlichen Folgen hatte die Teilung 395?" },
+            { year: 395, lat: 42.5, lng: 19.5, title: "Reichsteilung", type: "treaty", icon: "ph-arrows-split", desc: "Tod Theodosius I. Endgültige Trennung in West- und Ostrom.", prompt: "Welche staatsrechtlichen und administrativen Folgen hatte die Teilung 395?" },
             { year: 438, lat: 41.0, lng: 28.9, title: "Codex Theodosianus", type: "law", icon: "ph-scales", desc: "Erste offizielle Gesetzessammlung seit den Zwölftafeln.", prompt: "Welche Bedeutung hat der Codex Theodosianus für die Rechtseinheit?" },
             { year: 475, lat: 43.6, lng: 1.4, title: "Codex Euricianus", type: "law", icon: "ph-book-bookmark", desc: "Westgotisches Volksrecht.", prompt: "Analysiere den Codex Euricianus." },
             { year: 506, lat: 43.6, lng: 1.4, title: "Breviarium Alaricianum", type: "law", icon: "ph-scales", desc: "Lex Romana Visigothorum.", prompt: "Erkläre das Personalitätsprinzip." },
@@ -376,23 +369,29 @@
         }
 
         function initMap() {
+            // NEUE KARTE: OpenTopoMap für satte Farben und klare Topografie
             map = L.map('map', { zoomControl: true, attributionControl: false, zoomSnap: 0.25, zoomDelta: 0.25 }).setView([46.5, 14.0], 5);
             map.zoomControl.setPosition('topright'); 
 
-            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}', { 
-                attribution: 'Esri', opacity: 0.8 
+            L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                maxZoom: 17,
+                attribution: 'Map data: &copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)'
             }).addTo(map);
 
+            // FLÜSSE
             Object.values(strategicRivers).forEach(riverPath => {
                 L.polyline(riverPath, { className: 'river-style', weight: 2, opacity: 0.7, smoothFactor: 1 }).addTo(map);
             });
 
+            // LIMES
             const limes = L.polyline(limesPath, { className: 'limes-style', weight: 2, dashArray: '4, 4', opacity: 0.7, smoothFactor: 1 }).addTo(map);
             limes.bindTooltip("Limes Germanicus", { sticky: true, className: 'leaflet-tooltip custom-label', direction: 'top' });
             
+            // REICHSTEILUNGSLINIE
             empireDivisionLine = L.polyline(divisionPath, { color: '#7e22ce', weight: 2, dashArray: '10, 5', opacity: 0 }).addTo(map);
             empireDivisionLine.bindTooltip("Teilungslinie (395 n. Chr.)", { sticky: true, className: 'leaflet-tooltip custom-label', direction: 'top' });
 
+            // RÖMERSTRASSEN
             Object.keys(romanRoads).forEach(key => {
                 const road = romanRoads[key];
                 road.line = L.polyline(road.path, { color: '#5c4d3c', weight: 3, opacity: 0.6, smoothFactor: 1, className: 'road-relief' }).addTo(map);
@@ -400,14 +399,14 @@
             });
 
             historicalRegions.forEach(reg => {
-                const color = reg.color || '#44403c';
+                const color = reg.color || '#111'; // Dunklerer Text für besseren Kontrast auf TopoMap
                 L.tooltip({ permanent: true, direction: 'center', className: 'region-label', opacity: 0.8 }).setContent(`<span style="font-size:${reg.s}px; color:${color}">${reg.t}</span>`).setLatLng(reg.c).addTo(map);
             });
 
             dynamicCities.forEach((city, idx) => {
-                let color = '#666'; if (city.type === 'capital') color = '#7e22ce'; if (city.type === 'barbarian') color = '#d97706'; if (city.type === 'monastery') color = '#0ea5e9'; 
+                let color = '#333'; if (city.type === 'capital') color = '#7e22ce'; if (city.type === 'barbarian') color = '#d97706'; if (city.type === 'monastery') color = '#0ea5e9'; 
                 const marker = L.circleMarker(city.c, { radius: 4, color: color, fillColor: '#fff', fillOpacity: 1, weight: 2, opacity: 0 }).addTo(map);
-                const tooltip = L.tooltip({ permanent: true, direction: 'bottom', className: 'bg-transparent border-0 shadow-none text-stone-700 font-serif text-[10px] uppercase tracking-wider font-bold', offset: [0, 5], opacity: 0 }).setContent(city.t).setLatLng(city.c).addTo(map);
+                const tooltip = L.tooltip({ permanent: true, direction: 'bottom', className: 'bg-transparent border-0 shadow-none text-stone-900 font-serif text-[10px] uppercase tracking-wider font-bold', offset: [0, 5], opacity: 0 }).setContent(city.t).setLatLng(city.c).addTo(map);
                 cityMarkers[idx] = { marker, tooltip, start: city.start, end: city.end };
             });
 
@@ -415,7 +414,7 @@
             plagueLayer = L.circle([38.0, 18.0], { radius: 1500000, color: '#10b981', fillColor: '#10b981', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
             droughtLayer = L.circle([48.0, 40.0], { radius: 800000, color: '#d97706', fillColor: '#d97706', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
 
-            // STÄMME (ROUTES)
+            // STÄMME (ROUTES) MIT INTERAKTIVITÄT
             Object.keys(routes).forEach(key => {
                 const data = routes[key];
                 let dashStyle = '1, 6'; if (data.type === 'army') dashStyle = '10, 5'; if (data.type === 'plague') dashStyle = '1, 10'; 
@@ -423,54 +422,61 @@
                 let borderRadius = '50%'; if (data.type === 'army') borderRadius = '2px';
                 let iconClass = 'pulse-icon'; if (data.type === 'army') iconClass = 'pulse-icon roman-pulse'; if (data.type === 'plague') iconClass = 'pulse-icon plague-pulse';
                 const iconHtml = `<div style="background-color: ${data.color}; width: 14px; height: 14px; border-radius: ${borderRadius}; border: 2px solid white;"></div>`;
+                
                 const icon = L.divIcon({ className: iconClass, html: iconHtml, iconSize: [14, 14], iconAnchor: [7, 7] });
                 
-                const marker = L.marker([0,0], { icon: icon }).addTo(map);
+                // WICHTIG: interactive: true erzwingen
+                const marker = L.marker([0,0], { icon: icon, interactive: true }).addTo(map);
                 marker.bindTooltip(data.name, { permanent: true, direction: 'right', className: 'custom-label', offset: [10, 0] });
                 
-                // KLICK-LOGIK STÄMME: Übergabe von { type: 'tribe', key: '...', prompt: '...' }
-                marker.on('click', () => showInfo(data.name, data.desc, null, data.color, data.artifact, { 
-                    type: 'tribe', 
-                    key: key, 
-                    name: data.name 
-                }));
+                marker.on('click', function() {
+                    showInfo(data.name, data.desc, null, data.color, data.artifact, { 
+                        type: 'tribe', 
+                        key: key, 
+                        name: data.name 
+                    });
+                });
                 
                 layers[key] = { line, marker, hasStarted: false };
             });
             
-            // EREIGNISSE (HISTORICAL EVENTS)
+            // EREIGNISSE
             historicalEvents.forEach(ev => {
                 const color = (ev.type === 'battle' || ev.type === 'crisis' || ev.type === 'plague') ? '#dc2626' : (ev.type === 'climate' ? '#06b6d4' : '#4b5563');
                 let iconType = ev.icon || (ev.type === 'battle' ? 'ph-swords' : (ev.type === 'plague' ? 'ph-skull' : (ev.type === 'crisis' ? 'ph-fire' : (ev.type === 'diplomacy' ? 'ph-handshake' : 'ph-snowflake'))));
                 const pulseClass = ev.type === 'climate' || ev.type === 'plague' ? 'climate-pulse' : '';
                 const html = `<div class="battle-marker flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-md border border-stone-200 text-[${color}] ${pulseClass}"><i class="ph-fill ${iconType} text-lg" style="color:${color}"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
-                const marker = L.marker([ev.lat, ev.lng], { icon: icon, opacity: 0 }).addTo(map);
                 
-                // KLICK-LOGIK EREIGNISSE: Übergabe von { type: 'event', title: '...', year: ... }
-                marker.on('click', () => showInfo(ev.title, ev.desc, ev.quote, color, null, { 
-                    type: 'event', 
-                    title: ev.title, 
-                    year: ev.year,
-                    prompt: ev.prompt 
-                }));
+                const marker = L.marker([ev.lat, ev.lng], { icon: icon, interactive: true }).addTo(map);
+                
+                marker.on('click', function() {
+                    showInfo(ev.title, ev.desc, ev.quote, color, null, { 
+                        type: 'event', 
+                        title: ev.title, 
+                        year: ev.year,
+                        prompt: ev.prompt 
+                    });
+                });
                 
                 eventMarkers[ev.year] = marker;
             });
 
-            // KULTUR-EVENTS
+            // KULTUR
             culturalEvents.forEach(ev => {
                 const html = `<div class="culture-marker flex items-center justify-center w-8 h-8 rounded-full text-amber-700 bg-amber-50"><i class="ph-fill ${ev.icon} text-lg"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
-                const marker = L.marker([ev.lat, ev.lng], { icon: icon, opacity: 0 }).addTo(map);
                 
-                // KLICK-LOGIK KULTUR: Übergabe als Event
-                marker.on('click', () => showInfo(ev.title, ev.desc, null, '#d97706', null, { 
-                    type: 'event', 
-                    title: ev.title, 
-                    year: ev.year, 
-                    prompt: ev.prompt 
-                }));
+                const marker = L.marker([ev.lat, ev.lng], { icon: icon, interactive: true }).addTo(map);
+                
+                marker.on('click', function() {
+                    showInfo(ev.title, ev.desc, null, '#d97706', null, { 
+                        type: 'event', 
+                        title: ev.title, 
+                        year: ev.year, 
+                        prompt: ev.prompt 
+                    });
+                });
                 
                 eventMarkers['cult_' + ev.year + ev.title] = { marker: marker, data: ev };
             });
@@ -535,7 +541,7 @@
                 else if (ev.type === 'plague') { btnClass += ' alert-plague'; icon = 'ph-skull'; typeText = 'Pandemie'; }
                 else if (ev.type === 'crisis') { btnClass += ' alert-battle'; icon = 'ph-fire'; typeText = 'Reichskrise'; }
 
-                activeAlertEvent = { type: 'event', title: ev.title, year: ev.year, prompt: ev.prompt || null }; // Global Event für Button oben
+                activeAlertEvent = { type: 'event', title: ev.title, year: ev.year, prompt: ev.prompt || null }; 
                 
                 alertBtn.className = btnClass;
                 alertIcon.className = `ph-fill text-xl ${icon}`;
@@ -609,9 +615,9 @@
             }
         }
 
-        // ZENTRALE INFO FUNKTION (GENERALISIERT)
+        // ZENTRALE INFO FUNKTION
         function showInfo(title, text, quote, color, artifact, aiData) {
-            activeSidebarContext = aiData; // Speichere den Kontext (Tribe oder Event)
+            activeSidebarContext = aiData; 
             
             const box = document.getElementById('info-box');
             const artContainer = document.getElementById('info-artifact-container');
@@ -633,14 +639,11 @@
 
             if (quote) { document.getElementById('info-quote').innerText = quote; document.getElementById('info-quote').classList.remove('hidden'); } else { document.getElementById('info-quote').classList.add('hidden'); }
             
-            // KI-BUTTON IMMER ANZEIGEN WENN CONTEXT DA IST
             if (aiData) { 
                 aiSection.classList.remove('hidden'); 
                 if(aiData.type === 'event') aiBtnText.innerText = "KI-Analyse: Ereignis hinterfragen";
                 else aiBtnText.innerText = "KI-Analyse: Situation im Jahr " + Math.floor(currentYear);
-            } else { 
-                aiSection.classList.add('hidden'); 
-            }
+            } else { aiSection.classList.add('hidden'); }
             
             document.getElementById('tribe-ai-response').classList.add('hidden'); document.getElementById('tribe-ai-response').innerHTML = '';
             box.classList.remove('hidden');
@@ -662,14 +665,11 @@
             container.appendChild(div); container.scrollTop = container.scrollHeight; 
         }
 
-        // NEU: ZENTRALE FUNKTION FÜR DEN SIDEBAR BUTTON
         async function askGeminiFromSidebar() {
             if (!activeSidebarContext) return;
-            
             const modal = document.getElementById('ai-modal'); 
             const container = document.getElementById('ai-chat-container');
             
-            // Unterscheide Prompt je nach Kontext (Tribe vs. Event)
             let prompt = "";
             let headerTitle = "";
             
@@ -688,12 +688,9 @@
             container.innerHTML = `<div id="loading-spinner" class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 border-t-purple-600"></div><p class="text-stone-500 italic">Analysiere Quellen...</p></div>`;
             
             chatContext = [{ role: 'user', parts: [{ text: prompt }] }];
-
             const result = await callGeminiWithHistory(chatContext);
-            
             document.getElementById('loading-spinner').remove();
             appendMessage(result, 'ai');
-            
             chatContext.push({ role: 'model', parts: [{ text: result }] });
             document.getElementById('ai-input-area').classList.remove('hidden');
             document.getElementById('follow-up-input').focus();
@@ -712,9 +709,9 @@
             appendMessage(result, 'ai');
             chatContext.push({ role: 'model', parts: [{ text: result }] });
             document.getElementById('ai-input-area').classList.remove('hidden');
+            document.getElementById('follow-up-input').focus();
         }
 
-        // Diese Funktion wird jetzt primär vom oberen Alert-Button genutzt
         async function askGeminiEvent() {
             if (!activeAlertEvent) return;
             const modal = document.getElementById('ai-modal'); 

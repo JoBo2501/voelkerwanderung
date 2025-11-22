@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Sicher & Autark</title>
+    <title>Völkerwanderung: Franken & Ostgoten</title>
     
     <!-- Leaflet CSS (Karte) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -17,14 +17,10 @@
     <script>
         /* SICHERHEITSSYSTEM FÜR API KEY
            Wir speichern den Key nicht im Code, sondern im lokalen Browser-Speicher des Nutzers.
-           So kann der Code auf GitHub veröffentlicht werden, ohne dass der Key gesperrt wird.
         */
-        
-        // Hilfsfunktion: Key holen oder abfragen
         function getApiKey() {
             let key = localStorage.getItem('gemini_api_key');
             if (!key) {
-                // Wir zeigen das Modal an, wenn kein Key da ist
                 setTimeout(() => document.getElementById('key-modal').classList.remove('hidden'), 1000);
                 return null;
             }
@@ -38,7 +34,7 @@
                 localStorage.setItem('gemini_api_key', key);
                 document.getElementById('key-modal').classList.add('hidden');
                 alert("Schlüssel gespeichert! Sie können die KI nun nutzen.");
-                location.reload(); // Seite neu laden, um frisch zu starten
+                location.reload(); 
             }
         }
 
@@ -48,22 +44,25 @@
             location.reload();
         }
 
-        /* INLINE BILDER & FORMATIERUNG (Wie zuvor) */
+        /* INLINE BILDER (SVG) - Jetzt inklusive Franken & Ostgoten */
         const artifacts = {
             westgoten: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3Cpattern id='cloisonne' x='0' y='0' width='20' height='20' patternUnits='userSpaceOnUse'%3E%3Crect width='20' height='20' fill='%23b91c1c'/%3E%3Cpath d='M0 0h20v20h-20z' fill='none' stroke='%23fcd34d' stroke-width='2'/%3E%3C/pattern%3E%3Cfilter id='glow'%3E%3CfeGaussianBlur stdDeviation='2.5' result='coloredBlur'/%3E%3CfeMerge%3E%3CfeMergeNode in='coloredBlur'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M200 50 C230 50 250 80 250 100 L280 150 L200 250 L120 150 L150 100 C150 80 170 50 200 50' fill='url(%23cloisonne)' stroke='%23b45309' stroke-width='5' filter='url(%23glow)'/%3E%3Ccircle cx='200' cy='90' r='15' fill='%2378350f' stroke='%23fcd34d' stroke-width='3'/%3E%3C/svg%3E`,
             vandalen: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3Cfilter id='silver'%3E%3CfeSpecularLighting result='specOut' specularExponent='20' lighting-color='%23ffffff'%3E%3CfePointLight x='150' y='150' z='200'/%3E%3C/feSpecularLighting%3E%3CfeComposite in='SourceGraphic' in2='specOut' operator='arithmetic' k1='0' k2='1' k3='1' k4='0'/%3E%3C/filter%3E%3C/defs%3E%3Ccircle cx='200' cy='150' r='100' fill='%23cbd5e1' stroke='%2394a3b8' stroke-width='4' filter='url(%23silver)'/%3E%3Ctext x='200' y='280' text-anchor='middle' font-family='serif' font-weight='bold' fill='%2364748b' font-size='18' letter-spacing='2'%3ED N REX GELIMER%3C/text%3E%3Cpath d='M180 100 C180 100 230 110 230 150 C230 190 190 200 190 200' stroke='%2364748b' stroke-width='3' fill='none'/%3E%3C/svg%3E`,
             hunnen: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 60 C240 60 260 100 260 140 L240 260 L160 260 L140 140 C140 100 160 60 200 60' fill='%2365a30d' stroke='%23fcd34d' stroke-width='4'/%3E%3Cpath d='M200 60 L200 140' stroke='%23fcd34d' stroke-width='2'/%3E%3Cpath d='M140 140 L260 140' stroke='%23fcd34d' stroke-width='2'/%3E%3Ccircle cx='170' cy='100' r='8' fill='%2384cc16'/%3E%3Ccircle cx='230' cy='100' r='8' fill='%2384cc16'/%3E%3C/svg%3E`,
-            langobarden: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3ClinearGradient id='goldGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23fcd34d;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23b45309;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='180' y='50' width='40' height='200' fill='url(%23goldGrad)' stroke='%23b45309' stroke-width='2'/%3E%3Crect x='100' y='110' width='200' height='40' fill='url(%23goldGrad)' stroke='%23b45309' stroke-width='2'/%3E%3Ccircle cx='200' cy='130' r='10' fill='%23fcd34d'/%3E%3C/svg%3E`
+            langobarden: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3ClinearGradient id='goldGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23fcd34d;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23b45309;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='180' y='50' width='40' height='200' fill='url(%23goldGrad)' stroke='%23b45309' stroke-width='2'/%3E%3Crect x='100' y='110' width='200' height='40' fill='url(%23goldGrad)' stroke='%23b45309' stroke-width='2'/%3E%3Ccircle cx='200' cy='130' r='10' fill='%23fcd34d'/%3E%3C/svg%3E`,
+            franken: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 80 C220 80 240 100 240 130 C240 160 200 220 200 220 C200 220 160 160 160 130 C160 100 180 80 200 80' fill='%23fbbf24' stroke='%23b45309' stroke-width='2'/%3E%3Cpath d='M160 130 L120 110 C110 100 110 80 130 80 L160 100' fill='%23ef4444' stroke='%237f1d1d' stroke-width='2' opacity='0.8'/%3E%3Cpath d='M240 130 L280 110 C290 100 290 80 270 80 L240 100' fill='%23ef4444' stroke='%237f1d1d' stroke-width='2' opacity='0.8'/%3E%3Ccircle cx='185' cy='110' r='5' fill='%237f1d1d'/%3E%3Ccircle cx='215' cy='110' r='5' fill='%237f1d1d'/%3E%3C/svg%3E`,
+            ostgoten: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 40 L240 80 L220 180 L200 260 L180 180 L160 80 Z' fill='%23be123c' stroke='%23fbbf24' stroke-width='4'/%3E%3Ccircle cx='200' cy='80' r='15' fill='%23fbbf24'/%3E%3Cpath d='M160 80 L100 100 L140 140' fill='%23be123c' stroke='%23fbbf24' stroke-width='2'/%3E%3Cpath d='M240 80 L300 100 L260 140' fill='%23be123c' stroke='%23fbbf24' stroke-width='2'/%3E%3C/svg%3E`
         };
 
-        // Lokale Bilder Fallback Logik
-        const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300' fill='%23f5f5f4'%3E%3Cpath d='M200 100 L250 180 L150 180 Z' fill='%23e7e5e4'/%3E%3Crect x='180' y='180' width='40' height='60' fill='%23e7e5e4'/%3E%3Ctext x='50%25' y='270' dominant-baseline='middle' text-anchor='middle' font-family='serif' font-size='14' fill='%23a8a29e' class='font-serif'%3EBild fehlt%3C/text%3E%3C/svg%3E";
+        // Lokale Bilder Fallback
+        const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300' fill='%23f5f5f4'%3E%3Crect width='400' height='300' fill='%23e5e5e5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' fill='%23999'%3EBild nicht verfügbar%3C/text%3E%3C/svg%3E";
         function handleImageError(img) { img.onerror = null; img.src = fallbackImage; img.parentElement.classList.remove('hidden'); }
 
-        // Lokale Bilder Pfade (Erwartet Ordner 'img' im Repo)
+        // Konfiguration für lokale Bilder (Optional)
         const localImages = {
             westgoten: './img/westgoten.jpg', vandalen: './img/vandalen.jpg',
-            hunnen: './img/hunnen.jpg', langobarden: './img/langobarden.jpg'
+            hunnen: './img/hunnen.jpg', langobarden: './img/langobarden.jpg',
+            franken: './img/franken.jpg', ostgoten: './img/ostgoten.jpg'
         };
 
         function formatText(text) {
@@ -117,7 +116,7 @@
         </div>
     </div>
 
-    <!-- API KEY MODAL (Initial Hidden) -->
+    <!-- API KEY MODAL -->
     <div id="key-modal" class="hidden fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 ui-element">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 border border-stone-200">
             <div class="text-center mb-4">
@@ -125,15 +124,10 @@
                     <i class="ph-fill ph-key text-purple-600 text-2xl"></i>
                 </div>
                 <h2 class="font-serif font-bold text-xl text-stone-800">Setup: KI-Verbindung</h2>
-                <p class="text-sm text-stone-500 mt-2">Damit die historische Analyse funktioniert, benötigen Sie einen Google Gemini API-Schlüssel. Dieser wird <strong>nur lokal</strong> in Ihrem Browser gespeichert.</p>
+                <p class="text-sm text-stone-500 mt-2">Geben Sie Ihren neuen API-Key ein. Er wird nur lokal gespeichert.</p>
             </div>
-            <input type="password" id="api-key-input" placeholder="Fügen Sie hier Ihren Key ein (AIzaSy...)" class="w-full p-3 border border-stone-300 rounded-lg mb-4 focus:ring-2 focus:ring-purple-500 focus:outline-none font-mono text-sm">
-            <button onclick="saveApiKey()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg transition-colors">
-                Speichern & Starten
-            </button>
-            <p class="text-xs text-stone-400 text-center mt-4">
-                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline hover:text-purple-600">Hier kostenlosen Key erstellen</a>
-            </p>
+            <input type="password" id="api-key-input" placeholder="Key einfügen (AIzaSy...)" class="w-full p-3 border border-stone-300 rounded-lg mb-4 focus:ring-2 focus:ring-purple-500 focus:outline-none font-mono text-sm">
+            <button onclick="saveApiKey()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg transition-colors">Speichern & Starten</button>
         </div>
     </div>
 
@@ -196,11 +190,14 @@
                             <div class="flex flex-col items-start leading-tight"><span>Historische Lage</span><span class="text-[10px] opacity-70">Analysiere <span id="ai-btn-year-ref">375</span></span></div>
                         </button>
                     </div>
-                    <div class="hidden md:flex gap-4 text-xs font-medium text-stone-600">
+                    <!-- ERWEITERTE LEGENDE -->
+                    <div class="hidden md:flex gap-4 text-xs font-medium text-stone-600 flex-wrap">
                         <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-red-600 rounded-full"></div>Westgoten</div>
                         <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-blue-600 rounded-full"></div>Vandalen</div>
                         <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-green-600 rounded-full"></div>Hunnen</div>
                         <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-orange-600 rounded-full"></div>Langobarden</div>
+                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-purple-600 rounded-full"></div>Franken</div>
+                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-rose-800 rounded-full"></div>Ostgoten</div>
                     </div>
                 </div>
                 <div class="relative pt-6 px-2">
@@ -228,13 +225,29 @@
         const limesPath = [ [52.2, 4.4], [52.0, 5.1], [51.2, 6.8], [50.9, 7.0], [50.0, 8.2], [49.0, 8.4], [49.0, 10.9], [48.9, 12.0], [48.4, 13.4], [48.3, 14.3], [48.1, 16.4], [47.8, 17.6], [47.5, 19.0], [44.8, 20.4], [44.6, 22.6], [45.2, 29.6] ];
         const historicalRegions = [ { c: [46.5, 2.0], t: "GALLIA", s: 16 }, { c: [40.0, -4.0], t: "HISPANIA", s: 16 }, { c: [42.5, 12.5], t: "ITALIA", s: 16 }, { c: [45.0, 17.0], t: "PANNONIA", s: 14 }, { c: [43.0, 22.0], t: "ILLYRICUM", s: 14 }, { c: [42.0, 25.0], t: "THRACIA", s: 14 }, { c: [35.0, 2.0], t: "AFRICA", s: 16 }, { c: [51.0, 10.0], t: "GERMANIA", s: 16, color: "#a8a29e" }, { c: [48.0, 30.0], t: "SCYTHIA", s: 14, color: "#a8a29e" } ];
         const dynamicCities = [ { c: [41.9, 12.5], t: "Rom", type: 'capital', start: 0, end: 600, desc: "Die ewige Stadt." }, { c: [41.0, 28.9], t: "Konstantinopel", type: 'capital', start: 330, end: 600, desc: "Das neue Rom." }, { c: [36.8, 10.1], t: "Karthago", type: 'city', start: 0, end: 600, desc: "Kornkammer Roms." }, { c: [44.4, 12.2], t: "Ravenna", type: 'capital', start: 402, end: 600, desc: "Kaiserliche Residenz." }, { c: [43.6, 1.4], t: "Tolosa", type: 'barbarian', start: 418, end: 507, desc: "Westgotenhauptstadt." }, { c: [39.8, -4.0], t: "Toledo", type: 'barbarian', start: 507, end: 600, desc: "Spätere Westgotenhauptstadt." }, { c: [41.5, 13.8], t: "Monte Cassino", type: 'monastery', start: 529, end: 600, desc: "Klostergründung." } ];
+        
+        // ROUTEN (Jetzt mit Franken & Ostgoten)
         const routes = {
             westgoten: { name: "Westgoten", color: "#dc2626", desc: "Foederati, dann Tolosanisches Reich.", path: [[45.5, 25.0, 375], [41.6, 26.5, 378], [40.6, 22.9, 395], [41.9, 12.5, 410], [43.6, 1.4, 418], [41.6, -4.7, 470], [39.8, -4.0, 507]], artifact: { img: localImages.westgoten, fallback: artifacts.westgoten, title: "Adlerfibel", text: "Meisterwerk der Cloisonné-Technik." } },
             vandalen: { name: "Vandalen", color: "#2563eb", desc: "Zug nach Karthago, Seemacht.", path: [[51.0, 17.0, 375], [50.0, 8.2, 405], [49.9, 8.2, 406], [44.8, -0.5, 409], [37.3, -5.9, 415], [35.9, -5.6, 429], [36.8, 10.1, 439], [41.9, 12.5, 455], [36.8, 10.1, 460]], artifact: { img: localImages.vandalen, fallback: artifacts.vandalen, title: "Siliqua des Gelimer", text: "Vandalische Silbermünze." } },
             hunnen: { name: "Hunnen", color: "#16a34a", desc: "Reiternomaden, 'Geißel Gottes'.", path: [[48.0, 43.0, 375], [47.0, 30.0, 390], [47.5, 19.0, 405], [49.0, 4.0, 451], [45.4, 10.9, 452], [47.5, 19.0, 453]], artifact: { img: localImages.hunnen, fallback: artifacts.hunnen, title: "Zikadenfibel", text: "Symbol der Wiedergeburt." } },
-            langobarden: { name: "Langobarden", color: "#d97706", desc: "Späte Einwanderung nach Italien.", path: [[53.5, 10.5, 375], [53.5, 10.5, 400], [48.5, 16.5, 489], [47.5, 19.0, 526], [46.0, 13.0, 568], [45.4, 9.1, 572]], artifact: { img: localImages.langobarden, fallback: artifacts.langobarden, title: "Goldblattkreuz", text: "Langobardische Grabbeigabe." } }
+            langobarden: { name: "Langobarden", color: "#d97706", desc: "Späte Einwanderung nach Italien.", path: [[53.5, 10.5, 375], [53.5, 10.5, 400], [48.5, 16.5, 489], [47.5, 19.0, 526], [46.0, 13.0, 568], [45.4, 9.1, 572]], artifact: { img: localImages.langobarden, fallback: artifacts.langobarden, title: "Goldblattkreuz", text: "Langobardische Grabbeigabe." } },
+            // NEUE VÖLKER
+            franken: { 
+                name: "Franken", color: "#9333ea", // Violett
+                desc: "Expansion vom Rhein nach Gallien. Taufe Chlodwigs (ca. 496) begründet das Mittelalter.", 
+                path: [[51.5, 5.0, 375], [51.0, 4.5, 430], [50.0, 3.5, 451], [49.4, 3.3, 486], [48.8, 2.3, 500], [46.5, 0.5, 507], [48.8, 2.3, 511]], // Toxandria -> Soissons -> Vouillé
+                artifact: { img: localImages.franken, fallback: artifacts.franken, title: "Goldbiene (Childerich)", text: "Aus dem Grab Childerichs I. Napoleon nutzte sie als Symbol." } 
+            },
+            ostgoten: { 
+                name: "Ostgoten", color: "#9f1239", // Dunkelrot
+                desc: "Nach hunnischer Herrschaft Zug nach Italien (489). Theoderichs 'goldenes Zeitalter' in Ravenna.", 
+                path: [[47.0, 32.0, 375], [46.5, 29.0, 400], [47.5, 19.0, 454], [46.0, 14.5, 488], [45.4, 11.0, 489], [44.4, 12.2, 493], [44.4, 12.2, 526]], // Krim -> Pannonien -> Isonzo -> Ravenna
+                artifact: { img: localImages.ostgoten, fallback: artifacts.ostgoten, title: "Adlerfibel (Domagnano)", text: "Meisterwerk ostgotischer Goldschmiedekunst aus San Marino." } 
+            }
         };
-        const historicalEvents = [ { year: 378, lat: 41.67, lng: 26.56, title: "Schlacht von Adrianopel", type: "battle", desc: "Goten besiegen Valens.", quote: "Ein Gemetzel wie bei Cannae." }, { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Dammbruch am Limes.", quote: "Ganz Gallien rauchte." }, { year: 410, lat: 41.9, lng: 12.5, title: "Plünderung Roms", type: "battle", desc: "Alarich in Rom.", quote: "Die Stadt ist erobert." }, { year: 451, lat: 49.0, lng: 4.0, title: "Katalaunische Felder", type: "battle", desc: "Aetius stoppt Attila.", quote: "Ein wilder Kampf." }, { year: 455, lat: 41.9, lng: 12.5, title: "Sack von Rom", type: "battle", desc: "Vandalen plündern.", quote: null }, { year: 476, lat: 44.4, lng: 12.2, title: "Ende Westroms", type: "treaty", desc: "Odoaker übernimmt.", quote: "Das westliche Reich endete." } ];
+        
+        const historicalEvents = [ { year: 378, lat: 41.67, lng: 26.56, title: "Schlacht von Adrianopel", type: "battle", desc: "Goten besiegen Valens.", quote: "Ein Gemetzel wie bei Cannae." }, { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Dammbruch am Limes.", quote: "Ganz Gallien rauchte." }, { year: 410, lat: 41.9, lng: 12.5, title: "Plünderung Roms", type: "battle", desc: "Alarich in Rom.", quote: "Die Stadt ist erobert." }, { year: 451, lat: 49.0, lng: 4.0, title: "Katalaunische Felder", type: "battle", desc: "Aetius stoppt Attila.", quote: "Ein wilder Kampf." }, { year: 455, lat: 41.9, lng: 12.5, title: "Sack von Rom", type: "battle", desc: "Vandalen plündern.", quote: null }, { year: 476, lat: 44.4, lng: 12.2, title: "Ende Westroms", type: "treaty", desc: "Odoaker übernimmt.", quote: "Das westliche Reich endete." }, { year: 486, lat: 49.3, lng: 3.3, title: "Schlacht von Soissons", type: "battle", desc: "Chlodwig besiegt Syagrius.", quote: "Das Ende römischer Herrschaft in Gallien." }, { year: 493, lat: 44.4, lng: 12.2, title: "Rabenschlacht", type: "treaty", desc: "Theoderich tötet Odoaker eigenhändig.", quote: "Ein Festmahl des Verrats." } ];
 
         // --- INIT ---
         window.onload = function() { 
@@ -304,13 +317,13 @@
 
             Object.keys(routes).forEach(key => {
                 const res = getPosition(routes[key].path, year);
-                const L = layers[key];
+                const layerData = layers[key]; 
                 if (res) {
-                    if (!L.hasStarted) { L.marker.setOpacity(1); L.line.setStyle({opacity: 0.7}); L.hasStarted = true; }
-                    L.marker.setLatLng([res.lat, res.lng]); L.line.setLatLngs(res.trail);
-                    if (key === 'hunnen' && year > 454) { L.marker.setOpacity(0); L.marker.closeTooltip(); L.line.setStyle({opacity: 0.15}); }
-                    else if (key === 'hunnen') { L.marker.setOpacity(1); if(!L.marker.isTooltipOpen()) L.marker.openTooltip(); L.line.setStyle({opacity: 0.7}); }
-                } else { L.marker.setOpacity(0); L.marker.closeTooltip(); L.line.setLatLngs([]); L.hasStarted = false; }
+                    if (!layerData.hasStarted) { layerData.marker.setOpacity(1); layerData.line.setStyle({opacity: 0.7}); layerData.hasStarted = true; }
+                    layerData.marker.setLatLng([res.lat, res.lng]); layerData.line.setLatLngs(res.trail);
+                    if (key === 'hunnen' && year > 454) { layerData.marker.setOpacity(0); layerData.marker.closeTooltip(); layerData.line.setStyle({opacity: 0.15}); }
+                    else if (key === 'hunnen') { layerData.marker.setOpacity(1); if(!layerData.marker.isTooltipOpen()) layerData.marker.openTooltip(); layerData.line.setStyle({opacity: 0.7}); }
+                } else { layerData.marker.setOpacity(0); layerData.marker.closeTooltip(); layerData.line.setLatLngs([]); layerData.hasStarted = false; }
             });
             historicalEvents.forEach(ev => {
                 if (year >= ev.year && year <= ev.year + 2) eventMarkers[ev.year].setOpacity(1); else eventMarkers[ev.year].setOpacity(0);
@@ -336,13 +349,9 @@
             if (artifact) {
                 artContainer.classList.remove('hidden');
                 const img = document.getElementById('artifact-img');
-                
-                // Hybrid-Lösung: Erst lokal versuchen, wenn Fehler -> Inline SVG
-                img.onerror = function() { 
-                    this.onerror = null; 
-                    this.src = artifact.fallback; // Fallback auf SVG
-                };
-                img.src = artifact.img; // Versuch lokales Bild
+                // Hybrid: Erst lokal, dann Fallback
+                img.onerror = function() { this.onerror = null; this.src = artifact.fallback; };
+                img.src = artifact.img;
                 
                 document.getElementById('artifact-title').innerText = artifact.title;
                 document.getElementById('artifact-desc').innerText = artifact.text;
@@ -359,17 +368,17 @@
         function closeInfo() { document.getElementById('info-box').classList.add('hidden'); }
         function closeAiModal() { document.getElementById('ai-modal').classList.add('hidden'); }
 
-        // --- KI API CALL (Mit Key aus Storage) ---
+        // --- KI API CALL ---
         async function callGemini(prompt) {
             const key = getApiKey();
-            if (!key) return "FEHLER: Kein API-Key gespeichert. Bitte Seite neu laden.";
+            if (!key) return "FEHLER: Kein API-Key gespeichert.";
             
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
             try {
                 const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
                 if (!response.ok) {
                     const err = await response.json();
-                    if(response.status === 403) return `<b>API Fehler (403):</b> Key abgelehnt. Bitte prüfen Sie den Key unter dem Schlüssel-Icon oben rechts.`;
+                    if(response.status === 403) return `<b>API Fehler (403):</b> Key abgelehnt.`;
                     return `<b>API Fehler (${response.status}):</b> ${err.error?.message}`;
                 }
                 const data = await response.json(); return data.candidates[0].content.parts[0].text;

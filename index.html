@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Narrative Geschichte</title>
+    <title>Völkerwanderung: Narrative Steuerung</title>
     
     <!-- Leaflet CSS (Karte) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -90,20 +90,14 @@
         .climate-pulse:after { border: 2px solid #06b6d4; animation: pulse-ring 2.5s infinite; background: rgba(6,182,212,0.1); }
         .plague-pulse:after { border: 2px solid #10b981; animation: pulse-ring 1s infinite; background: rgba(16, 185, 129, 0.2); }
         
-        /* DYNAMISCHE ALERT-BUTTONS (Narrativ) */
+        /* DYNAMISCHE ALERT-BUTTONS */
         .alert-base { animation: alert-pulse 2.5s infinite; color: white; border: 1px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); backdrop-filter: blur(4px); }
         
-        /* 1. Klima/Pest (Natur) */
         .alert-nature { background: linear-gradient(135deg, #0891b2, #3b82f6); border-color: #a5f3fc; }
-        /* 2. Dürre (Hitze) */
         .alert-drought { background: linear-gradient(135deg, #ea580c, #b45309); border-color: #fdba74; }
-        /* 3. Pest (Krankheit) */
         .alert-plague  { background: linear-gradient(135deg, #059669, #047857); border-color: #6ee7b7; }
-        /* 4. Krieg/Schlacht (Blut) */
         .alert-battle { background: linear-gradient(135deg, #dc2626, #991b1b); border-color: #fca5a5; }
-        /* 5. Politik/Vertrag (Imperial) */
         .alert-treaty { background: linear-gradient(135deg, #7e22ce, #581c87); border-color: #d8b4fe; }
-        /* 6. Migration (Bewegung) */
         .alert-move { background: linear-gradient(135deg, #4f46e5, #312e81); border-color: #a5b4fc; }
 
         .ai-spinner { border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top: 3px solid #9333ea; width: 20px; height: 20px; animation: spin 1s linear infinite; }
@@ -128,7 +122,7 @@
             <p class="text-xs text-stone-500 font-mono mt-1">ca. 375 – 568 n. Chr.</p>
         </div>
 
-        <!-- NARRATIVER NEWS-TICKER (Erscheint bei ALLEN Events) -->
+        <!-- NARRATIVER NEWS-TICKER -->
         <div id="narrative-alert" class="hidden ui-element mx-auto md:absolute md:left-1/2 md:-translate-x-1/2 md:top-4 transition-all duration-500 z-[5000]">
             <button id="alert-btn" onclick="askGeminiEvent()" class="alert-base px-6 py-3 rounded-full flex items-center gap-3 text-sm font-bold cursor-pointer hover:scale-105 transition-transform min-w-[280px] justify-between">
                 <div class="flex items-center gap-3">
@@ -212,36 +206,51 @@
     <div class="ui-layer bottom-0 left-0 right-0">
         <div class="ui-element bg-white border-t border-stone-200 shadow-lg p-4 pb-8 md:pb-6">
             <div class="max-w-5xl mx-auto w-full">
+                
+                <!-- OBJEKTE & SPEED CONTROL -->
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-4">
+                        <!-- Play -->
                         <button id="play-btn" onclick="togglePlay()" class="w-14 h-14 bg-stone-800 hover:bg-stone-700 text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
                             <i id="play-icon" class="ph-fill ph-play text-2xl ml-1"></i>
                         </button>
+                        
+                        <!-- Jahr -->
                         <div>
                             <div class="text-[10px] uppercase tracking-widest text-stone-500 font-bold">Jahr</div>
                             <div class="text-4xl font-serif font-bold text-stone-800 tabular-nums" id="year-display">375</div>
                         </div>
-                        <button onclick="askGeminiContext()" class="hidden md:flex ml-4 bg-purple-50 border border-purple-200 text-purple-900 hover:bg-purple-100 px-4 py-2 rounded-full shadow-sm items-center gap-2 text-xs font-bold transition-all active:scale-95">
-                            <i class="ph-fill ph-sparkle text-purple-600 text-lg"></i> 
-                            <div class="flex flex-col items-start leading-tight"><span>Historische Lage</span><span class="text-[10px] opacity-70">Analysiere <span id="ai-btn-year-ref">375</span></span></div>
-                        </button>
+
+                        <!-- NEU: Speed Controls -->
+                        <div class="hidden md:flex items-center ml-4 bg-stone-100 rounded-lg p-1 border border-stone-200">
+                            <button onclick="setSpeed('slow')" id="speed-slow" class="px-3 py-1 text-xs font-bold rounded-md transition-colors text-stone-600 hover:bg-white">Langsam</button>
+                            <button onclick="setSpeed('medium')" id="speed-medium" class="px-3 py-1 text-xs font-bold rounded-md transition-colors text-stone-600 hover:bg-white bg-white shadow-sm">Mittel</button>
+                            <button onclick="setSpeed('fast')" id="speed-fast" class="px-3 py-1 text-xs font-bold rounded-md transition-colors text-stone-600 hover:bg-white">Schnell</button>
+                        </div>
                     </div>
-                    <!-- LEGENDE -->
-                    <div class="hidden md:flex gap-4 text-xs font-medium text-stone-600 flex-wrap">
-                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-red-600 rounded-full"></div>Westgoten</div>
-                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-blue-600 rounded-full"></div>Vandalen</div>
-                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-green-600 rounded-full"></div>Hunnen</div>
-                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-orange-600 rounded-full"></div>Langobarden</div>
-                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-purple-600 rounded-full"></div>Franken</div>
-                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-rose-800 rounded-full"></div>Ostgoten</div>
-                        <div class="flex items-center gap-1.5 border-l pl-2 ml-2 border-stone-300"><div class="w-3 h-3 bg-purple-700 rounded-full"></div>Rom. Armee</div>
-                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-emerald-500 rounded-full"></div>Pest</div>
-                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-amber-600 rounded-full"></div>Dürre</div>
-                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-cyan-500 rounded-full"></div>Klima</div>
-                    </div>
+
+                    <!-- KI Button (Kontext) -->
+                    <button onclick="askGeminiContext()" class="hidden md:flex bg-purple-50 border border-purple-200 text-purple-900 hover:bg-purple-100 px-4 py-2 rounded-full shadow-sm items-center gap-2 text-xs font-bold transition-all active:scale-95">
+                        <i class="ph-fill ph-sparkle text-purple-600 text-lg"></i> 
+                        <div class="flex flex-col items-start leading-tight"><span>Historische Lage</span><span class="text-[10px] opacity-70">Analysiere <span id="ai-btn-year-ref">375</span></span></div>
+                    </button>
                 </div>
-                <div class="relative pt-6 px-2">
-                    <div class="absolute top-0 left-0 w-full flex justify-between text-[10px] text-stone-400 font-mono select-none"><span>375</span><span>425</span><span>475</span><span>525</span><span>568</span></div>
+
+                <!-- Legende (Kompakt) -->
+                <div class="hidden md:flex gap-3 text-[10px] font-medium text-stone-500 flex-wrap mb-2">
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 bg-red-600 rounded-full"></div>Westgoten</div>
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 bg-blue-600 rounded-full"></div>Vandalen</div>
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 bg-green-600 rounded-full"></div>Hunnen</div>
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 bg-orange-600 rounded-full"></div>Langobarden</div>
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 bg-purple-600 rounded-full"></div>Franken</div>
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 bg-rose-800 rounded-full"></div>Ostgoten</div>
+                    <div class="flex items-center gap-1 border-l pl-2 border-stone-300"><div class="w-2 h-2 bg-purple-700 rounded-full"></div>Rom. Armee</div>
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 bg-emerald-500 rounded-full"></div>Pest</div>
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 bg-cyan-500 rounded-full"></div>Klima</div>
+                </div>
+
+                <!-- Slider -->
+                <div class="relative px-2">
                     <input type="range" id="year-slider" min="375" max="568" value="375" step="1" oninput="updateYear(this.value)" onchange="updateYear(this.value)">
                 </div>
             </div>
@@ -258,16 +267,16 @@
         const layers = {};
         const eventMarkers = {};
         const cityMarkers = {};
-        
-        // ATMOSPHÄRISCHE LAYER
-        let climateLayer = null; // 536
-        let plagueLayer = null;  // 542
-        let droughtLayer = null; // 375
+        let climateLayer = null, plagueLayer = null, droughtLayer = null;
         
         let isPlaying = false;
         let animationInterval;
         let currentYear = 375;
-        let activeAlertEvent = null; // Speichert das aktuelle dominante Event für den Ticker
+        let activeAlertEvent = null;
+        
+        // NEU: GESCHWINDIGKEITS-STEUERUNG
+        let playbackSpeed = 800; // Standard: Langsam (ms pro Jahr)
+        const speeds = { slow: 800, medium: 300, fast: 100 };
 
         // --- GEO-DATEN ---
         const limesPath = [ [52.2, 4.4], [52.0, 5.1], [51.2, 6.8], [50.9, 7.0], [50.0, 8.2], [49.0, 8.4], [49.0, 10.9], [48.9, 12.0], [48.4, 13.4], [48.3, 14.3], [48.1, 16.4], [47.8, 17.6], [47.5, 19.0], [44.8, 20.4], [44.6, 22.6], [45.2, 29.6] ];
@@ -284,32 +293,52 @@
             stilicho: { name: "Legionen (Stilicho)", color: "#7e22ce", type: "army", desc: "401: Stilicho zieht Truppen von der Rheingrenze ab.", path: [[50.0, 8.2, 401], [47.5, 7.5, 401.5], [45.4, 9.2, 402]], artifact: { img: localImages.rom, fallback: artifacts.rom, title: "Schildzeichen (Chi-Rho)", text: "Das Christusmonogramm auf den Schilden." } },
             aetius: { name: "Heer des Aetius", color: "#7e22ce", type: "army", desc: "451: Aetius mobilisiert gegen Attila.", path: [[41.9, 12.5, 450], [45.0, 5.0, 450.5], [49.0, 4.0, 451]], artifact: { img: localImages.rom, fallback: artifacts.rom, title: "Schildzeichen (Chi-Rho)", text: "Symbol des christlichen Imperiums." } },
             belisarius: { name: "Flotte (Belisar)", color: "#7e22ce", type: "army", desc: "533: Oströmische Rückeroberung.", path: [[41.0, 28.9, 533], [37.0, 15.0, 533.4], [36.8, 10.1, 533.8], [37.5, 14.0, 535], [41.9, 12.5, 536], [44.4, 12.2, 540]], artifact: { img: localImages.rom, fallback: artifacts.rom, title: "Schildzeichen (Chi-Rho)", text: "Symbol der Restauratio Imperii." } },
-            pest: { 
-                name: "Die Pest", color: "#10b981", type: "plague",
-                desc: "541-545: Yersinia pestis breitet sich über Handelsrouten von Ägypten über Konstantinopel bis nach Gallien aus.",
-                path: [[31.0, 32.5, 541], [31.2, 29.9, 541.5], [41.0, 28.9, 542], [38.0, 23.0, 542.5], [37.5, 15.0, 543], [41.9, 12.5, 543.5], [43.3, 5.4, 544], [48.0, 2.0, 545]], 
-                artifact: { img: localImages.pest, fallback: artifacts.pest, title: "Yersinia pestis", text: "Der Erreger der Beulenpest." }
-            }
+            pest: { name: "Die Pest", color: "#10b981", type: "plague", desc: "541-545: Yersinia pestis breitet sich aus.", path: [[31.0, 32.5, 541], [31.2, 29.9, 541.5], [41.0, 28.9, 542], [38.0, 23.0, 542.5], [37.5, 15.0, 543], [41.9, 12.5, 543.5], [43.3, 5.4, 544], [48.0, 2.0, 545]], artifact: { img: localImages.pest, fallback: artifacts.pest, title: "Yersinia pestis", text: "Der Erreger der Beulenpest." } }
         };
         
         const historicalEvents = [ 
-            { year: 375, lat: 48.0, lng: 45.0, title: "Megadürre", type: "climate", icon: "ph-sun-dim", duration: 25, desc: "Jahrzehntelange Trockenheit treibt die Hunnen nach Westen.", quote: "Die Steppe verdorrte.", aiPrompt: "Analysiere die klimatischen Ursachen der Hunnenwanderung um 375 n. Chr." },
-            { year: 378, lat: 41.67, lng: 26.56, title: "Schlacht von Adrianopel", type: "battle", desc: "Goten besiegen Valens.", quote: "Ein Gemetzel wie bei Cannae.", aiPrompt: "Analysiere die Schlacht von Adrianopel 378. Warum verlor Rom? Welche Folgen hatte der Tod von Kaiser Valens?" }, 
-            { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Dammbruch am Limes.", quote: "Ganz Gallien rauchte.", aiPrompt: "Analysiere den Rheinübergang 406. Warum war die Grenze unbewacht? Welche Völker waren beteiligt?" }, 
-            { year: 410, lat: 41.9, lng: 12.5, title: "Plünderung Roms", type: "battle", desc: "Alarich in Rom.", quote: "Die Stadt ist erobert.", aiPrompt: "Analysiere die Plünderung Roms 410 durch Alarich. Welche symbolische Bedeutung hatte dies für die Zeitgenossen (Augustinus/Hieronymus)?" }, 
-            { year: 447, lat: 41.0, lng: 28.0, title: "Hunnen-Tribut", type: "diplomacy", desc: "Ostrom erkauft Frieden von Attila.", quote: "Gold statt Blut.", aiPrompt: "Erkläre die Tributpolitik von Theodosius II. gegenüber Attila. Warum zahlte Ostrom?" },
-            { year: 451, lat: 49.0, lng: 4.0, title: "Katalaunische Felder", type: "battle", desc: "Aetius stoppt Attila.", quote: "Ein wilder Kampf.", aiPrompt: "Analysiere die Schlacht auf den Katalaunischen Feldern 451. Wer kämpfte auf wessen Seite? War es wirklich ein römischer Sieg?" }, 
-            { year: 455, lat: 41.9, lng: 12.5, title: "Sack von Rom", type: "battle", desc: "Vandalen plündern.", quote: null, aiPrompt: "Vergleiche die Plünderung 455 (Vandalen) mit 410 (Goten). Warum war 455 verheerender?" }, 
-            { year: 476, lat: 44.4, lng: 12.2, title: "Ende Westroms", type: "treaty", desc: "Odoaker übernimmt.", quote: "Das westliche Reich endete.", aiPrompt: "Analysiere das Jahr 476. Warum setzte Odoaker Romulus Augustulus ab, rief sich aber nicht zum Kaiser aus?" }, 
-            { year: 486, lat: 49.3, lng: 3.3, title: "Schlacht von Soissons", type: "battle", desc: "Chlodwig besiegt Syagrius.", quote: "Ende Roms in Gallien.", aiPrompt: "Analysiere den Aufstieg der Franken unter Chlodwig nach 486. Was bedeutete das Ende des Syagrius-Reiches?" }, 
-            { year: 493, lat: 44.4, lng: 12.2, title: "Rabenschlacht", type: "treaty", desc: "Kampf um Italien: Theoderich (im Auftrag Ostroms) besiegt Odoaker (Rex Italiae). Tödliches Friedensmahl.", quote: "Der Verrat von Ravenna.", aiPrompt: "Erkläre den Konflikt Theoderich vs. Odoaker. Welche Rolle spielte der oströmische Kaiser Zeno?" },
-            { year: 536, lat: 42.0, lng: 12.5, title: "Vulkanischer Winter", type: "climate", icon: "ph-snowflake", duration: 10, desc: "Ein Jahr ohne Sommer. Beginn der Kleinen Eiszeit der Spätantike (LALIA).", quote: "Die Sonne gab ihr Licht ohne Strahl.", aiPrompt: "Erkläre das Phänomen von 536 (LALIA). Welche vulkanischen Ursachen vermutet man und wie wirkte sich dies auf die Landwirtschaft aus?" },
-            { year: 540, lat: 36.2, lng: 36.1, title: "Perserkrieg", type: "crisis", desc: "Die Sassaniden plündern Antiochia.", quote: "Die zweite Front.", aiPrompt: "Analysiere den Römisch-Persischen Krieg um 540. Warum zwang Chosrau I. Justinian zum Zweifrontenkrieg?" },
-            { year: 542, lat: 41.0, lng: 28.9, title: "Justinianische Pest", type: "plague", icon: "ph-skull", duration: 20, desc: "Die Pandemie tötet ein Drittel der Bevölkerung.", quote: "Gottes Zorn.", aiPrompt: "Analysiere die Folgen der Justinianischen Pest ab 542 für die Demografie und das Militär des Oströmischen Reiches." }
+            // Erweiterte Liste für Narrative Dichte
+            { year: 375, lat: 48.0, lng: 45.0, title: "Megadürre", type: "climate", icon: "ph-sun-dim", duration: 25, desc: "Jahrzehntelange Trockenheit treibt die Hunnen nach Westen.", quote: "Die Steppe verdorrte." },
+            { year: 378, lat: 41.67, lng: 26.56, title: "Schlacht von Adrianopel", type: "battle", desc: "Goten besiegen Valens. Ein Schock für das Imperium.", quote: "Ein Gemetzel wie bei Cannae." }, 
+            { year: 401, lat: 45.4, lng: 9.2, title: "Alarichs Einfall", type: "move", desc: "Goten fallen in Italien ein. Stilicho zieht Truppen vom Rhein ab.", quote: "Die Mauern erzittern." },
+            { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Vandalen & Sueben brechen durch den unbewachten Limes.", quote: "Ganz Gallien rauchte." }, 
+            { year: 410, lat: 41.9, lng: 12.5, title: "Plünderung Roms", type: "battle", desc: "Alarich in Rom. Das psychologische Ende der Antike.", quote: "Die Stadt ist erobert." }, 
+            { year: 429, lat: 35.9, lng: -5.6, title: "Zug nach Afrika", type: "move", desc: "Vandalen setzen über. Rom verliert seine Kornkammer.", quote: "Das Brot geht aus." },
+            { year: 447, lat: 41.0, lng: 28.0, title: "Hunnen-Tribut", type: "diplomacy", desc: "Ostrom erkauft Frieden von Attila.", quote: "Gold statt Blut." },
+            { year: 451, lat: 49.0, lng: 4.0, title: "Katalaunische Felder", type: "battle", desc: "Die Völkerschlacht. Aetius stoppt Attila in Gallien.", quote: "Ein wilder Kampf." }, 
+            { year: 455, lat: 41.9, lng: 12.5, title: "Sack von Rom", type: "battle", desc: "Vandalen plündern Rom systematisch von See aus.", quote: null }, 
+            { year: 476, lat: 44.4, lng: 12.2, title: "Ende Westroms", type: "treaty", desc: "Odoaker setzt den letzten Kaiser ab.", quote: "Kein Kaiser mehr im Westen." }, 
+            { year: 486, lat: 49.3, lng: 3.3, title: "Schlacht von Soissons", type: "battle", desc: "Chlodwig besiegt Syagrius. Aufstieg der Franken.", quote: "Ende Roms in Gallien." }, 
+            { year: 493, lat: 44.4, lng: 12.2, title: "Rabenschlacht", type: "treaty", desc: "Theoderich tötet Odoaker. Ostgoten beherrschen Italien.", quote: "Der Verrat von Ravenna." },
+            { year: 507, lat: 46.5, lng: 0.5, title: "Schlacht von Vouillé", type: "battle", desc: "Franken besiegen Westgoten. Gallien wird fränkisch.", quote: "Die Goten weichen nach Spanien." },
+            { year: 533, lat: 36.8, lng: 10.1, title: "Vandalenkrieg", type: "battle", desc: "Belisar landet in Afrika. Schnelles Ende des Vandalenreichs.", quote: "Justinians Traum." },
+            { year: 536, lat: 42.0, lng: 12.5, title: "Vulkanischer Winter", type: "climate", icon: "ph-snowflake", duration: 10, desc: "Ein Jahr ohne Sommer. Missernten schwächen die Bevölkerung.", quote: "Die Sonne gab ihr Licht ohne Strahl." },
+            { year: 540, lat: 36.2, lng: 36.1, title: "Perserkrieg", type: "crisis", desc: "Sassaniden plündern Antiochia. Zweifrontenkrieg für Ostrom.", quote: "Die zweite Front." },
+            { year: 542, lat: 41.0, lng: 28.9, title: "Justinianische Pest", type: "plague", icon: "ph-skull", duration: 20, desc: "Pandemie tötet Millionen. Ende der Reconquista-Träume.", quote: "Gottes Zorn." },
+            { year: 552, lat: 43.2, lng: 12.8, title: "Busta Gallorum", type: "battle", desc: "Narses besiegt Totila. Endgültiges Ende der Ostgoten.", quote: "Ein blutiges Ende." }
         ];
 
         // --- LOGIK ---
         window.onload = function() { getApiKey(); initMap(); updateVisualization(375); };
+
+        // Setze Standardgeschwindigkeit (Narrative Mode)
+        function setSpeed(level) {
+            playbackSpeed = speeds[level];
+            // UI Feedback
+            document.querySelectorAll('[id^="speed-"]').forEach(btn => {
+                btn.classList.remove('bg-white', 'shadow-sm', 'text-black');
+                btn.classList.add('text-stone-600', 'hover:bg-white');
+            });
+            const activeBtn = document.getElementById(`speed-${level}`);
+            activeBtn.classList.add('bg-white', 'shadow-sm', 'text-black');
+            activeBtn.classList.remove('text-stone-600');
+            
+            // Wenn läuft, neu starten mit neuer Speed
+            if(isPlaying) {
+                clearInterval(animationInterval);
+                startAnimation();
+            }
+        }
 
         function initMap() {
             map = L.map('map', { zoomControl: false, attributionControl: false }).setView([46.5, 14.0], 5);
@@ -328,32 +357,17 @@
                 cityMarkers[idx] = { marker, tooltip, start: city.start, end: city.end };
             });
 
-            // 1. Klima-Layer (Blau/Kalt)
             climateLayer = L.circle([46.0, 15.0], { radius: 1500000, color: '#64748b', fillColor: '#94a3b8', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
-            
-            // 2. Pest-Layer (Grün/Miasma) - Zentrum Mittelmeer
             plagueLayer = L.circle([38.0, 18.0], { radius: 1500000, color: '#10b981', fillColor: '#10b981', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
-            
-            // 3. Dürre-Layer (Orange/Hitze) - Zentrum Steppe
             droughtLayer = L.circle([48.0, 40.0], { radius: 800000, color: '#d97706', fillColor: '#d97706', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
 
             Object.keys(routes).forEach(key => {
                 const data = routes[key];
-                let dashStyle = '1, 6';
-                if (data.type === 'army') dashStyle = '10, 5';
-                if (data.type === 'plague') dashStyle = '1, 10'; 
-
+                let dashStyle = '1, 6'; if (data.type === 'army') dashStyle = '10, 5'; if (data.type === 'plague') dashStyle = '1, 10'; 
                 const line = L.polyline([], { color: data.color, weight: 4, opacity: 0.7, dashArray: dashStyle }).addTo(map);
-                
-                let borderRadius = '50%';
-                if (data.type === 'army') borderRadius = '2px';
-                
-                let iconClass = 'pulse-icon';
-                if (data.type === 'army') iconClass = 'pulse-icon roman-pulse';
-                if (data.type === 'plague') iconClass = 'pulse-icon plague-pulse';
-
+                let borderRadius = '50%'; if (data.type === 'army') borderRadius = '2px';
+                let iconClass = 'pulse-icon'; if (data.type === 'army') iconClass = 'pulse-icon roman-pulse'; if (data.type === 'plague') iconClass = 'pulse-icon plague-pulse';
                 const iconHtml = `<div style="background-color: ${data.color}; width: 14px; height: 14px; border-radius: ${borderRadius}; border: 2px solid white;"></div>`;
-                
                 const icon = L.divIcon({ className: iconClass, html: iconHtml, iconSize: [14, 14], iconAnchor: [7, 7] });
                 const marker = L.marker([0,0], { icon: icon }).addTo(map);
                 marker.bindTooltip(data.name, { permanent: true, direction: 'right', className: 'custom-label', offset: [10, 0] });
@@ -363,18 +377,7 @@
 
             historicalEvents.forEach(ev => {
                 const color = (ev.type === 'battle' || ev.type === 'crisis' || ev.type === 'plague') ? '#dc2626' : (ev.type === 'climate' ? '#06b6d4' : '#4b5563');
-                
-                let iconType = ev.icon;
-                if (!iconType) {
-                    if (ev.type === 'battle') iconType = 'ph-swords';
-                    if (ev.type === 'plague') iconType = 'ph-skull';
-                    if (ev.type === 'crisis') iconType = 'ph-fire';
-                    if (ev.type === 'diplomacy') iconType = 'ph-handshake';
-                    if (ev.type === 'climate') iconType = 'ph-snowflake';
-                    if (ev.type === 'move') iconType = 'ph-arrows-left-right';
-                    if (ev.type === 'treaty') iconType = 'ph-scroll';
-                }
-
+                let iconType = ev.icon || (ev.type === 'battle' ? 'ph-swords' : (ev.type === 'plague' ? 'ph-skull' : (ev.type === 'crisis' ? 'ph-fire' : (ev.type === 'diplomacy' ? 'ph-handshake' : 'ph-snowflake'))));
                 const pulseClass = ev.type === 'climate' || ev.type === 'plague' ? 'climate-pulse' : '';
                 const html = `<div class="battle-marker flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-md border border-stone-200 text-[${color}] ${pulseClass}"><i class="ph-fill ${iconType} text-lg" style="color:${color}"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
@@ -398,6 +401,7 @@
 
         function updateVisualization(year) {
             currentYear = year;
+            // Update AI UI Elements
             const aiYearEl = document.getElementById('tribe-ai-year'); if (aiYearEl) aiYearEl.innerText = year;
             const aiBtnRef = document.getElementById('ai-btn-year-ref'); if (aiBtnRef) aiBtnRef.innerText = year;
             
@@ -405,7 +409,7 @@
                 if (year >= cm.start && year <= cm.end) { cm.marker.setStyle({ opacity: 1, fillOpacity: 1 }); cm.tooltip.setOpacity(1); } else { cm.marker.setStyle({ opacity: 0, fillOpacity: 0 }); cm.tooltip.setOpacity(0); }
             });
 
-            // --- NARRATIVER ALERT TICKER (Generalisiert) ---
+            // --- NARRATIVER ALERT ---
             const alertDiv = document.getElementById('narrative-alert');
             const alertBtn = document.getElementById('alert-btn');
             const alertIcon = document.getElementById('alert-icon');
@@ -414,46 +418,17 @@
             
             let activeEvent = null;
 
-            // 1. ATMOSPHÄRISCHE LAYER (Hintergrund)
-            // Dürre (370-400)
-            if (year >= 370 && year <= 400) {
-                let op = 0.3; if(year < 375) op = (year - 370) * 0.06; if(year > 385) op = 0.3 - ((year - 385) * 0.02);
-                droughtLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 });
-            } else { droughtLayer.setStyle({ fillOpacity: 0 }); }
+            // Layer Opacity Logic
+            if (year >= 370 && year <= 400) { let op = 0.3; if(year < 375) op = (year - 370) * 0.06; if(year > 385) op = 0.3 - ((year - 385) * 0.02); droughtLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 }); } else { droughtLayer.setStyle({ fillOpacity: 0 }); }
+            if (year >= 536 && year <= 545) { let op = 0.3; if(year > 538) op = 0.3 - ((year - 538) * 0.04); climateLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 }); } else { climateLayer.setStyle({ fillOpacity: 0 }); }
+            if (year >= 541 && year <= 560) { let op = 0.3; if(year > 545) op = 0.3 - ((year - 545) * 0.02); plagueLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 }); } else { plagueLayer.setStyle({ fillOpacity: 0 }); }
 
-            // Klima 536
-            if (year >= 536 && year <= 545) {
-                let op = 0.3; if(year > 538) op = 0.3 - ((year - 538) * 0.04);
-                climateLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 });
-            } else { climateLayer.setStyle({ fillOpacity: 0 }); }
-
-            // Pest 541
-            if (year >= 541 && year <= 560) {
-                let op = 0.3; if(year > 545) op = 0.3 - ((year - 545) * 0.02);
-                plagueLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 });
-            } else { plagueLayer.setStyle({ fillOpacity: 0 }); }
-
-
-            // 2. EVENT CHECKER (Für Alert Button)
-            // Wir prüfen, ob ein Event gerade "heiß" ist (innerhalb von 2 Jahren nach Start)
-            // Priorisierung: Pest/Klima > Battle > Treaty
-            
-            // Zuerst nach Events im aktuellen Jahr suchen
+            // Event Detection
             let currentEvents = historicalEvents.filter(ev => year >= ev.year && year <= (ev.year + (ev.duration || 2)));
-            
             if (currentEvents.length > 0) {
-                // Sortiere nach Wichtigkeit (Klima/Pest zuerst, dann Rest)
-                currentEvents.sort((a, b) => {
-                    const priority = { 'plague': 3, 'climate': 3, 'crisis': 3, 'battle': 2, 'move': 2, 'treaty': 1, 'diplomacy': 1 };
-                    return (priority[b.type] || 0) - (priority[a.type] || 0);
-                });
-                
-                let ev = currentEvents[0]; // Nimm das wichtigste Event
-                
-                // Styling definieren
-                let btnClass = 'alert-base';
-                let icon = 'ph-info';
-                let typeText = 'Ereignis';
+                currentEvents.sort((a, b) => { const p = { 'plague': 3, 'climate': 3, 'crisis': 3, 'battle': 2, 'move': 2, 'treaty': 1 }; return (p[b.type] || 0) - (p[a.type] || 0); });
+                let ev = currentEvents[0];
+                let btnClass = 'alert-base'; let icon = 'ph-info'; let typeText = 'Ereignis';
 
                 if (ev.type === 'battle') { btnClass += ' alert-battle'; icon = 'ph-swords'; typeText = 'Militärischer Konflikt'; }
                 else if (ev.type === 'treaty' || ev.type === 'diplomacy') { btnClass += ' alert-treaty'; icon = 'ph-scroll'; typeText = 'Politische Zäsur'; }
@@ -465,18 +440,13 @@
                 else if (ev.type === 'plague') { btnClass += ' alert-plague'; icon = 'ph-skull'; typeText = 'Pandemie'; }
                 else if (ev.type === 'crisis') { btnClass += ' alert-battle'; icon = 'ph-fire'; typeText = 'Reichskrise'; }
 
-                // Set Alert
                 activeAlertEvent = ev;
                 alertBtn.className = btnClass;
                 alertIcon.className = `ph-fill text-xl ${icon}`;
                 alertType.innerText = typeText;
                 alertTitle.innerText = ev.title;
                 alertDiv.classList.remove('hidden');
-
-            } else {
-                alertDiv.classList.add('hidden');
-                activeAlertEvent = null;
-            }
+            } else { alertDiv.classList.add('hidden'); activeAlertEvent = null; }
 
             Object.keys(routes).forEach(key => {
                 const res = getPosition(routes[key].path, year);
@@ -484,43 +454,48 @@
                 if (res) {
                     if (!layerData.hasStarted) { layerData.marker.setOpacity(1); layerData.line.setStyle({opacity: 0.7}); layerData.hasStarted = true; }
                     layerData.marker.setLatLng([res.lat, res.lng]); layerData.line.setLatLngs(res.trail);
-                    
                     const isHunnenEnd = (key === 'hunnen' && year > 454);
                     const isStilichoEnd = (key === 'stilicho' && year > 408);
                     const isAetiusEnd = (key === 'aetius' && year > 454);
-                    
-                    if (isHunnenEnd || isStilichoEnd || isAetiusEnd) { 
-                        layerData.marker.setOpacity(0); layerData.marker.closeTooltip(); layerData.line.setStyle({opacity: 0.15}); 
-                    } else { 
-                        layerData.marker.setOpacity(1); if(!layerData.marker.isTooltipOpen()) layerData.marker.openTooltip(); layerData.line.setStyle({opacity: 0.7}); 
-                    }
+                    if (isHunnenEnd || isStilichoEnd || isAetiusEnd) { layerData.marker.setOpacity(0); layerData.marker.closeTooltip(); layerData.line.setStyle({opacity: 0.15}); } 
+                    else { layerData.marker.setOpacity(1); if(!layerData.marker.isTooltipOpen()) layerData.marker.openTooltip(); layerData.line.setStyle({opacity: 0.7}); }
                 } else { layerData.marker.setOpacity(0); layerData.marker.closeTooltip(); layerData.line.setLatLngs([]); layerData.hasStarted = false; }
             });
             
             historicalEvents.forEach(ev => {
-                const marker = eventMarkers[ev.year];
-                if (!marker) return;
-                const duration = ev.duration || 2;
-                const endYear = ev.year + duration;
-
+                const marker = eventMarkers[ev.year]; if (!marker) return;
+                const duration = ev.duration || 2; const endYear = ev.year + duration;
                 if (year >= ev.year && year <= endYear) {
-                    let opacity = 1;
-                    if (duration > 5) {
-                        const progress = (year - ev.year) / duration;
-                        opacity = 1 - (progress * 0.8); 
-                    }
+                    let opacity = 1; if (duration > 5) { opacity = 1 - ((year - ev.year) / duration * 0.8); }
                     marker.setOpacity(opacity);
-                } else {
-                    marker.setOpacity(0);
-                }
+                } else { marker.setOpacity(0); }
             });
         }
 
         function updateYear(val) { const y = parseInt(val); document.getElementById('year-display').innerText = y; currentYear = y; updateVisualization(y); }
+        
+        function startAnimation() {
+            animationInterval = setInterval(() => {
+                let val = parseInt(document.getElementById('year-slider').value);
+                if (val >= 568) val = 375; else val += 1;
+                document.getElementById('year-slider').value = val;
+                updateYear(val);
+            }, playbackSpeed);
+        }
+
         function togglePlay() {
-            const btn = document.getElementById('play-icon'); const slider = document.getElementById('year-slider');
-            if (isPlaying) { clearInterval(animationInterval); isPlaying = false; btn.classList.remove('ph-pause'); btn.classList.add('ph-play'); btn.parentElement.classList.remove('bg-red-600'); btn.parentElement.classList.add('bg-stone-800'); }
-            else { isPlaying = true; btn.classList.remove('ph-play'); btn.classList.add('ph-pause'); btn.parentElement.classList.remove('bg-stone-800'); btn.parentElement.classList.add('bg-red-600'); animationInterval = setInterval(() => { let val = parseInt(slider.value); if (val >= 568) val = 375; else val += 1; slider.value = val; updateYear(val); }, 120); }
+            const btn = document.getElementById('play-icon');
+            if (isPlaying) {
+                clearInterval(animationInterval);
+                isPlaying = false;
+                btn.classList.remove('ph-pause'); btn.classList.add('ph-play');
+                btn.parentElement.classList.remove('bg-red-600'); btn.parentElement.classList.add('bg-stone-800');
+            } else {
+                isPlaying = true;
+                btn.classList.remove('ph-play'); btn.classList.add('ph-pause');
+                btn.parentElement.classList.remove('bg-stone-800'); btn.parentElement.classList.add('bg-red-600');
+                startAnimation();
+            }
         }
 
         function showInfo(title, text, quote, color, key, artifact) {
@@ -537,7 +512,6 @@
                 const img = document.getElementById('artifact-img');
                 img.onerror = function() { this.onerror = null; this.src = artifact.fallback; };
                 img.src = artifact.img;
-                
                 document.getElementById('artifact-title').innerText = artifact.title;
                 document.getElementById('artifact-desc').innerText = artifact.text;
                 document.getElementById('artifact-desc').classList.remove('hidden');
@@ -584,16 +558,11 @@
             const result = await callGemini(prompt); content.innerHTML = formatText(result);
         }
 
-        // NEU: GENERISCHE EVENT-KI-FUNKTION
         async function askGeminiEvent() {
             if (!activeAlertEvent) return;
+            const modal = document.getElementById('ai-modal'); const content = document.getElementById('ai-modal-content');
+            document.getElementById('ai-modal-year').innerText = activeAlertEvent.title; modal.classList.remove('hidden');
             
-            const modal = document.getElementById('ai-modal'); 
-            const content = document.getElementById('ai-modal-content');
-            document.getElementById('ai-modal-year').innerText = activeAlertEvent.title; 
-            modal.classList.remove('hidden');
-            
-            // Farbe des Spinners basierend auf Event-Typ
             let colorClass = "border-t-stone-500";
             if (activeAlertEvent.type === 'battle' || activeAlertEvent.type === 'crisis') colorClass = "border-t-red-600";
             if (activeAlertEvent.type === 'treaty') colorClass = "border-t-purple-600";
@@ -601,13 +570,9 @@
             if (activeAlertEvent.type === 'climate') colorClass = "border-t-cyan-500";
 
             content.innerHTML = `<div class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 ${colorClass}"></div><p class="text-stone-500 italic">Analysiere Ereignis...</p></div>`;
-            
-            // Spezifischer Prompt aus den Event-Daten oder generischer Fallback
-            const promptText = activeAlertEvent.aiPrompt || `Analysiere das Ereignis '${activeAlertEvent.title}' im Jahr ${activeAlertEvent.year}. Was waren Ursachen und Folgen?`;
+            const promptText = activeAlertEvent.aiPrompt || `Analysiere das Ereignis '${activeAlertEvent.title}' im Jahr ${activeAlertEvent.year}.`;
             const prompt = `Du bist Historiker. ${promptText} Antworte präzise, analytisch und auf Deutsch (max 100 Wörter).`;
-
-            const result = await callGemini(prompt); 
-            content.innerHTML = formatText(result);
+            const result = await callGemini(prompt); content.innerHTML = formatText(result);
         }
     </script>
 </body>

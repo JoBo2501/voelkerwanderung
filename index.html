@@ -96,9 +96,14 @@
                 <button onclick="closeInfo()" class="text-stone-400 hover:text-red-600"><i class="ph ph-x text-lg"></i></button>
             </div>
             
-            <!-- Artifact Section (Neu) -->
+            <!-- Artifact Section (Korrigiert) -->
             <div id="info-artifact" class="hidden mb-5 bg-stone-50 rounded-lg overflow-hidden border border-stone-200">
-                <img id="artifact-img" src="" alt="Artefakt" class="w-full h-48 object-cover cursor-pointer hover:scale-105 transition-transform duration-700">
+                <div class="relative w-full h-48 bg-stone-200">
+                    <!-- Fallback Image Handler hinzugefügt -->
+                    <img id="artifact-img" src="" alt="Artefakt" 
+                         class="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-700"
+                         onerror="this.onerror=null;this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/600px-No_image_available.svg.png';">
+                </div>
                 <div class="p-3">
                     <div class="flex items-center gap-2 mb-1">
                         <i class="ph-fill ph-bank text-amber-700"></i>
@@ -171,7 +176,7 @@
 
     <script>
         // --- API & CONFIG ---
-        const apiKey = "AIzaSyD11Y7yFTiBzm2DW2KUouJK3r1-QjFIgnU"; // IHR API KEY HIER
+        const apiKey = ""; // IHR API KEY HIER
         let currentTribeForAI = null;
         let map;
         const layers = {};
@@ -180,7 +185,7 @@
         let animationInterval;
         let currentYear = 375;
 
-        // --- DATEN: ROUTEN & ARTEFAKTE ---
+        // --- DATEN: ROUTEN & ARTEFAKTE (Aktualisierte URLs) ---
         const routes = {
             westgoten: {
                 name: "Westgoten", color: "#dc2626",
@@ -188,7 +193,8 @@
                 path: [[45.5, 25.0, 375], [41.6, 26.5, 378], [40.6, 22.9, 395], [41.9, 12.5, 410], [43.6, 1.4, 418], [41.6, -4.7, 470], [39.8, -4.0, 507]],
                 artifact: {
                     title: "Adlerfibel (Polychromer Stil)",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Fibule_aigle_visigothique_MAM.jpg/640px-Fibule_aigle_visigothique_MAM.jpg",
+                    // Quelle: Walters Art Museum, Public Domain via Wikimedia
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Visigothic_-_Eagle_Fibula_-_Walters_54421.jpg/640px-Visigothic_-_Eagle_Fibula_-_Walters_54421.jpg",
                     text: "Die Adlerfibel ist das Identitätssymbol der gotischen Elite. Der 'polychrome Stil' mit Almandineinlagen in Goldzellen (Cloisonné) verbindet römische Technik mit barbarischer Ästhetik."
                 }
             },
@@ -197,9 +203,10 @@
                 desc: "Ein langer Zug getrieben von Not und Opportunismus. Bekannt für ihre Seemacht ab Karthago und ihren strikten Arianismus, der sie in Konflikt mit der katholischen Bevölkerung brachte.",
                 path: [[51.0, 17.0, 375], [50.0, 8.2, 405], [49.9, 8.2, 406], [44.8, -0.5, 409], [37.3, -5.9, 415], [35.9, -5.6, 429], [36.8, 10.1, 439], [41.9, 12.5, 455], [36.8, 10.1, 460]],
                 artifact: {
-                    title: "Vandalische Siliqua (Münze)",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Hilderic_523_530_ar_siliqua_carthago_523_530_CNG.jpg/640px-Hilderic_523_530_ar_siliqua_carthago_523_530_CNG.jpg",
-                    text: "Diese Silbermünze zeigt König Hilderich. Ein bemerkenswertes Zeugnis der Akkulturation: Die Vandalen übernahmen das römische Währungssystem und die kaiserliche Ikonografie fast nahtlos."
+                    title: "Vandalische Münze (Gelimer)",
+                    // Quelle: Classical Numismatic Group, CC BY-SA
+                    img: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Gelimer_530_534_ar_50_denari_carthago_530_533_CNG.jpg/640px-Gelimer_530_534_ar_50_denari_carthago_530_533_CNG.jpg",
+                    text: "Diese Silbermünze aus Karthago zeigt, wie stark sich die Vandalen akkulturierten: Sie übernahmen das römische Währungssystem und die imperiale Ikonografie fast nahtlos."
                 }
             },
             hunnen: {
@@ -208,6 +215,7 @@
                 path: [[48.0, 43.0, 375], [47.0, 30.0, 390], [47.5, 19.0, 405], [49.0, 4.0, 451], [45.4, 10.9, 452], [47.5, 19.0, 453]],
                 artifact: {
                     title: "Zikadenfibel",
+                    // Quelle: Walters Art Museum, Public Domain via Wikimedia
                     img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Cicada_Brooch_Walters_54422.jpg/640px-Cicada_Brooch_Walters_54422.jpg",
                     text: "Ein Leitobjekt der Hunnenzeit. Die Zikade ist ein aus der chinesischen Steppentradition stammendes Symbol für Wiedergeburt und Unsterblichkeit – ein klares Indiz für die östliche Herkunft."
                 }
@@ -218,6 +226,7 @@
                 path: [[53.5, 10.5, 375], [53.5, 10.5, 400], [48.5, 16.5, 489], [47.5, 19.0, 526], [46.0, 13.0, 568], [45.4, 9.1, 572]],
                 artifact: {
                     title: "Goldblattkreuz",
+                    // Quelle: Museo archeologico nazionale (Cividale del Friuli), CC BY-SA
                     img: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Goldblattkreuz_Nocera_Umbra_Mailand.jpg/640px-Goldblattkreuz_Nocera_Umbra_Mailand.jpg",
                     text: "Typisch für die langobardische Grabkultur in Italien. Das hauchdünne Goldkreuz wurde dem Toten auf den Mund gelegt – eine faszinierende Mischung aus christlicher Form und heidnischer Schutzmagie."
                 }

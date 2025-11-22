@@ -306,15 +306,17 @@
         let isPlaying = false;
         let animationId = null;
         let lastFrameTime = 0;
-        let currentYear = 375;
-        let activeAlertEvent = null;
         
-        let chatHistory = []; // KI Kontext
+        // MASTER-VARIABLE FÜR ZEIT (Präziser als der Slider)
+        let currentYear = 375.0; 
+        
+        let activeAlertEvent = null;
+        let chatHistory = []; 
 
         // LOGISTIK GLOBALS
         let grainRouteLayer = null;
         let romeStatusIcon = null;
-        let granaryMarkers = []; // NEU: Speicher für Kornkammer-Marker
+        let granaryMarkers = []; 
         
         const grainPathCoords = [
             [36.8, 10.1], // Karthago
@@ -418,9 +420,8 @@
             plagueLayer = L.circle([38.0, 18.0], { radius: 1500000, color: '#10b981', fillColor: '#10b981', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
             droughtLayer = L.circle([48.0, 40.0], { radius: 800000, color: '#d97706', fillColor: '#d97706', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
 
-            // LOGISTIK & KORNKAMMER INIT
             initGrainLogistics();
-            initGranary(); // NEU
+            initGranary(); 
 
             Object.keys(routes).forEach(key => {
                 const data = routes[key];
@@ -453,40 +454,23 @@
         }
 
         function initGrainLogistics() {
-            // 1. Die Route (Ameisenstraße)
             grainRouteLayer = L.polyline(grainPathCoords, {
-                color: '#d97706', // Amber-600
+                color: '#d97706', 
                 weight: 5,
-                dashArray: '4, 8', // Punkteabstand
-                className: 'grain-route-line', // CSS Animation
+                dashArray: '4, 8', 
+                className: 'grain-route-line', 
                 opacity: 0.8
             }).addTo(map);
 
-            // 2. Das Status-Icon über Rom
-            const iconHtml = `<div id="rome-icon-inner" class="flex items-center justify-center w-8 h-8 bg-white rounded-full border-2 border-amber-500 shadow-md transition-all duration-500">
-                                <i class="ph-fill ph-grains text-amber-600 text-lg"></i>
-                              </div>`;
-            
-            const divIcon = L.divIcon({
-                className: 'bg-transparent',
-                html: iconHtml,
-                iconSize: [32, 32],
-                iconAnchor: [16, 36]
-            });
+            const iconHtml = `<div id="rome-icon-inner" class="flex items-center justify-center w-8 h-8 bg-white rounded-full border-2 border-amber-500 shadow-md transition-all duration-500"><i class="ph-fill ph-grains text-amber-600 text-lg"></i></div>`;
+            const divIcon = L.divIcon({ className: 'bg-transparent', html: iconHtml, iconSize: [32, 32], iconAnchor: [16, 36] });
 
             romeStatusIcon = L.marker([41.9, 12.5], { icon: divIcon, zIndexOffset: 1000 }).addTo(map);
             romeStatusIcon.bindTooltip("Annona: Aktiv", { direction: 'top', className: 'custom-label' });
         }
 
-        // NEU: Kornkammer-Visualisierung
         function initGranary() {
-            const locations = [
-                [36.5, 9.5],  // Numidia
-                [36.0, 8.0],  // Hinterland
-                [35.5, 10.0], // Byzacena
-                [36.8, 10.5]  // Proconsularis
-            ];
-
+            const locations = [ [36.5, 9.5], [36.0, 8.0], [35.5, 10.0], [36.8, 10.5] ];
             locations.forEach(loc => {
                 const iconHtml = `<div class="wheat-icon-inner text-amber-500 drop-shadow-sm"><i class="ph-fill ph-plant text-2xl"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: iconHtml, iconSize: [24, 24], iconAnchor: [12, 24] });
@@ -508,7 +492,9 @@
         }
 
         function updateVisualization(year) {
-            currentYear = year;
+            // KEINE Zuweisung zu currentYear hier, da dies vom Loop gesteuert wird!
+            // Wir nutzen year nur zum Rendern.
+            
             const aiYearEl = document.getElementById('tribe-ai-year'); if (aiYearEl) aiYearEl.innerText = Math.floor(year);
             const aiBtnRef = document.getElementById('ai-btn-year-ref'); if (aiBtnRef) aiBtnRef.innerText = Math.floor(year);
             
@@ -523,19 +509,16 @@
             const alertType = document.getElementById('alert-type');
             const alertTitle = document.getElementById('alert-title');
             
-            // Layer Opacity Logic
             if (year >= 370 && year <= 400) { let op = 0.3; if(year < 375) op = (year - 370) * 0.06; if(year > 385) op = 0.3 - ((year - 385) * 0.02); droughtLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 }); } else { droughtLayer.setStyle({ fillOpacity: 0 }); }
             if (year >= 536 && year <= 545) { let op = 0.3; if(year > 538) op = 0.3 - ((year - 538) * 0.04); climateLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 }); } else { climateLayer.setStyle({ fillOpacity: 0 }); }
             if (year >= 541 && year <= 560) { let op = 0.3; if(year > 545) op = 0.3 - ((year - 545) * 0.02); plagueLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 }); } else { plagueLayer.setStyle({ fillOpacity: 0 }); }
 
-            // LOGISTIK & KORNKAMMER UPDATE
             if (grainRouteLayer && romeStatusIcon) {
                 const vandalConquest = 439;
                 const byzantineReconquest = 533;
                 const routeActive = (year < vandalConquest) || (year > byzantineReconquest);
                 const iconInner = document.getElementById('rome-icon-inner');
                 
-                // Update: Route & Rom-Icon
                 if (routeActive) {
                     if (!map.hasLayer(grainRouteLayer)) map.addLayer(grainRouteLayer);
                     if(iconInner) {
@@ -552,38 +535,43 @@
                     romeStatusIcon.setTooltipContent("Annona: UNTERBROCHEN (Hungersnot)");
                 }
 
-                // Update: Kornkammer-Marker (Nordafrika)
                 granaryMarkers.forEach(m => {
                     if (routeActive) m.setOpacity(1); else m.setOpacity(0);
                 });
             }
 
-            // Event Detection
             let currentEvents = historicalEvents.filter(ev => year >= ev.year && year <= (ev.year + (ev.duration || 2)));
             if (currentEvents.length > 0) {
                 currentEvents.sort((a, b) => { const p = { 'plague': 3, 'climate': 3, 'crisis': 3, 'battle': 2, 'law': 2, 'philosophy': 2, 'move': 2, 'treaty': 1 }; return (p[b.type] || 0) - (p[a.type] || 0); });
                 let ev = currentEvents[0];
-                let btnClass = 'alert-base'; let icon = 'ph-info'; let typeText = 'Ereignis';
+                
+                // OPTIMIERUNG: UI nur neu bauen, wenn sich das Event geändert hat
+                if (!activeAlertEvent || activeAlertEvent.title !== ev.title) {
+                    let btnClass = 'alert-base'; let icon = 'ph-info'; let typeText = 'Ereignis';
 
-                if (ev.type === 'battle') { btnClass += ' alert-battle'; icon = 'ph-swords'; typeText = 'Militärischer Konflikt'; }
-                else if (ev.type === 'treaty' || ev.type === 'diplomacy') { btnClass += ' alert-treaty'; icon = 'ph-scroll'; typeText = 'Politische Zäsur'; }
-                else if (ev.type === 'move') { btnClass += ' alert-move'; icon = 'ph-arrows-left-right'; typeText = 'Migration'; }
-                else if (ev.type === 'climate' || ev.type === 'drought') { 
-                    if(ev.type === 'drought') { btnClass += ' alert-drought'; icon = 'ph-sun-dim'; typeText = 'Ökologische Krise'; }
-                    else { btnClass += ' alert-nature'; icon = 'ph-snowflake'; typeText = 'Klima-Anomalie'; }
+                    if (ev.type === 'battle') { btnClass += ' alert-battle'; icon = 'ph-swords'; typeText = 'Militärischer Konflikt'; }
+                    else if (ev.type === 'treaty' || ev.type === 'diplomacy') { btnClass += ' alert-treaty'; icon = 'ph-scroll'; typeText = 'Politische Zäsur'; }
+                    else if (ev.type === 'move') { btnClass += ' alert-move'; icon = 'ph-arrows-left-right'; typeText = 'Migration'; }
+                    else if (ev.type === 'climate' || ev.type === 'drought') { 
+                        if(ev.type === 'drought') { btnClass += ' alert-drought'; icon = 'ph-sun-dim'; typeText = 'Ökologische Krise'; }
+                        else { btnClass += ' alert-nature'; icon = 'ph-snowflake'; typeText = 'Klima-Anomalie'; }
+                    }
+                    else if (ev.type === 'plague') { btnClass += ' alert-plague'; icon = 'ph-skull'; typeText = 'Pandemie'; }
+                    else if (ev.type === 'crisis') { btnClass += ' alert-battle'; icon = 'ph-fire'; typeText = 'Reichskrise'; }
+                    else if (ev.type === 'law') { btnClass += ' alert-law'; icon = 'ph-scales'; typeText = 'Rechtsgeschichte'; }
+                    else if (ev.type === 'philosophy') { btnClass += ' alert-philosophy'; icon = 'ph-columns'; typeText = 'Philosophie & Geist'; }
+
+                    alertBtn.className = btnClass;
+                    alertIcon.className = `ph-fill text-xl ${icon}`;
+                    alertType.innerText = typeText;
+                    alertTitle.innerText = ev.title;
                 }
-                else if (ev.type === 'plague') { btnClass += ' alert-plague'; icon = 'ph-skull'; typeText = 'Pandemie'; }
-                else if (ev.type === 'crisis') { btnClass += ' alert-battle'; icon = 'ph-fire'; typeText = 'Reichskrise'; }
-                else if (ev.type === 'law') { btnClass += ' alert-law'; icon = 'ph-scales'; typeText = 'Rechtsgeschichte'; }
-                else if (ev.type === 'philosophy') { btnClass += ' alert-philosophy'; icon = 'ph-columns'; typeText = 'Philosophie & Geist'; }
-
-                activeAlertEvent = ev;
-                alertBtn.className = btnClass;
-                alertIcon.className = `ph-fill text-xl ${icon}`;
-                alertType.innerText = typeText;
-                alertTitle.innerText = ev.title;
+                activeAlertEvent = ev; // Setzt das aktive Event für Bullet-Time
                 alertDiv.classList.remove('hidden');
-            } else { alertDiv.classList.add('hidden'); activeAlertEvent = null; }
+            } else { 
+                alertDiv.classList.add('hidden'); 
+                activeAlertEvent = null; 
+            }
 
             Object.keys(routes).forEach(key => {
                 const res = getPosition(routes[key].path, year);
@@ -609,28 +597,39 @@
             });
         }
 
-        function updateYear(val) { const y = parseFloat(val); document.getElementById('year-display').innerText = Math.floor(y); currentYear = y; updateVisualization(y); }
+        // WIRD VOM SLIDER AUFGERUFEN (MANUELL)
+        function updateYear(val) { 
+            const y = parseFloat(val); 
+            currentYear = y; // Sync manuell -> intern
+            document.getElementById('year-display').innerText = Math.floor(y); 
+            updateVisualization(y); 
+        }
         
-        // --- ANIMATION LOOP (Mit Bullet-Time Effekt) ---
+        // --- ANIMATION LOOP (FIXED: USE INTERNAL STATE) ---
         function gameLoop(timestamp) {
             if (!lastFrameTime) lastFrameTime = timestamp;
             const deltaTime = timestamp - lastFrameTime;
 
             if (deltaTime >= 33) { // ca 30 FPS Limit
-                let val = parseFloat(document.getElementById('year-slider').value);
                 
-                // SPEED CONTROL LOGIK (BULLET TIME)
-                // Wenn ein Event aktiv ist, reduzieren wir den Step drastisch (z.B. auf 5% der normalen Geschwindigkeit)
+                // BULLET TIME LOGIK
+                // Wir nutzen currentYear als Quelle, nicht den Slider!
                 let effectiveStep = yearStep;
                 if (activeAlertEvent) {
-                    effectiveStep = yearStep * 0.05; // Sehr langsam zum Lesen
+                    // Etwas schneller als vorher, damit man merkt, dass es weitergeht (10% statt 5%)
+                    effectiveStep = yearStep * 0.10; 
                 }
 
-                if (val >= 568) val = 375;
-                else val += effectiveStep;
+                if (currentYear >= 568) currentYear = 375;
+                else currentYear += effectiveStep;
 
-                document.getElementById('year-slider').value = val;
-                updateYear(val);
+                // Slider zwingen, dem internen Wert zu folgen
+                const slider = document.getElementById('year-slider');
+                slider.value = currentYear;
+                
+                document.getElementById('year-display').innerText = Math.floor(currentYear); 
+                updateVisualization(currentYear);
+                
                 lastFrameTime = timestamp;
             }
 

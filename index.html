@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Relief & Struktur</title>
+    <title>Völkerwanderung: Organische Geografie</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -103,8 +103,6 @@
         .culture-marker { background: #fff; border: 2px solid #d97706; color: #d97706; box-shadow: 0 0 10px rgba(217, 119, 6, 0.4); animation: pulse-culture 3s infinite; }
         @keyframes pulse-culture { 0% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(217, 119, 6, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); } }
 
-        /* --- VERBESSERTE OPTIK --- */
-        
         .leaflet-layer { 
             /* Relief stärker betonen, aber nicht verschlucken */
             filter: saturate(0.8) contrast(1.1); 
@@ -117,28 +115,31 @@
             mix-blend-mode: multiply;
         }
 
-        /* NEU: Flachrelief-Stil für Straßen */
+        /* VERBESSERTE OPTIK: STRASSEN */
         .road-relief { 
-            /* Multiplizieren verschmilzt die Farbe mit dem Terrain-Relief darunter */
             mix-blend-mode: multiply; 
-            /* Leichter weißer Schatten suggeriert eine Kante/Tiefe */
-            filter: drop-shadow(0 1px 0px rgba(255,255,255,0.4));
-            transition: opacity 2s ease, stroke-dasharray 2s ease;
+            /* Sehr subtil, wirkt wie in den Boden getreten */
+            opacity: 0.6;
             stroke-linecap: round;
+            stroke-linejoin: round;
         }
 
-        /* NEU: Bessere Sichtbarkeit für Flüsse */
+        /* VERBESSERTE OPTIK: FLÜSSE */
         .river-style {
-            /* Helleres Blau für Kontrast */
-            stroke: #3b82f6;
-            /* Leichter Schein drumherum, damit sie sich abheben */
-            filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.8));
+            /* Natürlicheres Wasserblau, etwas transparenter */
+            stroke: #60a5fa; 
+            opacity: 0.7;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            /* Kein harter Glow mehr, sondern subtiles Blending */
+            mix-blend-mode: multiply; 
         }
 
-        /* NEU: Limes Stil */
+        /* NEU: Limes Stil - klar militärisch, aber integriert */
         .limes-style {
-            stroke: #27272a;
-            filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.6));
+            stroke: #3f3f46;
+            opacity: 0.7;
+            stroke-linecap: square;
         }
 
     </style>
@@ -307,25 +308,29 @@
         const speedConfig = { slow: 0.15, medium: 0.5, fast: 1.2 };
         let yearStep = speedConfig.slow; 
 
-        // --- GEO-DATEN ---
-        const limesPath = [ [52.2, 4.4], [52.0, 5.1], [51.2, 6.8], [50.9, 7.0], [50.0, 8.2], [49.0, 8.4], [49.0, 10.9], [48.9, 12.0], [48.4, 13.4], [48.3, 14.3], [48.1, 16.4], [47.8, 17.6], [47.5, 19.0], [44.8, 20.4], [44.6, 22.6], [45.2, 29.6] ];
+        // --- GEO-DATEN (ORGANISCH & HOCHAUFLÖSEND) ---
         
+        // Der Limes (Grenzlinie, folgt Rhein & Donau grob)
+        const limesPath = [ [52.18, 4.41], [52.05, 5.10], [51.87, 5.80], [51.60, 6.20], [51.20, 6.80], [50.93, 6.96], [50.36, 7.60], [50.00, 8.20], [49.97, 8.90], [50.18, 8.95], [50.50, 9.50], [49.80, 10.90], [48.90, 11.50], [48.90, 12.00], [48.50, 13.50], [48.30, 14.30], [48.10, 16.40], [47.80, 17.60], [47.80, 19.00], [44.80, 20.40], [44.60, 22.60], [45.20, 29.60] ];
+        
+        // Flüsse: Organisch, Kurvenreich, folgen dem Terrain
         const strategicRivers = {
-            rhein: [[46.6, 9.3], [47.6, 9.4], [47.5, 7.6], [48.6, 7.9], [50.0, 8.2], [50.9, 7.0], [51.9, 4.5]],
-            donau: [[48.0, 8.1], [48.4, 10.0], [48.2, 16.4], [47.5, 19.0], [44.8, 20.4], [44.2, 22.7], [45.2, 29.6]],
-            rhone: [[46.5, 8.3], [46.2, 6.0], [45.7, 4.8], [43.3, 4.8]],
-            po: [[44.7, 7.0], [45.0, 10.0], [44.9, 12.5]],
-            nil: [[31.2, 30.0], [24.0, 32.8]]
+            rhein: [[46.6, 9.3], [47.0, 9.5], [47.5, 9.6], [47.6, 9.4], [47.5, 8.5], [47.5, 7.6], [48.0, 7.6], [48.6, 7.9], [49.0, 8.4], [50.0, 8.2], [50.4, 7.5], [50.9, 7.0], [51.2, 6.8], [51.5, 6.5], [51.9, 5.0]],
+            donau: [[48.0, 8.1], [48.4, 10.0], [48.5, 12.0], [48.3, 14.0], [48.2, 16.4], [47.8, 17.5], [47.7, 18.5], [47.5, 19.0], [45.5, 19.5], [44.8, 20.4], [44.5, 21.5], [44.2, 22.7], [43.8, 24.5], [44.2, 26.0], [45.2, 29.0]],
+            rhone: [[46.5, 8.3], [46.3, 7.0], [46.2, 6.0], [45.7, 5.0], [45.7, 4.8], [45.0, 4.8], [44.5, 4.7], [43.5, 4.7]],
+            po: [[44.7, 7.0], [45.1, 9.0], [45.0, 10.0], [44.9, 11.5], [44.9, 12.5]],
+            nil: [[31.2, 30.0], [30.0, 31.2], [28.0, 30.8], [26.0, 32.0], [24.0, 32.8]]
         };
 
         const historicalRegions = [ { c: [46.5, 2.0], t: "GALLIA", s: 16 }, { c: [40.0, -4.0], t: "HISPANIA", s: 16 }, { c: [42.5, 12.5], t: "ITALIA", s: 16 }, { c: [45.0, 17.0], t: "PANNONIA", s: 14 }, { c: [43.0, 22.0], t: "ILLYRICUM", s: 14 }, { c: [42.0, 25.0], t: "THRACIA", s: 14 }, { c: [35.0, 2.0], t: "AFRICA", s: 16 }, { c: [51.0, 10.0], t: "GERMANIA", s: 16, color: "#a8a29e" }, { c: [48.0, 30.0], t: "SCYTHIA", s: 14, color: "#a8a29e" } ];
         const dynamicCities = [ { c: [41.9, 12.5], t: "Rom", type: 'capital', start: 0, end: 600 }, { c: [41.0, 28.9], t: "Konstantinopel", type: 'capital', start: 330, end: 600 }, { c: [36.8, 10.1], t: "Karthago", type: 'city', start: 0, end: 600 }, { c: [44.4, 12.2], t: "Ravenna", type: 'capital', start: 402, end: 600 }, { c: [43.6, 1.4], t: "Tolosa", type: 'barbarian', start: 418, end: 507 }, { c: [39.8, -4.0], t: "Toledo", type: 'barbarian', start: 507, end: 600 }, { c: [41.5, 13.8], t: "Monte Cassino", type: 'monastery', start: 529, end: 600 } ];
         
+        // Römerstraßen: Realistischere Routenführung (Täler, Pässe)
         const romanRoads = {
-            viaAppia: { name: "Via Appia", path: [[41.9, 12.5], [41.3, 13.2], [41.1, 14.2], [40.8, 14.8], [40.6, 17.9]], region: 'west' }, 
-            viaDomitia: { name: "Via Domitia", path: [[45.0, 6.7], [43.8, 4.4], [43.6, 3.9], [43.2, 3.0], [42.4, 2.9]], region: 'west' },   
-            viaEgnatia: { name: "Via Egnatia", path: [[41.3, 19.4], [41.1, 20.6], [40.8, 22.3], [40.9, 24.4], [41.0, 28.9]], region: 'east' }, 
-            viaAgrippa: { name: "Via Agrippa", path: [[43.6, 4.6], [45.7, 4.8], [47.3, 5.0], [49.8, 6.6], [50.9, 6.9]], region: 'west' }     
+            viaAppia: { name: "Via Appia", path: [[41.9, 12.5], [41.5, 12.9], [41.2, 13.5], [41.1, 14.2], [41.1, 14.8], [40.8, 15.5], [40.6, 17.9]], region: 'west' }, 
+            viaDomitia: { name: "Via Domitia", path: [[45.0, 6.7], [44.5, 6.0], [43.8, 4.8], [43.6, 4.0], [43.2, 3.2], [42.4, 2.9]], region: 'west' },   
+            viaEgnatia: { name: "Via Egnatia", path: [[41.3, 19.4], [41.0, 20.5], [40.7, 21.5], [40.9, 23.5], [40.9, 25.0], [41.0, 28.9]], region: 'east' }, 
+            viaAgrippa: { name: "Via Agrippa", path: [[43.6, 4.6], [44.9, 4.8], [45.7, 4.8], [46.5, 4.9], [47.3, 5.0], [48.2, 5.5], [49.8, 6.6], [50.9, 6.9]], region: 'west' }     
         };
 
         const culturalEvents = [
@@ -396,12 +401,13 @@
                 attribution: 'Esri', opacity: 0.8 
             }).addTo(map);
 
-            // FLÜSSE ZEICHNEN (Neuer Stil: Breiter und Glowing)
+            // FLÜSSE ZEICHNEN (Dünner, glatter, natürlicher)
             Object.values(strategicRivers).forEach(riverPath => {
                 L.polyline(riverPath, { 
-                    className: 'river-style', // Nutzt den CSS-Glow
-                    weight: 3, 
-                    opacity: 0.8 
+                    className: 'river-style', // Nutzt den CSS-Blend Mode
+                    weight: 2, // Dünner für mehr Eleganz
+                    opacity: 0.7,
+                    smoothFactor: 1 // Glättet die Linien
                 }).addTo(map);
             });
 
@@ -410,7 +416,8 @@
                 className: 'limes-style',
                 weight: 2, 
                 dashArray: '4, 4', 
-                opacity: 0.8 
+                opacity: 0.7,
+                smoothFactor: 1
             }).addTo(map);
             limes.bindTooltip("Limes Germanicus", { sticky: true, className: 'leaflet-tooltip custom-label', direction: 'top' });
             
@@ -419,8 +426,9 @@
                 const road = romanRoads[key];
                 road.line = L.polyline(road.path, { 
                     color: '#5c4d3c', // Dunkles "Pflasterstein"-Braun
-                    weight: 4, 
-                    opacity: 0.7,
+                    weight: 3, 
+                    opacity: 0.6,
+                    smoothFactor: 1, // Wichtig für Rundungen
                     className: 'road-relief' // Der CSS Mix-Blend-Mode Trick
                 }).addTo(map);
                 road.line.bindTooltip(road.name, { sticky: true, className: 'leaflet-tooltip custom-label' });
@@ -502,7 +510,7 @@
 
             // Road Decay Logic
             Object.values(romanRoads).forEach(road => {
-                let opacity = 0.7;
+                let opacity = 0.6;
                 let dashArray = null;
                 if (road.region === 'west') {
                     if (year > 410) { opacity = 0.5; }

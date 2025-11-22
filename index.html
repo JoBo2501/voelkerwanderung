@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Analyse & Kunst</title>
+    <title>Völkerwanderung: Autark & Robust</title>
     
     <!-- Leaflet CSS (Karte) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -14,42 +14,36 @@
     <!-- Phosphor Icons (Symbole) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Markdown Parser (Für KI Text) -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- HINWEIS: Wir verzichten auf externe Markdown-Bibliotheken, um Ladefehler zu vermeiden. -->
 
     <script>
-        /* INLINE SVG ARTEFAKTE
-           Um externe Ladefehler komplett zu vermeiden, sind die Kunstobjekte hier als
-           Vektorgrafiken direkt im Code hinterlegt. Das garantiert 100% Verfügbarkeit.
-        */
-        
+        /* INLINE SVG ARTEFAKTE (Base64) - Garantiert ladbar ohne Internet */
         const artifacts = {
-            // Adlerfibel (Westgoten): Stilisierter Adler in Cloisonné (Rot/Gold)
             westgoten: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3Cpattern id='cloisonne' x='0' y='0' width='20' height='20' patternUnits='userSpaceOnUse'%3E%3Crect width='20' height='20' fill='%23b91c1c'/%3E%3Cpath d='M0 0h20v20h-20z' fill='none' stroke='%23fcd34d' stroke-width='2'/%3E%3C/pattern%3E%3Cfilter id='glow'%3E%3CfeGaussianBlur stdDeviation='2.5' result='coloredBlur'/%3E%3CfeMerge%3E%3CfeMergeNode in='coloredBlur'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M200 50 C230 50 250 80 250 100 L280 150 L200 250 L120 150 L150 100 C150 80 170 50 200 50' fill='url(%23cloisonne)' stroke='%23b45309' stroke-width='5' filter='url(%23glow)'/%3E%3Ccircle cx='200' cy='90' r='15' fill='%2378350f' stroke='%23fcd34d' stroke-width='3'/%3E%3C/svg%3E`,
-            
-            // Münze (Vandalen): Silberne Siliqua mit Profil
             vandalen: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3Cfilter id='silver'%3E%3CfeSpecularLighting result='specOut' specularExponent='20' lighting-color='%23ffffff'%3E%3CfePointLight x='150' y='150' z='200'/%3E%3C/feSpecularLighting%3E%3CfeComposite in='SourceGraphic' in2='specOut' operator='arithmetic' k1='0' k2='1' k3='1' k4='0'/%3E%3C/filter%3E%3C/defs%3E%3Ccircle cx='200' cy='150' r='100' fill='%23cbd5e1' stroke='%2394a3b8' stroke-width='4' filter='url(%23silver)'/%3E%3Ctext x='200' y='280' text-anchor='middle' font-family='serif' font-weight='bold' fill='%2364748b' font-size='18' letter-spacing='2'%3ED N REX GELIMER%3C/text%3E%3Cpath d='M180 100 C180 100 230 110 230 150 C230 190 190 200 190 200' stroke='%2364748b' stroke-width='3' fill='none'/%3E%3C/svg%3E`,
-            
-            // Zikade (Hunnen): Grün/Goldenes Insekt
             hunnen: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 60 C240 60 260 100 260 140 L240 260 L160 260 L140 140 C140 100 160 60 200 60' fill='%2365a30d' stroke='%23fcd34d' stroke-width='4'/%3E%3Cpath d='M200 60 L200 140' stroke='%23fcd34d' stroke-width='2'/%3E%3Cpath d='M140 140 L260 140' stroke='%23fcd34d' stroke-width='2'/%3E%3Ccircle cx='170' cy='100' r='8' fill='%2384cc16'/%3E%3Ccircle cx='230' cy='100' r='8' fill='%2384cc16'/%3E%3C/svg%3E`,
-            
-            // Goldblattkreuz (Langobarden): Goldenes Kreuz
             langobarden: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3ClinearGradient id='goldGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23fcd34d;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23b45309;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='180' y='50' width='40' height='200' fill='url(%23goldGrad)' stroke='%23b45309' stroke-width='2'/%3E%3Crect x='100' y='110' width='200' height='40' fill='url(%23goldGrad)' stroke='%23b45309' stroke-width='2'/%3E%3Ccircle cx='200' cy='130' r='10' fill='%23fcd34d'/%3E%3C/svg%3E`
         };
+
+        /* Eigener Mini-Parser für KI-Texte (ersetzt externe marked.js Bibliothek) */
+        function formatText(text) {
+            if (!text) return '';
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Fettgedrucktes
+                .replace(/\n/g, '<br>'); // Zeilenumbrüche
+        }
     </script>
 
     <style>
-        /* --- GRUNDLAGEN --- */
+        /* --- CSS --- */
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: 'Segoe UI', 'Helvetica Neue', sans-serif; }
         #map { height: 100vh; width: 100vw; background: #e5e5e5; z-index: 1; }
 
-        /* UI Layering */
+        /* UI Layering - WICHTIG: pointer-events */
         .ui-layer { position: absolute; z-index: 3000; pointer-events: none; }
-        /* WICHTIG: Elemente müssen interagierbar sein */
-        .ui-element { pointer-events: auto; }
-        .pointer-events-auto { pointer-events: auto !important; }
-
-        /* --- STYLING --- */
+        .ui-element { pointer-events: auto; } /* Erlaubt Klicks auf Buttons */
+        
+        /* Controls */
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%;
@@ -58,11 +52,8 @@
         }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #d6d3d1; border-radius: 2px; }
 
-        /* Animations */
-        @keyframes pulse-ring {
-            0% { transform: scale(0.8); opacity: 0.8; }
-            100% { transform: scale(2.0); opacity: 0; }
-        }
+        /* Animationen */
+        @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(2.0); opacity: 0; } }
         .pulse-icon { position: relative; }
         .pulse-icon:after {
             content: ''; position: absolute; width: 100%; height: 100%; top: 0; left: 0;
@@ -71,12 +62,12 @@
         .ai-spinner { border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top: 3px solid #9333ea; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* Map Labels */
         .leaflet-tooltip.custom-label {
             background-color: rgba(255, 255, 255, 0.95); border: 1px solid #999; color: #333;
             font-family: serif; font-weight: bold; font-size: 12px; padding: 2px 6px; border-radius: 2px;
         }
         .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { display: none; }
+        .leaflet-marker-icon, .leaflet-tooltip { transition: opacity 0.5s ease-in-out; }
     </style>
 </head>
 <body class="bg-stone-100">
@@ -98,10 +89,8 @@
         </div>
     </div>
 
-    <!-- INFO BOX (Fixed Layout) - HIER WAR DER FEHLER: pointer-events-auto hinzugefügt -->
-    <div id="info-box" class="hidden ui-layer top-20 left-4 right-4 md:left-auto md:right-4 md:w-[400px] max-h-[75vh] flex flex-col rounded-xl shadow-2xl z-[4000] bg-white border border-stone-300 pointer-events-auto">
-        
-        <!-- ARTEFAKT BILD (Inline SVG) -->
+    <!-- INFO BOX (Mit Klick-Fix) -->
+    <div id="info-box" class="hidden ui-layer top-20 left-4 right-4 md:left-auto md:right-4 md:w-[400px] max-h-[75vh] flex flex-col rounded-xl shadow-2xl z-[4000] bg-white border border-stone-300 ui-element">
         <div id="info-artifact-container" class="relative w-full h-48 bg-stone-100 shrink-0 border-b border-stone-200">
             <img id="artifact-img" src="" alt="Artefakt" class="w-full h-full object-contain p-4">
             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/80 to-transparent p-2 pt-8">
@@ -111,23 +100,17 @@
                 </div>
             </div>
         </div>
-
-        <!-- SCROLL AREA -->
         <div class="p-5 overflow-y-auto">
             <div class="flex justify-between items-start mb-2">
                 <h2 id="info-title" class="font-serif font-bold text-2xl text-stone-800"></h2>
                 <button onclick="closeInfo()" class="p-1 hover:bg-stone-100 rounded-full text-stone-500 hover:text-red-600"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
-            
             <h3 id="artifact-title" class="text-sm font-bold text-stone-800 mb-1"></h3>
             <p id="artifact-desc" class="text-xs text-stone-500 italic border-b border-stone-200 pb-3 mb-3 leading-relaxed"></p>
             <div id="info-quote" class="hidden mb-4 pl-3 border-l-4 border-stone-300 italic text-stone-700 font-serif text-sm bg-stone-50 p-3 rounded-r"></div>
             <div id="info-content" class="text-sm text-stone-700 leading-relaxed mb-2"></div>
-            
             <div id="tribe-ai-response" class="hidden mt-4 p-3 bg-purple-50 rounded-lg border border-purple-100 text-sm text-stone-800 leading-relaxed"></div>
         </div>
-
-        <!-- FOOTER (Always visible AI Button) -->
         <div id="tribe-ai-section" class="p-3 border-t border-stone-100 bg-stone-50 rounded-b-xl">
             <button onclick="askGeminiTribe()" id="tribe-ai-btn" class="w-full bg-white hover:bg-purple-50 border border-purple-200 text-purple-900 px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-all shadow-sm hover:shadow cursor-pointer">
                 <i class="ph-fill ph-sparkle text-purple-600 text-lg"></i>
@@ -136,7 +119,7 @@
         </div>
     </div>
 
-    <!-- KI MODAL (Global) -->
+    <!-- KI MODAL -->
     <div id="ai-modal" class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 ui-element">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[85vh]">
             <div class="bg-stone-900 p-4 text-white flex justify-between items-center rounded-t-xl">
@@ -184,57 +167,58 @@
 
     <script>
         // --- CONFIG ---
-        const apiKey = "AIzaSyD11Y7yFTiBzm2DW2KUouJK3r1-QjFIgnU"; // KEY HIER EINFÜGEN
+        const apiKey = "AIzaSyD11Y7yFTiBzm2DW2KUouJK3r1-QjFIgnU"; // BITTE API KEY HIER EINFÜGEN
         
         let currentTribeForAI = null;
         let map;
         const layers = {};
         const eventMarkers = {};
+        const cityMarkers = {};
         let isPlaying = false;
         let animationInterval;
         let currentYear = 375;
 
-        // --- DATENSATZ ---
+        // --- GEO-DATEN ---
+        const limesPath = [
+            [52.2, 4.4], [52.0, 5.1], [51.2, 6.8], [50.9, 7.0], [50.0, 8.2],
+            [49.0, 8.4], [49.0, 10.9], [48.9, 12.0], [48.4, 13.4],
+            [48.3, 14.3], [48.1, 16.4], [47.8, 17.6], [47.5, 19.0], [44.8, 20.4], [44.6, 22.6], [45.2, 29.6]
+        ];
+
+        const dynamicCities = [
+            { c: [41.9, 12.5], t: "Rom", type: 'capital', start: 0, end: 600, desc: "Die ewige Stadt." },
+            { c: [41.0, 28.9], t: "Konstantinopel", type: 'capital', start: 330, end: 600, desc: "Das neue Rom." },
+            { c: [36.8, 10.1], t: "Karthago", type: 'city', start: 0, end: 600, desc: "Kornkammer Roms, später Vandalenhauptstadt." },
+            { c: [44.4, 12.2], t: "Ravenna", type: 'capital', start: 402, end: 600, desc: "Kaiserliche Residenz ab 402." },
+            { c: [43.6, 1.4], t: "Tolosa", type: 'barbarian', start: 418, end: 507, desc: "Hauptstadt des Westgotenreichs." },
+            { c: [39.8, -4.0], t: "Toledo", type: 'barbarian', start: 507, end: 600, desc: "Spätere Hauptstadt der Westgoten." },
+            { c: [41.5, 13.8], t: "Monte Cassino", type: 'monastery', start: 529, end: 600, desc: "Gründung durch Benedikt." }
+        ];
+
         const routes = {
             westgoten: {
                 name: "Westgoten", color: "#dc2626",
                 desc: "Ursprünglich als Foederati aufgenommen, rebellierten sie. Nach der Plünderung Roms (410) etablierten sie das Tolosanische Reich.",
                 path: [[45.5, 25.0, 375], [41.6, 26.5, 378], [40.6, 22.9, 395], [41.9, 12.5, 410], [43.6, 1.4, 418], [41.6, -4.7, 470], [39.8, -4.0, 507]],
-                artifact: {
-                    img: artifacts.westgoten, // Interne SVG Referenz
-                    title: "Adlerfibel (Polychromer Stil)",
-                    text: "Ein Meisterwerk der Cloisonné-Technik. Der Adler symbolisiert den Machtanspruch der gotischen Elite."
-                }
+                artifact: { img: artifacts.westgoten, title: "Adlerfibel (Polychromer Stil)", text: "Ein Meisterwerk der Cloisonné-Technik. Der Adler symbolisiert den Machtanspruch der gotischen Elite." }
             },
             vandalen: {
                 name: "Vandalen", color: "#2563eb",
                 desc: "Ein weiter Zug vom Rhein über Spanien bis nach Karthago. Errichtung einer Seemacht im Mittelmeer.",
                 path: [[51.0, 17.0, 375], [50.0, 8.2, 405], [49.9, 8.2, 406], [44.8, -0.5, 409], [37.3, -5.9, 415], [35.9, -5.6, 429], [36.8, 10.1, 439], [41.9, 12.5, 455], [36.8, 10.1, 460]],
-                artifact: {
-                    img: artifacts.vandalen,
-                    title: "Siliqua des Gelimer",
-                    text: "Silbermünze aus Karthago. Zeigt die fast nahtlose Übernahme römischer Herrschaftssymbole."
-                }
+                artifact: { img: artifacts.vandalen, title: "Siliqua des Gelimer", text: "Silbermünze aus Karthago. Zeigt die fast nahtlose Übernahme römischer Herrschaftssymbole." }
             },
             hunnen: {
                 name: "Hunnen", color: "#16a34a",
                 desc: "Reiternomaden, deren Druck die Völkerwanderung beschleunigte. Zerfall des Reiches nach 453.",
                 path: [[48.0, 43.0, 375], [47.0, 30.0, 390], [47.5, 19.0, 405], [49.0, 4.0, 451], [45.4, 10.9, 452], [47.5, 19.0, 453]],
-                artifact: {
-                    img: artifacts.hunnen,
-                    title: "Zikadenfibel",
-                    text: "Symbol der Wiedergeburt aus der asiatischen Steppe. Ein klarer Marker für die östliche Herkunft."
-                }
+                artifact: { img: artifacts.hunnen, title: "Zikadenfibel", text: "Symbol der Wiedergeburt aus der asiatischen Steppe. Ein klarer Marker für die östliche Herkunft." }
             },
             langobarden: {
                 name: "Langobarden", color: "#d97706",
                 desc: "Späte Einwanderung nach Italien (568) und Gründung eines langlebigen Königreichs.",
                 path: [[53.5, 10.5, 375], [53.5, 10.5, 400], [48.5, 16.5, 489], [47.5, 19.0, 526], [46.0, 13.0, 568], [45.4, 9.1, 572]],
-                artifact: {
-                    img: artifacts.langobarden,
-                    title: "Goldblattkreuz",
-                    text: "Typisch langobardische Grabbeigabe. Christliches Kreuz in magischer Schutzfunktion."
-                }
+                artifact: { img: artifacts.langobarden, title: "Goldblattkreuz", text: "Typisch langobardische Grabbeigabe. Christliches Kreuz in magischer Schutzfunktion." }
             }
         };
 
@@ -253,6 +237,22 @@
         function initMap() {
             map = L.map('map', { zoomControl: false, attributionControl: false }).setView([46.5, 14.0], 5);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap, ©CartoDB' }).addTo(map);
+
+            // Limes zeichnen
+            L.polyline(limesPath, { color: '#44403c', weight: 2, dashArray: '5, 10', opacity: 0.5 }).addTo(map);
+
+            // Städte initialisieren
+            dynamicCities.forEach((city, idx) => {
+                let color = '#666'; 
+                if (city.type === 'capital') color = '#7e22ce'; 
+                if (city.type === 'barbarian') color = '#d97706'; 
+                if (city.type === 'monastery') color = '#0ea5e9'; 
+
+                const marker = L.circleMarker(city.c, { radius: 4, color: color, fillColor: '#fff', fillOpacity: 1, weight: 2, opacity: 0 }).addTo(map);
+                const tooltip = L.tooltip({ permanent: true, direction: 'bottom', className: 'bg-transparent border-0 shadow-none text-stone-500 font-serif text-[10px] uppercase tracking-wider', offset: [0, 5], opacity: 0 }).setContent(city.t).setLatLng(city.c).addTo(map);
+                
+                cityMarkers[idx] = { marker, tooltip, start: city.start, end: city.end };
+            });
 
             Object.keys(routes).forEach(key => {
                 const data = routes[key];
@@ -289,17 +289,32 @@
 
         function updateVisualization(year) {
             currentYear = year;
-            document.getElementById('tribe-ai-year').innerText = year;
-            document.getElementById('ai-btn-year-ref').innerText = year;
+            // Update AI UI elements if they exist (Desk/Mob)
+            const aiYearEl = document.getElementById('tribe-ai-year');
+            if (aiYearEl) aiYearEl.innerText = year;
+            const aiBtnRef = document.getElementById('ai-btn-year-ref');
+            if (aiBtnRef) aiBtnRef.innerText = year;
+            
+            // Zentren updaten
+            Object.values(cityMarkers).forEach(cm => {
+                if (year >= cm.start && year <= cm.end) {
+                    cm.marker.setStyle({ opacity: 1, fillOpacity: 1 }); 
+                    cm.tooltip.setOpacity(1);
+                } else {
+                    cm.marker.setStyle({ opacity: 0, fillOpacity: 0 });
+                    cm.tooltip.setOpacity(0);
+                }
+            });
+
             Object.keys(routes).forEach(key => {
                 const res = getPosition(routes[key].path, year);
-                const L = layers[key];
+                const layerData = layers[key]; // Renamed to avoid conflict with L
                 if (res) {
-                    if (!L.hasStarted) { L.marker.setOpacity(1); L.line.setStyle({opacity: 0.7}); L.hasStarted = true; }
-                    L.marker.setLatLng([res.lat, res.lng]); L.line.setLatLngs(res.trail);
-                    if (key === 'hunnen' && year > 454) { L.marker.setOpacity(0); L.marker.closeTooltip(); L.line.setStyle({opacity: 0.15}); }
-                    else if (key === 'hunnen') { L.marker.setOpacity(1); if(!L.marker.isTooltipOpen()) L.marker.openTooltip(); L.line.setStyle({opacity: 0.7}); }
-                } else { L.marker.setOpacity(0); L.marker.closeTooltip(); L.line.setLatLngs([]); L.hasStarted = false; }
+                    if (!layerData.hasStarted) { layerData.marker.setOpacity(1); layerData.line.setStyle({opacity: 0.7}); layerData.hasStarted = true; }
+                    layerData.marker.setLatLng([res.lat, res.lng]); layerData.line.setLatLngs(res.trail);
+                    if (key === 'hunnen' && year > 454) { layerData.marker.setOpacity(0); layerData.marker.closeTooltip(); layerData.line.setStyle({opacity: 0.15}); }
+                    else if (key === 'hunnen') { layerData.marker.setOpacity(1); if(!layerData.marker.isTooltipOpen()) layerData.marker.openTooltip(); layerData.line.setStyle({opacity: 0.7}); }
+                } else { layerData.marker.setOpacity(0); layerData.marker.closeTooltip(); layerData.line.setLatLngs([]); layerData.hasStarted = false; }
             });
             historicalEvents.forEach(ev => {
                 if (year >= ev.year && year <= ev.year + 2) eventMarkers[ev.year].setOpacity(1);
@@ -360,7 +375,9 @@
             const respDiv = document.getElementById('tribe-ai-response'); respDiv.classList.remove('hidden');
             respDiv.innerHTML = `<div class="flex items-center gap-3 py-2"><div class="ai-spinner"></div><span class="italic text-stone-500 text-xs">Recherchiere ${currentTribeForAI.name}...</span></div>`;
             const prompt = `Du bist ein Experte für Spätantike. Thema: Das Volk der ${currentTribeForAI.name} im Jahr ${currentYear} n. Chr. Erkläre präzise ihre Situation (Ort, Rechtsstatus, Anführer). 2-3 Sätze, Deutsch.`;
-            const result = await callGemini(prompt); respDiv.innerHTML = marked.parse(result);
+            const result = await callGemini(prompt); 
+            // NUTZT JETZT INTERNEN FORMATTER STATT MARKED.JS
+            respDiv.innerHTML = formatText(result);
         }
 
         async function askGeminiContext() {
@@ -368,7 +385,9 @@
             document.getElementById('ai-modal-year').innerText = currentYear; modal.classList.remove('hidden');
             content.innerHTML = `<div class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 border-t-amber-500"></div><p class="text-stone-500 italic">Analysiere Lage ${currentYear}...</p></div>`;
             const prompt = `Du bist ein Althistoriker. Analysiere das Jahr ${currentYear} n. Chr. in Europa (Westrom/Ostrom, Militär, Recht). Antworte anspruchsvoll auf Deutsch.`;
-            const result = await callGemini(prompt); content.innerHTML = marked.parse(result);
+            const result = await callGemini(prompt); 
+            // NUTZT JETZT INTERNEN FORMATTER STATT MARKED.JS
+            content.innerHTML = formatText(result);
         }
     </script>
 </body>

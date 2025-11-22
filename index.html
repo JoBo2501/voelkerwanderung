@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Finale Version</title>
+    <title>Völkerwanderung: Der komplette historische Diskurs</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -106,11 +106,15 @@
         @keyframes pulse-culture { 0% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(217, 119, 6, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); } }
 
         /* KLARHEIT & NATÜRLICHKEIT */
-        .leaflet-layer { filter: contrast(1.05); }
+        .leaflet-layer { 
+            /* Hoher Kontrast für plastisches Relief, leichte Abdunklung für Tiefe, etwas mehr Sättigung */
+            filter: contrast(1.3) brightness(0.95) saturate(1.1);
+        }
 
-        /* KORRIGIERT: Z-INDEX 350 (Zwischen Map und Markern) */
+        /* Overlay deaktiviert (Opacity 0), um maximale Klarheit zu gewähren */
         .parchment-overlay {
             position: absolute; inset: 0; pointer-events: none; z-index: 350;
+            opacity: 0; 
             background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
             box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.1);
             mix-blend-mode: multiply;
@@ -194,9 +198,9 @@
             <div id="info-content" class="text-sm text-stone-700 leading-relaxed mb-2"></div>
         </div>
         <div id="tribe-ai-section" class="p-3 border-t border-stone-100 bg-stone-50 rounded-b-xl">
-            <button onclick="askGeminiTribe()" id="tribe-ai-btn" class="w-full bg-white hover:bg-purple-50 border border-purple-200 text-purple-900 px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-all shadow-sm hover:shadow cursor-pointer">
+            <button onclick="askGeminiFromSidebar()" id="tribe-ai-btn" class="w-full bg-white hover:bg-purple-50 border border-purple-200 text-purple-900 px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-all shadow-sm hover:shadow cursor-pointer">
                 <i class="ph-fill ph-sparkle text-purple-600 text-lg"></i>
-                <span id="tribe-ai-text">KI-Analyse: Situation im Jahr <span id="tribe-ai-year">...</span></span>
+                <span id="tribe-ai-text">KI-Analyse starten</span>
             </button>
         </div>
     </div>
@@ -272,7 +276,6 @@
 
     <script>
         const apiKey = ""; 
-        let currentTribeForAI = null;
         let map;
         const layers = {};
         const eventMarkers = {};
@@ -286,11 +289,12 @@
         const speedConfig = { slow: 0.15, medium: 0.5, fast: 1.2 };
         let yearStep = speedConfig.slow; 
         let empireDivisionLine = null;
+        
+        // NEU: Zentraler Context-Speicher für die Sidebar
+        let activeSidebarContext = null;
 
         // --- GEO-DATEN ---
-        
         const limesPath = [ [52.18, 4.41], [52.05, 5.10], [51.87, 5.80], [51.60, 6.20], [51.20, 6.80], [50.93, 6.96], [50.36, 7.60], [50.00, 8.20], [49.97, 8.90], [50.18, 8.95], [50.50, 9.50], [49.80, 10.90], [48.90, 11.50], [48.90, 12.00], [48.50, 13.50], [48.30, 14.30], [48.10, 16.40], [47.80, 17.60], [47.80, 19.00], [44.80, 20.40], [44.60, 22.60], [45.20, 29.60] ];
-        
         const divisionPath = [ [45.0, 19.5], [44.0, 19.0], [42.5, 18.5], [42.0, 19.0], [41.0, 19.5], [39.0, 19.8], [35.0, 20.0], [32.0, 20.0] ];
 
         const strategicRivers = {
@@ -411,6 +415,7 @@
             plagueLayer = L.circle([38.0, 18.0], { radius: 1500000, color: '#10b981', fillColor: '#10b981', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
             droughtLayer = L.circle([48.0, 40.0], { radius: 800000, color: '#d97706', fillColor: '#d97706', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
 
+            // STÄMME (ROUTES)
             Object.keys(routes).forEach(key => {
                 const data = routes[key];
                 let dashStyle = '1, 6'; if (data.type === 'army') dashStyle = '10, 5'; if (data.type === 'plague') dashStyle = '1, 10'; 
@@ -420,16 +425,20 @@
                 const iconHtml = `<div style="background-color: ${data.color}; width: 14px; height: 14px; border-radius: ${borderRadius}; border: 2px solid white;"></div>`;
                 const icon = L.divIcon({ className: iconClass, html: iconHtml, iconSize: [14, 14], iconAnchor: [7, 7] });
                 
-                // Klickbare Marker für Stämme
                 const marker = L.marker([0,0], { icon: icon }).addTo(map);
                 marker.bindTooltip(data.name, { permanent: true, direction: 'right', className: 'custom-label', offset: [10, 0] });
                 
-                // Event Listener für Klicks
-                marker.on('click', () => showInfo(data.name, data.desc, null, data.color, key, data.artifact));
+                // KLICK-LOGIK STÄMME: Übergabe von { type: 'tribe', key: '...', prompt: '...' }
+                marker.on('click', () => showInfo(data.name, data.desc, null, data.color, data.artifact, { 
+                    type: 'tribe', 
+                    key: key, 
+                    name: data.name 
+                }));
                 
                 layers[key] = { line, marker, hasStarted: false };
             });
-
+            
+            // EREIGNISSE (HISTORICAL EVENTS)
             historicalEvents.forEach(ev => {
                 const color = (ev.type === 'battle' || ev.type === 'crisis' || ev.type === 'plague') ? '#dc2626' : (ev.type === 'climate' ? '#06b6d4' : '#4b5563');
                 let iconType = ev.icon || (ev.type === 'battle' ? 'ph-swords' : (ev.type === 'plague' ? 'ph-skull' : (ev.type === 'crisis' ? 'ph-fire' : (ev.type === 'diplomacy' ? 'ph-handshake' : 'ph-snowflake'))));
@@ -437,18 +446,32 @@
                 const html = `<div class="battle-marker flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-md border border-stone-200 text-[${color}] ${pulseClass}"><i class="ph-fill ${iconType} text-lg" style="color:${color}"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
                 const marker = L.marker([ev.lat, ev.lng], { icon: icon, opacity: 0 }).addTo(map);
-                marker.on('click', () => showInfo(ev.title, ev.desc, ev.quote, color, null, null));
+                
+                // KLICK-LOGIK EREIGNISSE: Übergabe von { type: 'event', title: '...', year: ... }
+                marker.on('click', () => showInfo(ev.title, ev.desc, ev.quote, color, null, { 
+                    type: 'event', 
+                    title: ev.title, 
+                    year: ev.year,
+                    prompt: ev.prompt 
+                }));
+                
                 eventMarkers[ev.year] = marker;
             });
 
+            // KULTUR-EVENTS
             culturalEvents.forEach(ev => {
                 const html = `<div class="culture-marker flex items-center justify-center w-8 h-8 rounded-full text-amber-700 bg-amber-50"><i class="ph-fill ${ev.icon} text-lg"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
                 const marker = L.marker([ev.lat, ev.lng], { icon: icon, opacity: 0 }).addTo(map);
-                marker.on('click', () => {
-                    activeAlertEvent = { title: ev.title, year: ev.year, desc: ev.desc, aiPrompt: ev.prompt, type: ev.type };
-                    askGeminiEvent(); 
-                });
+                
+                // KLICK-LOGIK KULTUR: Übergabe als Event
+                marker.on('click', () => showInfo(ev.title, ev.desc, null, '#d97706', null, { 
+                    type: 'event', 
+                    title: ev.title, 
+                    year: ev.year, 
+                    prompt: ev.prompt 
+                }));
+                
                 eventMarkers['cult_' + ev.year + ev.title] = { marker: marker, data: ev };
             });
         }
@@ -512,7 +535,8 @@
                 else if (ev.type === 'plague') { btnClass += ' alert-plague'; icon = 'ph-skull'; typeText = 'Pandemie'; }
                 else if (ev.type === 'crisis') { btnClass += ' alert-battle'; icon = 'ph-fire'; typeText = 'Reichskrise'; }
 
-                activeAlertEvent = ev; 
+                activeAlertEvent = { type: 'event', title: ev.title, year: ev.year, prompt: ev.prompt || null }; // Global Event für Button oben
+                
                 alertBtn.className = btnClass;
                 alertIcon.className = `ph-fill text-xl ${icon}`;
                 alertType.innerText = typeText;
@@ -585,11 +609,14 @@
             }
         }
 
-        function showInfo(title, text, quote, color, key, artifact) {
-            currentTribeForAI = key ? { name: title, key: key } : null;
+        // ZENTRALE INFO FUNKTION (GENERALISIERT)
+        function showInfo(title, text, quote, color, artifact, aiData) {
+            activeSidebarContext = aiData; // Speichere den Kontext (Tribe oder Event)
+            
             const box = document.getElementById('info-box');
             const artContainer = document.getElementById('info-artifact-container');
             const aiSection = document.getElementById('tribe-ai-section');
+            const aiBtnText = document.getElementById('tribe-ai-text');
 
             document.getElementById('info-title').innerText = title; document.getElementById('info-title').style.color = color;
             document.getElementById('info-content').innerText = text;
@@ -605,7 +632,15 @@
             } else { artContainer.classList.add('hidden'); document.getElementById('artifact-desc').classList.add('hidden'); }
 
             if (quote) { document.getElementById('info-quote').innerText = quote; document.getElementById('info-quote').classList.remove('hidden'); } else { document.getElementById('info-quote').classList.add('hidden'); }
-            if (key) { aiSection.classList.remove('hidden'); } else { aiSection.classList.add('hidden'); }
+            
+            // KI-BUTTON IMMER ANZEIGEN WENN CONTEXT DA IST
+            if (aiData) { 
+                aiSection.classList.remove('hidden'); 
+                if(aiData.type === 'event') aiBtnText.innerText = "KI-Analyse: Ereignis hinterfragen";
+                else aiBtnText.innerText = "KI-Analyse: Situation im Jahr " + Math.floor(currentYear);
+            } else { 
+                aiSection.classList.add('hidden'); 
+            }
             
             document.getElementById('tribe-ai-response').classList.add('hidden'); document.getElementById('tribe-ai-response').innerHTML = '';
             box.classList.remove('hidden');
@@ -627,18 +662,30 @@
             container.appendChild(div); container.scrollTop = container.scrollHeight; 
         }
 
-        async function askGeminiTribe() {
-            if (!currentTribeForAI) return;
+        // NEU: ZENTRALE FUNKTION FÜR DEN SIDEBAR BUTTON
+        async function askGeminiFromSidebar() {
+            if (!activeSidebarContext) return;
+            
             const modal = document.getElementById('ai-modal'); 
             const container = document.getElementById('ai-chat-container');
             
-            document.getElementById('ai-modal-year').innerText = currentTribeForAI.name + " (" + Math.floor(currentYear) + ")"; 
+            // Unterscheide Prompt je nach Kontext (Tribe vs. Event)
+            let prompt = "";
+            let headerTitle = "";
+            
+            if (activeSidebarContext.type === 'tribe') {
+                headerTitle = activeSidebarContext.name + " (" + Math.floor(currentYear) + ")";
+                prompt = `Du bist ein Experte für Spätantike. Thema: Die Gruppe '${activeSidebarContext.name}' im Jahr ${Math.floor(currentYear)} n. Chr. Erkläre präzise ihre Situation (Ort, Rechtsstatus, Anführer, militärische Ziele). 2-3 Sätze, Deutsch.`;
+            } else if (activeSidebarContext.type === 'event') {
+                headerTitle = activeSidebarContext.title;
+                const specificPrompt = activeSidebarContext.prompt || `Analysiere das Ereignis '${activeSidebarContext.title}' im Jahr ${activeSidebarContext.year}.`;
+                prompt = `Du bist Historiker. ${specificPrompt} Antworte präzise, analytisch und auf Deutsch.`;
+            }
+
+            document.getElementById('ai-modal-year').innerText = headerTitle; 
             modal.classList.remove('hidden');
             container.innerHTML = ''; 
-            
-            container.innerHTML = `<div id="loading-spinner" class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 border-t-purple-600"></div><p class="text-stone-500 italic">Analysiere Quellen zu den ${currentTribeForAI.name}...</p></div>`;
-
-            const prompt = `Du bist ein Experte für Spätantike. Thema: Die Gruppe '${currentTribeForAI.name}' im Jahr ${Math.floor(currentYear)} n. Chr. Erkläre präzise ihre Situation (Ort, Rechtsstatus, Anführer, militärische Ziele). 2-3 Sätze, Deutsch.`;
+            container.innerHTML = `<div id="loading-spinner" class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 border-t-purple-600"></div><p class="text-stone-500 italic">Analysiere Quellen...</p></div>`;
             
             chatContext = [{ role: 'user', parts: [{ text: prompt }] }];
 
@@ -667,6 +714,7 @@
             document.getElementById('ai-input-area').classList.remove('hidden');
         }
 
+        // Diese Funktion wird jetzt primär vom oberen Alert-Button genutzt
         async function askGeminiEvent() {
             if (!activeAlertEvent) return;
             const modal = document.getElementById('ai-modal'); 
@@ -674,7 +722,7 @@
             document.getElementById('ai-modal-year').innerText = activeAlertEvent.title; 
             modal.classList.remove('hidden'); container.innerHTML = ''; 
             container.innerHTML = `<div id="loading-spinner" class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 border-t-red-600"></div><p class="text-stone-500 italic">Analysiere Ereignis...</p></div>`;
-            const promptText = activeAlertEvent.aiPrompt || `Analysiere das Ereignis '${activeAlertEvent.title}' im Jahr ${activeAlertEvent.year}.`;
+            const promptText = activeAlertEvent.prompt || `Analysiere das Ereignis '${activeAlertEvent.title}' im Jahr ${activeAlertEvent.year}.`;
             const prompt = `Du bist Historiker. ${promptText} Antworte präzise, analytisch und auf Deutsch.`;
             chatContext = [{ role: 'user', parts: [{ text: prompt }] }];
             const result = await callGeminiWithHistory(chatContext);

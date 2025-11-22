@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Stabil & Lesbar</title>
+    <title>Völkerwanderung: Final & Interaktiv</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -12,7 +12,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <script>
-        /* API KEY LOGIK */
+        /* --- 1. API KEY LOGIK --- */
         function getApiKey() {
             let key = localStorage.getItem('gemini_api_key');
             if (!key) {
@@ -28,7 +28,7 @@
             if (key) {
                 localStorage.setItem('gemini_api_key', key);
                 document.getElementById('key-modal').classList.add('hidden');
-                alert("Schlüssel gespeichert! Analyse aktiv.");
+                alert("Schlüssel gespeichert! Sie können jetzt KI-Anfragen stellen.");
                 location.reload(); 
             }
         }
@@ -71,7 +71,7 @@
         
         #map { height: 100vh; width: 100vw; background: #e5e5e5; z-index: 1; }
         
-        /* UI Layer: Pointer Events nur auf Elemente erlauben */
+        /* UI Layer */
         .ui-layer { position: absolute; z-index: 5000; pointer-events: none; }
         .ui-element { pointer-events: auto; }
         
@@ -84,22 +84,30 @@
 
         .pulse-icon { position: relative; }
         .pulse-icon:after { content: ''; position: absolute; width: 100%; height: 100%; top: 0; left: 0; border-radius: 50%; background: inherit; animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; z-index: -1; }
+        .roman-pulse:after { border: 2px solid #7e22ce; animation: pulse-ring 2s infinite; }
+        .climate-pulse:after { border: 2px solid #06b6d4; animation: pulse-ring 2.5s infinite; background: rgba(6,182,212,0.1); }
+        .plague-pulse:after { border: 2px solid #10b981; animation: pulse-ring 1s infinite; background: rgba(16, 185, 129, 0.2); }
         
-        /* FIX: Harte Hintergrundfarben statt Transparenz für Lesbarkeit */
-        .alert-base { animation: alert-pulse 2.5s infinite; color: white; border: 1px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background: #333; }
-        .alert-nature { background: #0891b2; }
-        .alert-battle { background: #dc2626; }
-        .alert-treaty { background: #7e22ce; }
-        .alert-move { background: #4f46e5; }
+        .alert-base { animation: alert-pulse 2.5s infinite; color: white; border: 1px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); backdrop-filter: blur(4px); }
+        .alert-nature { background: linear-gradient(135deg, #0891b2, #3b82f6); border-color: #a5f3fc; }
+        .alert-drought { background: linear-gradient(135deg, #ea580c, #b45309); border-color: #fdba74; }
+        .alert-plague  { background: linear-gradient(135deg, #059669, #047857); border-color: #6ee7b7; }
+        .alert-battle { background: linear-gradient(135deg, #dc2626, #991b1b); border-color: #fca5a5; }
+        .alert-treaty { background: linear-gradient(135deg, #7e22ce, #581c87); border-color: #d8b4fe; }
+        .alert-move { background: linear-gradient(135deg, #4f46e5, #312e81); border-color: #a5b4fc; }
 
         .ai-spinner { border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top: 3px solid #9333ea; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
+        /* LESBARKEIT: HARTE HINTERGRÜNDE, KEIN GLASS-EFFEKT */
+        .bg-white-solid { background-color: #ffffff !important; opacity: 1 !important; }
+        
         .leaflet-tooltip.custom-label { background-color: rgba(255, 255, 255, 0.95); border: 1px solid #999; color: #333; font-family: serif; font-weight: bold; font-size: 12px; padding: 2px 6px; border-radius: 2px; }
         .leaflet-tooltip.region-label { background: transparent; border: none; box-shadow: none; font-family: 'Times New Roman', serif; font-weight: bold; color: #333; text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px; opacity: 0.9; pointer-events: none; text-shadow: 1px 1px 0px rgba(255,255,255,0.8); }
         
-        /* WICHTIG: Pointer Cursor für alle interaktiven Elemente */
-        .leaflet-interactive { cursor: pointer !important; }
+        /* FIX: Marker müssen über allem liegen */
+        .leaflet-marker-pane { z-index: 5000 !important; } 
+        .leaflet-marker-icon { pointer-events: auto !important; cursor: pointer !important; }
         
         .culture-marker { background: #fff; border: 2px solid #d97706; color: #d97706; box-shadow: 0 0 10px rgba(217, 119, 6, 0.4); animation: pulse-culture 3s infinite; }
         @keyframes pulse-culture { 0% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(217, 119, 6, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); } }
@@ -163,7 +171,7 @@
         </div>
     </div>
 
-    <div id="info-box" class="hidden ui-layer top-20 left-4 right-4 md:left-auto md:right-4 md:w-[400px] max-h-[75vh] flex flex-col rounded-xl shadow-2xl z-[4000] bg-white border border-stone-300 pointer-events-auto" style="background-color: white;">
+    <div id="info-box" class="hidden ui-layer top-20 left-4 right-4 md:left-auto md:right-4 md:w-[400px] max-h-[75vh] flex flex-col rounded-xl shadow-2xl z-[4000] bg-white border border-stone-300 pointer-events-auto">
         <div id="info-artifact-container" class="relative w-full h-48 bg-stone-100 shrink-0 border-b border-stone-200">
             <img id="artifact-img" src="" alt="Artefakt" class="w-full h-full object-contain p-4">
             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/80 to-transparent p-2 pt-8">
@@ -191,8 +199,8 @@
         </div>
     </div>
 
-    <div id="ai-modal" class="hidden fixed inset-0 z-[5000] bg-black/40 flex items-center justify-center p-4 ui-element">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[85vh] overflow-hidden" style="background-color: white;">
+    <div id="ai-modal" class="hidden fixed inset-0 z-[5000] bg-black/50 flex items-center justify-center p-4 ui-element">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[85vh] overflow-hidden border border-stone-300">
             <div class="bg-stone-900 p-4 text-white flex justify-between items-center shrink-0">
                 <h3 class="font-serif font-bold flex items-center gap-2 text-lg">
                     <i class="ph-fill ph-chat-centered-text text-purple-400"></i> 
@@ -213,7 +221,7 @@
     </div>
 
     <div class="ui-layer bottom-0 left-0 right-0">
-        <div class="ui-element bg-white border-t border-stone-200 shadow-lg p-4 pb-8 md:pb-6" style="background-color: white;">
+        <div class="ui-element bg-white border-t border-stone-200 shadow-lg p-4 pb-8 md:pb-6">
             <div class="max-w-5xl mx-auto w-full">
                 
                 <div class="flex items-center justify-between mb-4">
@@ -369,73 +377,72 @@
                 attribution: 'Esri', opacity: 1.0 
             }).addTo(map);
 
-            // CUSTOM PANES: Klickbarkeit erzwingen
-            map.createPane('clickPane');
-            map.getPane('clickPane').style.zIndex = 2000; 
+            // CUSTOM PANES: KLICKBARKEITSSICHERUNG
+            map.createPane('bottomPane'); map.getPane('bottomPane').style.zIndex = 400; // Linien, Flüsse
+            map.createPane('topPane'); map.getPane('topPane').style.zIndex = 1000; // Marker (Klickbar)
 
             // FLÜSSE
             Object.values(strategicRivers).forEach(riverPath => {
-                L.polyline(riverPath, { className: 'river-style', weight: 2, opacity: 0.7, smoothFactor: 1 }).addTo(map);
+                L.polyline(riverPath, { className: 'river-style', weight: 2, opacity: 0.7, smoothFactor: 1, pane: 'bottomPane' }).addTo(map);
             });
 
             // LIMES
-            const limes = L.polyline(limesPath, { className: 'limes-style', weight: 2, dashArray: '4, 4', opacity: 0.7, smoothFactor: 1 }).addTo(map);
+            const limes = L.polyline(limesPath, { className: 'limes-style', weight: 2, dashArray: '4, 4', opacity: 0.7, smoothFactor: 1, pane: 'bottomPane' }).addTo(map);
             limes.bindTooltip("Limes Germanicus", { sticky: true, className: 'leaflet-tooltip custom-label', direction: 'top' });
             
             // REICHSTEILUNG
-            empireDivisionLine = L.polyline(divisionPath, { color: '#7e22ce', weight: 2, dashArray: '10, 5', opacity: 0 }).addTo(map);
+            empireDivisionLine = L.polyline(divisionPath, { color: '#7e22ce', weight: 2, dashArray: '10, 5', opacity: 0, pane: 'bottomPane' }).addTo(map);
             empireDivisionLine.bindTooltip("Teilungslinie (395 n. Chr.)", { sticky: true, className: 'leaflet-tooltip custom-label', direction: 'top' });
 
             // RÖMERSTRASSEN
             Object.keys(romanRoads).forEach(key => {
                 const road = romanRoads[key];
-                road.line = L.polyline(road.path, { color: '#5c4d3c', weight: 3, opacity: 0.6, smoothFactor: 1, className: 'road-relief' }).addTo(map);
+                road.line = L.polyline(road.path, { color: '#5c4d3c', weight: 3, opacity: 0.6, smoothFactor: 1, className: 'road-relief', pane: 'bottomPane' }).addTo(map);
                 road.line.bindTooltip(road.name, { sticky: true, className: 'leaflet-tooltip custom-label' });
             });
 
             historicalRegions.forEach(reg => {
                 const color = reg.color || '#44403c';
-                L.tooltip({ permanent: true, direction: 'center', className: 'region-label', opacity: 0.8 }).setContent(`<span style="font-size:${reg.s}px; color:${color}">${reg.t}</span>`).setLatLng(reg.c).addTo(map);
+                L.tooltip({ permanent: true, direction: 'center', className: 'region-label', opacity: 0.8, pane: 'bottomPane' }).setContent(`<span style="font-size:${reg.s}px; color:${color}">${reg.t}</span>`).setLatLng(reg.c).addTo(map);
             });
 
             dynamicCities.forEach((city, idx) => {
                 let color = '#666'; if (city.type === 'capital') color = '#7e22ce'; if (city.type === 'barbarian') color = '#d97706'; if (city.type === 'monastery') color = '#0ea5e9'; 
-                const marker = L.circleMarker(city.c, { radius: 4, color: color, fillColor: '#fff', fillOpacity: 1, weight: 2, opacity: 0, pane: 'clickPane', interactive: true }).addTo(map);
+                const marker = L.circleMarker(city.c, { radius: 4, color: color, fillColor: '#fff', fillOpacity: 1, weight: 2, opacity: 0, pane: 'topPane', interactive: true }).addTo(map);
                 const tooltip = L.tooltip({ permanent: true, direction: 'bottom', className: 'bg-transparent border-0 shadow-none text-stone-700 font-serif text-[10px] uppercase tracking-wider font-bold', offset: [0, 5], opacity: 0 }).setContent(city.t).setLatLng(city.c).addTo(map);
                 cityMarkers[idx] = { marker, tooltip, start: city.start, end: city.end };
             });
 
-            climateLayer = L.circle([46.0, 15.0], { radius: 1500000, color: '#64748b', fillColor: '#94a3b8', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
-            plagueLayer = L.circle([38.0, 18.0], { radius: 1500000, color: '#10b981', fillColor: '#10b981', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
-            droughtLayer = L.circle([48.0, 40.0], { radius: 800000, color: '#d97706', fillColor: '#d97706', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
+            climateLayer = L.circle([46.0, 15.0], { radius: 1500000, color: '#64748b', fillColor: '#94a3b8', fillOpacity: 0, opacity: 0, weight: 0, pane: 'bottomPane' }).addTo(map);
+            plagueLayer = L.circle([38.0, 18.0], { radius: 1500000, color: '#10b981', fillColor: '#10b981', fillOpacity: 0, opacity: 0, weight: 0, pane: 'bottomPane' }).addTo(map);
+            droughtLayer = L.circle([48.0, 40.0], { radius: 800000, color: '#d97706', fillColor: '#d97706', fillOpacity: 0, opacity: 0, weight: 0, pane: 'bottomPane' }).addTo(map);
 
-            // STÄMME (ROUTES) - KLICK FIX: HIT-BOX & Z-INDEX
+            // STÄMME (ROUTES)
             Object.keys(routes).forEach(key => {
                 const data = routes[key];
                 let dashStyle = '1, 6'; if (data.type === 'army') dashStyle = '10, 5'; if (data.type === 'plague') dashStyle = '1, 10'; 
                 
-                const line = L.polyline([], { color: data.color, weight: 4, opacity: 0.8, dashArray: dashStyle, interactive: false }).addTo(map);
+                // LINIE in 'bottomPane' (nicht klickbar, verdeckt nichts)
+                const line = L.polyline([], { color: data.color, weight: 4, opacity: 0.8, dashArray: dashStyle, pane: 'bottomPane', interactive: false }).addTo(map);
                 
                 let borderRadius = '50%'; if (data.type === 'army') borderRadius = '2px';
                 let iconClass = 'pulse-icon'; if (data.type === 'army') iconClass = 'pulse-icon roman-pulse'; if (data.type === 'plague') iconClass = 'pulse-icon plague-pulse';
-                
-                // GRÖSSERE HIT-BOX DURCH ICONSIZE (30px statt 14px)
+                // HITBOX ERHÖHEN: 30px statt 14px
                 const iconHtml = `<div style="background-color: ${data.color}; width: 14px; height: 14px; border-radius: ${borderRadius}; border: 2px solid white; margin: 8px;"></div>`;
                 const icon = L.divIcon({ className: iconClass, html: iconHtml, iconSize: [30, 30], iconAnchor: [15, 15] });
                 
-                // MARKER IN CUSTOM PANE
-                const marker = L.marker([0,0], { icon: icon, pane: 'clickPane', interactive: true }).addTo(map);
+                // MARKER in 'topPane' (KLICKBAR!)
+                const marker = L.marker([0,0], { icon: icon, pane: 'topPane', interactive: true }).addTo(map);
                 marker.bindTooltip(data.name, { permanent: true, direction: 'right', className: 'custom-label', offset: [10, 0] });
                 
-                const clickHandler = () => {
+                // EVENT LISTENER
+                marker.on('click', function() {
                     showInfo(data.name, data.desc, null, data.color, data.artifact, { 
                         type: 'tribe', 
                         key: key, 
                         name: data.name 
                     });
-                };
-
-                marker.on('click', clickHandler);
+                });
                 
                 layers[key] = { line, marker, hasStarted: false };
             });
@@ -448,7 +455,8 @@
                 const html = `<div class="battle-marker flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-md border border-stone-200 text-[${color}] ${pulseClass}"><i class="ph-fill ${iconType} text-lg" style="color:${color}"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
                 
-                const marker = L.marker([ev.lat, ev.lng], { icon: icon, pane: 'clickPane', interactive: true }).addTo(map);
+                // Marker in 'topPane'
+                const marker = L.marker([ev.lat, ev.lng], { icon: icon, pane: 'topPane', interactive: true }).addTo(map);
                 
                 marker.on('click', function() {
                     showInfo(ev.title, ev.desc, ev.quote, color, null, { 
@@ -467,7 +475,8 @@
                 const html = `<div class="culture-marker flex items-center justify-center w-8 h-8 rounded-full text-amber-700 bg-amber-50"><i class="ph-fill ${ev.icon} text-lg"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
                 
-                const marker = L.marker([ev.lat, ev.lng], { icon: icon, pane: 'clickPane', interactive: true }).addTo(map);
+                // Marker in 'topPane'
+                const marker = L.marker([ev.lat, ev.lng], { icon: icon, pane: 'topPane', interactive: true }).addTo(map);
                 
                 marker.on('click', function() {
                     showInfo(ev.title, ev.desc, null, '#d97706', null, { 

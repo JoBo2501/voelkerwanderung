@@ -134,6 +134,34 @@
             animation: wheat-sway 3s ease-in-out infinite;
             transform-origin: bottom center;
         }
+
+        /* SCHLACHT ANIMATIONEN (Cinematic) */
+        /* Pfeil-Bewegungen */
+        @keyframes arrow-slide-west { 0% { transform: translateX(-20px) scale(0.5); opacity: 0; } 100% { transform: translateX(0) scale(1); opacity: 1; } }
+        @keyframes arrow-slide-east { 0% { transform: translateX(20px) scale(0.5); opacity: 0; } 100% { transform: translateX(0) scale(1); opacity: 1; } }
+        @keyframes arrow-slide-north { 0% { transform: translateY(-20px) rotate(90deg) scale(0.5); opacity: 0; } 100% { transform: translateY(0) rotate(90deg) scale(1); opacity: 1; } }
+        @keyframes arrow-slide-south { 0% { transform: translateY(20px) rotate(-90deg) scale(0.5); opacity: 0; } 100% { transform: translateY(0) rotate(-90deg) scale(1); opacity: 1; } }
+
+        /* Schockwelle */
+        @keyframes shockwave { 
+            0% { transform: scale(0.1); opacity: 1; border-width: 4px; } 
+            100% { transform: scale(3.0); opacity: 0; border-width: 0px; } 
+        }
+
+        .battle-vector-arrow { 
+            /* Basis für Pfeil */
+            width: 0; height: 0; 
+            border-top: 10px solid transparent; border-bottom: 10px solid transparent; 
+        }
+        .vector-west { border-left: 20px solid currentColor; animation: arrow-slide-west 1.5s ease-out forwards; }
+        .vector-east { border-right: 20px solid currentColor; animation: arrow-slide-east 1.5s ease-out forwards; }
+        
+        .shockwave-effect {
+            position: absolute; width: 40px; height: 40px;
+            border-radius: 50%; border: 2px solid #dc2626;
+            background: rgba(220, 38, 38, 0.2);
+            animation: shockwave 2s infinite ease-out;
+        }
     </style>
 </head>
 <body class="bg-stone-100">
@@ -317,6 +345,9 @@
         let grainRouteLayer = null;
         let romeStatusIcon = null;
         let granaryMarkers = []; 
+
+        // BATTLE VISUALS
+        let activeBattleAnimations = {}; // Speichert welche Schlachten gerade "toben"
         
         const grainPathCoords = [
             [36.8, 10.1], // Karthago
@@ -354,27 +385,36 @@
         
         const historicalEvents = [ 
             { year: 375, lat: 48.0, lng: 45.0, title: "Megadürre", type: "climate", icon: "ph-sun-dim", duration: 25, desc: "Jahrzehntelange Trockenheit treibt die Hunnen nach Westen.", quote: "Die Steppe verdorrte." },
-            { year: 378, lat: 41.67, lng: 26.56, title: "Schlacht von Adrianopel", type: "battle", desc: "Goten besiegen Valens. Ein Schock für das Imperium.", quote: "Ein Gemetzel wie bei Cannae." }, 
-            { year: 401, lat: 45.4, lng: 9.2, title: "Alarichs Einfall", type: "move", desc: "Goten fallen in Italien ein. Stilicho zieht Truppen vom Rhein ab.", quote: "Die Mauern erzittern." },
-            { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Vandalen & Sueben brechen durch den unbewachten Limes.", quote: "Ganz Gallien rauchte." }, 
-            { year: 410, lat: 41.9, lng: 12.5, title: "Plünderung Roms", type: "battle", desc: "Alarich in Rom. Das psychologische Ende der Antike.", quote: "Die Stadt ist erobert." }, 
-            { year: 429, lat: 35.9, lng: -5.6, title: "Zug nach Afrika", type: "move", desc: "Vandalen setzen über. Rom verliert seine Kornkammer.", quote: "Das Brot geht aus." },
-            { year: 438, lat: 41.0, lng: 28.9, title: "Codex Theodosianus", type: "law", icon: "ph-scales", desc: "Kaiser Theodosius II. veröffentlicht die erste offizielle Gesetzessammlung.", quote: "Ordnung in das Chaos der Gesetze bringen.", aiPrompt: "Analysiere die verfassungsrechtliche Bedeutung des Codex Theodosianus." },
+            { 
+                year: 378, lat: 41.67, lng: 26.56, title: "Schlacht von Adrianopel", type: "battle", desc: "Goten besiegen Valens.", quote: "Ein Gemetzel wie bei Cannae.",
+                vectors: [{dir: 'west', color: '#7e22ce'}, {dir: 'east', color: '#b91c1c'}] 
+            }, 
+            { year: 401, lat: 45.4, lng: 9.2, title: "Alarichs Einfall", type: "move", desc: "Goten fallen in Italien ein.", quote: "Die Mauern erzittern." },
+            { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Vandalen & Sueben brechen durch.", quote: "Ganz Gallien rauchte." }, 
+            { year: 410, lat: 41.9, lng: 12.5, title: "Plünderung Roms", type: "battle", desc: "Alarich in Rom.", quote: "Die Stadt ist erobert." }, 
+            { year: 429, lat: 35.9, lng: -5.6, title: "Zug nach Afrika", type: "move", desc: "Vandalen setzen über.", quote: "Das Brot geht aus." },
+            { year: 438, lat: 41.0, lng: 28.9, title: "Codex Theodosianus", type: "law", icon: "ph-scales", desc: "Kaiser Theodosius II. Gesetzessammlung.", quote: "Ordnung in das Chaos der Gesetze bringen.", aiPrompt: "Analysiere die verfassungsrechtliche Bedeutung des Codex Theodosianus." },
             { year: 447, lat: 41.0, lng: 28.0, title: "Hunnen-Tribut", type: "diplomacy", desc: "Ostrom erkauft Frieden von Attila.", quote: "Gold statt Blut." },
-            { year: 451, lat: 49.0, lng: 4.0, title: "Katalaunische Felder", type: "battle", desc: "Die Völkerschlacht. Aetius stoppt Attila in Gallien.", quote: "Ein wilder Kampf." }, 
-            { year: 455, lat: 41.9, lng: 12.5, title: "Sack von Rom", type: "battle", desc: "Vandalen plündern Rom systematisch von See aus.", quote: null }, 
+            { 
+                year: 451, lat: 49.0, lng: 4.0, title: "Katalaunische Felder", type: "battle", desc: "Die Völkerschlacht. Aetius stoppt Attila in Gallien.", quote: "Ein wilder Kampf.",
+                vectors: [{dir: 'south', color: '#7e22ce'}, {dir: 'east', color: '#16a34a'}]
+            }, 
+            { year: 455, lat: 41.9, lng: 12.5, title: "Sack von Rom", type: "battle", desc: "Vandalen plündern Rom systematisch.", quote: null }, 
             { year: 476, lat: 44.4, lng: 12.2, title: "Ende Westroms", type: "treaty", desc: "Odoaker setzt den letzten Kaiser ab.", quote: "Kein Kaiser mehr im Westen." }, 
-            { year: 486, lat: 49.3, lng: 3.3, title: "Schlacht von Soissons", type: "battle", desc: "Chlodwig besiegt Syagrius. Aufstieg der Franken.", quote: "Ende Roms in Gallien." }, 
-            { year: 493, lat: 44.4, lng: 12.2, title: "Rabenschlacht", type: "treaty", desc: "Theoderich tötet Odoaker. Ostgoten beherrschen Italien.", quote: "Der Verrat von Ravenna." },
-            { year: 506, lat: 43.6, lng: 1.4, title: "Lex Romana Visigothorum", type: "law", icon: "ph-scroll", desc: "Alarich II. kodifiziert römisches Recht für seine romanische Bevölkerung.", quote: "Rechtssicherheit als Machtinstrument." },
-            { year: 507, lat: 46.5, lng: 0.5, title: "Schlacht von Vouillé", type: "battle", desc: "Franken besiegen Westgoten. Gallien wird fränkisch.", quote: "Die Goten weichen nach Spanien." },
-            { year: 529, lat: 37.98, lng: 23.72, title: "Ende der Akademie", type: "philosophy", icon: "ph-columns", desc: "Justinian schließt die Platonische Akademie in Athen.", quote: "Das Schweigen der Philosophen." },
-            { year: 533, lat: 36.8, lng: 10.1, title: "Vandalenkrieg", type: "battle", desc: "Belisar landet in Afrika. Schnelles Ende des Vandalenreichs.", quote: "Justinians Traum." },
-            { year: 533, lat: 41.0, lng: 28.9, title: "Digesten & Institutionen", type: "law", icon: "ph-book-open", desc: "Das Herzstück des Corpus Iuris Civilis wird publiziert.", quote: "Suum cuique tribuere." },
-            { year: 536, lat: 42.0, lng: 12.5, title: "Vulkanischer Winter", type: "climate", icon: "ph-snowflake", duration: 10, desc: "Ein Jahr ohne Sommer. Missernten schwächen die Bevölkerung.", quote: "Die Sonne gab ihr Licht ohne Strahl." },
-            { year: 540, lat: 36.2, lng: 36.1, title: "Perserkrieg", type: "crisis", desc: "Sassaniden plündern Antiochia. Zweifrontenkrieg für Ostrom.", quote: "Die zweite Front." },
-            { year: 542, lat: 41.0, lng: 28.9, title: "Justinianische Pest", type: "plague", icon: "ph-skull", duration: 20, desc: "Pandemie tötet Millionen. Ende der Reconquista-Träume.", quote: "Gottes Zorn." },
-            { year: 552, lat: 43.2, lng: 12.8, title: "Busta Gallorum", type: "battle", desc: "Narses besiegt Totila. Endgültiges Ende der Ostgoten.", quote: "Ein blutiges Ende." }
+            { year: 486, lat: 49.3, lng: 3.3, title: "Schlacht von Soissons", type: "battle", desc: "Chlodwig besiegt Syagrius.", quote: "Ende Roms in Gallien." }, 
+            { year: 493, lat: 44.4, lng: 12.2, title: "Rabenschlacht", type: "treaty", desc: "Theoderich tötet Odoaker.", quote: "Der Verrat von Ravenna." },
+            { year: 506, lat: 43.6, lng: 1.4, title: "Lex Romana Visigothorum", type: "law", icon: "ph-scroll", desc: "Kodifiziertes römisches Recht.", quote: "Rechtssicherheit als Machtinstrument." },
+            { 
+                year: 507, lat: 46.5, lng: 0.5, title: "Schlacht von Vouillé", type: "battle", desc: "Franken besiegen Westgoten.", quote: "Die Goten weichen nach Spanien.",
+                vectors: [{dir: 'north', color: '#9333ea'}, {dir: 'south', color: '#dc2626'}]
+            },
+            { year: 529, lat: 37.98, lng: 23.72, title: "Ende der Akademie", type: "philosophy", icon: "ph-columns", desc: "Justinian schließt die Akademie.", quote: "Das Schweigen der Philosophen." },
+            { year: 533, lat: 36.8, lng: 10.1, title: "Vandalenkrieg", type: "battle", desc: "Belisar landet in Afrika.", quote: "Justinians Traum." },
+            { year: 533, lat: 41.0, lng: 28.9, title: "Digesten & Institutionen", type: "law", icon: "ph-book-open", desc: "Corpus Iuris Civilis.", quote: "Suum cuique tribuere." },
+            { year: 536, lat: 42.0, lng: 12.5, title: "Vulkanischer Winter", type: "climate", icon: "ph-snowflake", duration: 10, desc: "Ein Jahr ohne Sommer.", quote: "Die Sonne gab ihr Licht ohne Strahl." },
+            { year: 540, lat: 36.2, lng: 36.1, title: "Perserkrieg", type: "crisis", desc: "Sassaniden plündern Antiochia.", quote: "Die zweite Front." },
+            { year: 542, lat: 41.0, lng: 28.9, title: "Justinianische Pest", type: "plague", icon: "ph-skull", duration: 20, desc: "Pandemie tötet Millionen.", quote: "Gottes Zorn." },
+            { year: 552, lat: 43.2, lng: 12.8, title: "Busta Gallorum", type: "battle", desc: "Narses besiegt Totila.", quote: "Ein blutiges Ende." }
         ];
 
         // --- LOGIK ---
@@ -491,9 +531,38 @@
             return null;
         }
 
+        function updateBattleVisuals(event) {
+            if (!event.vectors || activeBattleAnimations[event.year]) return;
+
+            // Markiere als aktiv, damit wir sie nicht doppelt erstellen
+            activeBattleAnimations[event.year] = [];
+
+            // 1. Schockwelle im Zentrum
+            const shockHtml = `<div class="shockwave-effect"></div>`;
+            const shockIcon = L.divIcon({ className: 'bg-transparent', html: shockHtml, iconSize: [40, 40], iconAnchor: [20, 20] });
+            const shockMarker = L.marker([event.lat, event.lng], { icon: shockIcon, zIndexOffset: 2000 }).addTo(map);
+            activeBattleAnimations[event.year].push(shockMarker);
+
+            // 2. Vektoren (Pfeile)
+            event.vectors.forEach(v => {
+                const vecHtml = `<div class="battle-vector-arrow vector-${v.dir}" style="color:${v.color}"></div>`;
+                // Offset berechnen damit Pfeil "außerhalb" startet
+                // Einfachheitshalber nutzen wir CSS Transform im Icon
+                const vecIcon = L.divIcon({ className: 'bg-transparent', html: vecHtml, iconSize: [40, 40], iconAnchor: [20, 20] });
+                const vecMarker = L.marker([event.lat, event.lng], { icon: vecIcon, zIndexOffset: 2001 }).addTo(map);
+                activeBattleAnimations[event.year].push(vecMarker);
+            });
+
+            // Cleanup nach 3 Sekunden (wenn Event vorbei)
+            setTimeout(() => {
+                if (activeBattleAnimations[event.year]) {
+                    activeBattleAnimations[event.year].forEach(m => map.removeLayer(m));
+                    delete activeBattleAnimations[event.year];
+                }
+            }, 3000);
+        }
+
         function updateVisualization(year) {
-            // KEINE Zuweisung zu currentYear hier, da dies vom Loop gesteuert wird!
-            // Wir nutzen year nur zum Rendern.
             
             const aiYearEl = document.getElementById('tribe-ai-year'); if (aiYearEl) aiYearEl.innerText = Math.floor(year);
             const aiBtnRef = document.getElementById('ai-btn-year-ref'); if (aiBtnRef) aiBtnRef.innerText = Math.floor(year);
@@ -545,7 +614,6 @@
                 currentEvents.sort((a, b) => { const p = { 'plague': 3, 'climate': 3, 'crisis': 3, 'battle': 2, 'law': 2, 'philosophy': 2, 'move': 2, 'treaty': 1 }; return (p[b.type] || 0) - (p[a.type] || 0); });
                 let ev = currentEvents[0];
                 
-                // OPTIMIERUNG: UI nur neu bauen, wenn sich das Event geändert hat
                 if (!activeAlertEvent || activeAlertEvent.title !== ev.title) {
                     let btnClass = 'alert-base'; let icon = 'ph-info'; let typeText = 'Ereignis';
 
@@ -565,8 +633,13 @@
                     alertIcon.className = `ph-fill text-xl ${icon}`;
                     alertType.innerText = typeText;
                     alertTitle.innerText = ev.title;
+
+                    // TRIGGER BATTLE ANIMATION
+                    if (ev.type === 'battle') {
+                        updateBattleVisuals(ev);
+                    }
                 }
-                activeAlertEvent = ev; // Setzt das aktive Event für Bullet-Time
+                activeAlertEvent = ev; 
                 alertDiv.classList.remove('hidden');
             } else { 
                 alertDiv.classList.add('hidden'); 
@@ -613,17 +686,14 @@
             if (deltaTime >= 33) { // ca 30 FPS Limit
                 
                 // BULLET TIME LOGIK
-                // Wir nutzen currentYear als Quelle, nicht den Slider!
                 let effectiveStep = yearStep;
                 if (activeAlertEvent) {
-                    // Etwas schneller als vorher, damit man merkt, dass es weitergeht (10% statt 5%)
                     effectiveStep = yearStep * 0.10; 
                 }
 
                 if (currentYear >= 568) currentYear = 375;
                 else currentYear += effectiveStep;
 
-                // Slider zwingen, dem internen Wert zu folgen
                 const slider = document.getElementById('year-slider');
                 slider.value = currentYear;
                 

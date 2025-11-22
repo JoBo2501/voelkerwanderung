@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Cinematic & Smooth</title>
+    <title>Völkerwanderung: Smart Pacing</title>
     
     <!-- Leaflet CSS (Karte) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -274,14 +274,13 @@
         let currentYear = 375;
         let activeAlertEvent = null;
         
-        // NEU: GESCHWINDIGKEITS-STEUERUNG MIT JAHR-SCHRITTEN (NICHT ZEIT)
-        // High FPS Animation: Wir updaten alle 50ms, aber erhöhen das Jahr um unterschiedliche Werte
+        // GESCHWINDIGKEITS-KONFIGURATION
         const speedConfig = { 
-            slow: 0.15,   // +0.15 Jahre pro Frame (sehr smooth, langsam)
-            medium: 0.5,  // +0.5 Jahre pro Frame
-            fast: 1.2     // +1.2 Jahre pro Frame
+            slow: 0.15,   
+            medium: 0.5,  
+            fast: 1.2     
         };
-        let yearStep = speedConfig.slow; 
+        let yearStep = speedConfig.slow; // Initiale Geschwindigkeit
 
         // --- GEO-DATEN ---
         const limesPath = [ [52.2, 4.4], [52.0, 5.1], [51.2, 6.8], [50.9, 7.0], [50.0, 8.2], [49.0, 8.4], [49.0, 10.9], [48.9, 12.0], [48.4, 13.4], [48.3, 14.3], [48.1, 16.4], [47.8, 17.6], [47.5, 19.0], [44.8, 20.4], [44.6, 22.6], [45.2, 29.6] ];
@@ -423,8 +422,6 @@
             const alertType = document.getElementById('alert-type');
             const alertTitle = document.getElementById('alert-title');
             
-            let activeEvent = null;
-
             // Layer Opacity Logic
             if (year >= 370 && year <= 400) { let op = 0.3; if(year < 375) op = (year - 370) * 0.06; if(year > 385) op = 0.3 - ((year - 385) * 0.02); droughtLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 }); } else { droughtLayer.setStyle({ fillOpacity: 0 }); }
             if (year >= 536 && year <= 545) { let op = 0.3; if(year > 538) op = 0.3 - ((year - 538) * 0.04); climateLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 }); } else { climateLayer.setStyle({ fillOpacity: 0 }); }
@@ -447,13 +444,16 @@
                 else if (ev.type === 'plague') { btnClass += ' alert-plague'; icon = 'ph-skull'; typeText = 'Pandemie'; }
                 else if (ev.type === 'crisis') { btnClass += ' alert-battle'; icon = 'ph-fire'; typeText = 'Reichskrise'; }
 
-                activeAlertEvent = ev;
+                activeAlertEvent = ev; // Set global variable for speed control
                 alertBtn.className = btnClass;
                 alertIcon.className = `ph-fill text-xl ${icon}`;
                 alertType.innerText = typeText;
                 alertTitle.innerText = ev.title;
                 alertDiv.classList.remove('hidden');
-            } else { alertDiv.classList.add('hidden'); activeAlertEvent = null; }
+            } else { 
+                alertDiv.classList.add('hidden'); 
+                activeAlertEvent = null; // Reset global variable
+            }
 
             Object.keys(routes).forEach(key => {
                 const res = getPosition(routes[key].path, year);
@@ -483,11 +483,22 @@
         
         function startAnimation() {
             animationInterval = setInterval(() => {
+                // Determine current speed modifier
+                let currentStep = yearStep;
+                
+                // Check if an event is active (narrative mode)
+                // activeAlertEvent is set globally in updateVisualization
+                if (activeAlertEvent) {
+                    currentStep = yearStep * 0.15; // Slow down to 15% of normal speed
+                }
+          
                 let val = parseFloat(document.getElementById('year-slider').value);
-                if (val >= 568) val = 375; else val += yearStep;
+                if (val >= 568) val = 375; 
+                else val += currentStep;
+                
                 document.getElementById('year-slider').value = val;
                 updateYear(val);
-            }, 50); // UPDATED: Fixed 20fps interval
+            }, 50); // Fixed 20fps interval
         }
 
         function togglePlay() {

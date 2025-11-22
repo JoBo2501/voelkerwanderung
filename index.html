@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Geopolitik & Krisen</title>
+    <title>Völkerwanderung: Klima & Epidemien</title>
     
     <!-- Leaflet CSS (Karte) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -84,10 +84,9 @@
         .pulse-icon { position: relative; }
         .pulse-icon:after { content: ''; position: absolute; width: 100%; height: 100%; top: 0; left: 0; border-radius: 50%; background: inherit; animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; z-index: -1; }
         .roman-pulse:after { border: 2px solid #7e22ce; animation: pulse-ring 2s infinite; }
+        /* Neuer Style für Klima-Events (Eisblau) */
+        .climate-pulse:after { border: 2px solid #06b6d4; animation: pulse-ring 2.5s infinite; background: rgba(6,182,212,0.1); }
         
-        /* Pest-Marker Pulsieren */
-        .plague-pulse:after { border: 2px solid #000; animation: pulse-ring 1.5s infinite; background: rgba(0,0,0,0.2); }
-
         .ai-spinner { border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top: 3px solid #9333ea; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
@@ -202,6 +201,7 @@
                         <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-purple-600 rounded-full"></div>Franken</div>
                         <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-rose-800 rounded-full"></div>Ostgoten</div>
                         <div class="flex items-center gap-1.5 border-l pl-2 ml-2 border-stone-300"><div class="w-3 h-3 bg-purple-700 rounded-full"></div>Rom. Armee</div>
+                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-cyan-500 rounded-full"></div>Klima/Pest</div>
                     </div>
                 </div>
                 <div class="relative pt-6 px-2">
@@ -244,17 +244,19 @@
         };
         
         const historicalEvents = [ 
+            { year: 375, lat: 48.0, lng: 45.0, title: "Dürre in der Steppe", type: "climate", desc: "Klimatische Instabilität in Zentralasien zwingt die Hunnen nach Westen.", quote: "Der Hunger trieb sie." },
             { year: 378, lat: 41.67, lng: 26.56, title: "Schlacht von Adrianopel", type: "battle", desc: "Goten besiegen Valens.", quote: "Ein Gemetzel wie bei Cannae." }, 
             { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Dammbruch am Limes.", quote: "Ganz Gallien rauchte." }, 
             { year: 410, lat: 41.9, lng: 12.5, title: "Plünderung Roms", type: "battle", desc: "Alarich in Rom.", quote: "Die Stadt ist erobert." }, 
-            { year: 447, lat: 41.0, lng: 28.0, title: "Hunnen-Tribut", type: "diplomacy", desc: "Ostrom erkauft Frieden von Attila. Der Hunnensturm wendet sich nach Westen.", quote: "Gold statt Blut." },
+            { year: 447, lat: 41.0, lng: 28.0, title: "Hunnen-Tribut", type: "diplomacy", desc: "Ostrom erkauft Frieden von Attila.", quote: "Gold statt Blut." },
             { year: 451, lat: 49.0, lng: 4.0, title: "Katalaunische Felder", type: "battle", desc: "Aetius stoppt Attila.", quote: "Ein wilder Kampf." }, 
             { year: 455, lat: 41.9, lng: 12.5, title: "Sack von Rom", type: "battle", desc: "Vandalen plündern.", quote: null }, 
             { year: 476, lat: 44.4, lng: 12.2, title: "Ende Westroms", type: "treaty", desc: "Odoaker übernimmt.", quote: "Das westliche Reich endete." }, 
             { year: 486, lat: 49.3, lng: 3.3, title: "Schlacht von Soissons", type: "battle", desc: "Chlodwig besiegt Syagrius.", quote: "Ende Roms in Gallien." }, 
             { year: 493, lat: 44.4, lng: 12.2, title: "Rabenschlacht", type: "treaty", desc: "Kampf um Italien: Theoderich (im Auftrag Ostroms) besiegt Odoaker (Rex Italiae). Tödliches Friedensmahl.", quote: "Der Verrat von Ravenna." },
-            { year: 540, lat: 36.2, lng: 36.1, title: "Perserkrieg", type: "crisis", desc: "Die Sassaniden plündern Antiochia. Justinian muss Belisar aus Italien abziehen.", quote: "Die zweite Front." },
-            { year: 542, lat: 41.0, lng: 28.9, title: "Justinianische Pest", type: "plague", desc: "Die Pandemie tötet ein Drittel der Bevölkerung und stoppt die Reconquista.", quote: "Gottes Zorn." }
+            { year: 536, lat: 42.0, lng: 12.5, title: "Vulkanischer Winter", type: "climate", desc: "Ein Jahr ohne Sommer. Vulkanasche verdunkelt die Sonne. Beginn der 'Late Antique Little Ice Age'.", quote: "Die Sonne gab ihr Licht ohne Strahl." },
+            { year: 540, lat: 36.2, lng: 36.1, title: "Perserkrieg", type: "crisis", desc: "Die Sassaniden plündern Antiochia.", quote: "Die zweite Front." },
+            { year: 542, lat: 41.0, lng: 28.9, title: "Justinianische Pest", type: "plague", desc: "Die Pandemie tötet ein Drittel der Bevölkerung.", quote: "Gottes Zorn." }
         ];
 
         // --- LOGIK ---
@@ -294,15 +296,17 @@
             });
 
             historicalEvents.forEach(ev => {
-                const color = (ev.type === 'battle' || ev.type === 'crisis' || ev.type === 'plague') ? '#dc2626' : '#4b5563';
+                const color = (ev.type === 'battle' || ev.type === 'crisis' || ev.type === 'plague') ? '#dc2626' : (ev.type === 'climate' ? '#06b6d4' : '#4b5563');
                 
                 let iconType = 'ph-scroll';
                 if (ev.type === 'battle') iconType = 'ph-swords';
                 if (ev.type === 'plague') iconType = 'ph-skull';
                 if (ev.type === 'crisis') iconType = 'ph-fire';
                 if (ev.type === 'diplomacy') iconType = 'ph-handshake';
+                if (ev.type === 'climate') iconType = 'ph-snowflake';
 
-                const html = `<div class="battle-marker flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-md border border-stone-200 text-[${color}]"><i class="ph-fill ${iconType} text-lg" style="color:${color}"></i></div>`;
+                const pulseClass = ev.type === 'climate' ? 'climate-pulse' : '';
+                const html = `<div class="battle-marker flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-md border border-stone-200 text-[${color}] ${pulseClass}"><i class="ph-fill ${iconType} text-lg" style="color:${color}"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
                 const marker = L.marker([ev.lat, ev.lng], { icon: icon, opacity: 0 }).addTo(map);
                 marker.on('click', () => showInfo(ev.title, ev.desc, ev.quote, color, null, null));

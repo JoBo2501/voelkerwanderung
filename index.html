@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Langzeitwirkungen</title>
+    <title>Völkerwanderung: Pest & Klima</title>
     
     <!-- Leaflet CSS (Karte) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -50,7 +50,9 @@
             langobarden: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Crect x='180' y='50' width='40' height='200' fill='%23fcd34d' stroke='%23b45309' stroke-width='2'/%3E%3Crect x='100' y='110' width='200' height='40' fill='%23fcd34d' stroke='%23b45309' stroke-width='2'/%3E%3C/svg%3E`,
             franken: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 80 C220 80 240 100 240 130 C240 160 200 220 200 220 C200 220 160 160 160 130 C160 100 180 80 200 80' fill='%23fbbf24' stroke='%23b45309' stroke-width='2'/%3E%3Cpath d='M160 130 L120 110' fill='%23ef4444'/%3E%3Cpath d='M240 130 L280 110' fill='%23ef4444'/%3E%3C/svg%3E`,
             ostgoten: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 40 L240 80 L220 180 L200 260 L180 180 L160 80 Z' fill='%23be123c' stroke='%23fbbf24' stroke-width='4'/%3E%3C/svg%3E`,
-            rom: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3CradialGradient id='shield' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' style='stop-color:%237e22ce;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23581c87;stop-opacity:1' /%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='200' cy='150' r='110' fill='url(%23shield)' stroke='%23fbbf24' stroke-width='8'/%3E%3Cpath d='M200 60 L200 240 M150 100 L250 200 M250 100 L150 200' stroke='%23fbbf24' stroke-width='12' stroke-linecap='round'/%3E%3Cpath d='M200 60 C220 40 240 60 230 80' stroke='%23fbbf24' stroke-width='8' fill='none'/%3E%3C/svg%3E`
+            rom: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3CradialGradient id='shield' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' style='stop-color:%237e22ce;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23581c87;stop-opacity:1' /%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='200' cy='150' r='110' fill='url(%23shield)' stroke='%23fbbf24' stroke-width='8'/%3E%3Cpath d='M200 60 L200 240 M150 100 L250 200 M250 100 L150 200' stroke='%23fbbf24' stroke-width='12' stroke-linecap='round'/%3E%3Cpath d='M200 60 C220 40 240 60 230 80' stroke='%23fbbf24' stroke-width='8' fill='none'/%3E%3C/svg%3E`,
+            // Pest: Die Ratte als Vektor (Biohazard Theme)
+            pest: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M100 150 Q150 50 250 150 T350 150' fill='none' stroke='%2310b981' stroke-width='10'/%3E%3Ccircle cx='200' cy='120' r='40' fill='%23064e3b'/%3E%3Crect x='180' y='180' width='40' height='60' fill='%23064e3b'/%3E%3Cpath d='M180 240 L220 280 M220 240 L180 280' stroke='%2310b981' stroke-width='5'/%3E%3Ctext x='200' y='280' text-anchor='middle' fill='%2310b981' font-family='sans-serif' font-weight='bold' font-size='24' letter-spacing='2'%3EYERSINIA PESTIS%3C/text%3E%3C/svg%3E`
         };
 
         const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300' fill='%23f5f5f4'%3E%3Crect width='400' height='300' fill='%23e5e5e5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' fill='%23999'%3EBild nicht verfügbar%3C/text%3E%3C/svg%3E";
@@ -60,7 +62,7 @@
             westgoten: './img/westgoten.jpg', vandalen: './img/vandalen.jpg',
             hunnen: './img/hunnen.jpg', langobarden: './img/langobarden.jpg',
             franken: './img/franken.jpg', ostgoten: './img/ostgoten.jpg',
-            rom: './img/rom_armee.jpg'
+            rom: './img/rom_armee.jpg', pest: './img/pest.jpg'
         };
 
         function formatText(text) {
@@ -84,8 +86,9 @@
         .pulse-icon { position: relative; }
         .pulse-icon:after { content: ''; position: absolute; width: 100%; height: 100%; top: 0; left: 0; border-radius: 50%; background: inherit; animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; z-index: -1; }
         .roman-pulse:after { border: 2px solid #7e22ce; animation: pulse-ring 2s infinite; }
-        /* Neuer Style für Klima-Events (Eisblau) */
         .climate-pulse:after { border: 2px solid #06b6d4; animation: pulse-ring 2.5s infinite; background: rgba(6,182,212,0.1); }
+        /* Pest-Puls: Giftgrün */
+        .plague-pulse:after { border: 2px solid #10b981; animation: pulse-ring 1s infinite; background: rgba(16, 185, 129, 0.2); }
         
         .ai-spinner { border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top: 3px solid #9333ea; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -201,7 +204,8 @@
                         <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-purple-600 rounded-full"></div>Franken</div>
                         <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-rose-800 rounded-full"></div>Ostgoten</div>
                         <div class="flex items-center gap-1.5 border-l pl-2 ml-2 border-stone-300"><div class="w-3 h-3 bg-purple-700 rounded-full"></div>Rom. Armee</div>
-                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-cyan-500 rounded-full"></div>Klima/Pest</div>
+                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-emerald-500 rounded-full"></div>Pest</div>
+                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-cyan-500 rounded-full"></div>Klima</div>
                     </div>
                 </div>
                 <div class="relative pt-6 px-2">
@@ -222,6 +226,9 @@
         const layers = {};
         const eventMarkers = {};
         const cityMarkers = {};
+        // NEU: Atmosphärische Layer für 536
+        let climateLayer = null;
+        
         let isPlaying = false;
         let animationInterval;
         let currentYear = 375;
@@ -240,11 +247,17 @@
             ostgoten: { name: "Ostgoten", color: "#9f1239", desc: "Zug nach Italien (489).", path: [[47.0, 32.0, 375], [46.5, 29.0, 400], [47.5, 19.0, 454], [46.0, 14.5, 488], [45.4, 11.0, 489], [44.4, 12.2, 493], [44.4, 12.2, 526]], artifact: { img: localImages.ostgoten, fallback: artifacts.ostgoten, title: "Adlerfibel", text: "Ostgotische Goldschmiedekunst." } },
             stilicho: { name: "Legionen (Stilicho)", color: "#7e22ce", type: "army", desc: "401: Stilicho zieht Truppen von der Rheingrenze ab.", path: [[50.0, 8.2, 401], [47.5, 7.5, 401.5], [45.4, 9.2, 402]], artifact: { img: localImages.rom, fallback: artifacts.rom, title: "Schildzeichen (Chi-Rho)", text: "Das Christusmonogramm auf den Schilden." } },
             aetius: { name: "Heer des Aetius", color: "#7e22ce", type: "army", desc: "451: Aetius mobilisiert gegen Attila.", path: [[41.9, 12.5, 450], [45.0, 5.0, 450.5], [49.0, 4.0, 451]], artifact: { img: localImages.rom, fallback: artifacts.rom, title: "Schildzeichen (Chi-Rho)", text: "Symbol des christlichen Imperiums." } },
-            belisarius: { name: "Flotte (Belisar)", color: "#7e22ce", type: "army", desc: "533: Oströmische Rückeroberung.", path: [[41.0, 28.9, 533], [37.0, 15.0, 533.4], [36.8, 10.1, 533.8], [37.5, 14.0, 535], [41.9, 12.5, 536], [44.4, 12.2, 540]], artifact: { img: localImages.rom, fallback: artifacts.rom, title: "Schildzeichen (Chi-Rho)", text: "Symbol der Restauratio Imperii." } }
+            belisarius: { name: "Flotte (Belisar)", color: "#7e22ce", type: "army", desc: "533: Oströmische Rückeroberung.", path: [[41.0, 28.9, 533], [37.0, 15.0, 533.4], [36.8, 10.1, 533.8], [37.5, 14.0, 535], [41.9, 12.5, 536], [44.4, 12.2, 540]], artifact: { img: localImages.rom, fallback: artifacts.rom, title: "Schildzeichen (Chi-Rho)", text: "Symbol der Restauratio Imperii." } },
+            // NEU: Die Wanderung der Pest (Giftgrün, Typ 'plague')
+            pest: { 
+                name: "Die Pest", color: "#10b981", type: "plague",
+                desc: "541-545: Yersinia pestis breitet sich über Handelsrouten von Ägypten über Konstantinopel bis nach Gallien aus.",
+                path: [[31.0, 32.5, 541], [31.2, 29.9, 541.5], [41.0, 28.9, 542], [38.0, 23.0, 542.5], [37.5, 15.0, 543], [41.9, 12.5, 543.5], [43.3, 5.4, 544], [48.0, 2.0, 545]], // Pelusium -> Alex -> Kon -> Griech -> Sizilien -> Rom -> Marseille -> Gallien
+                artifact: { img: localImages.pest, fallback: artifacts.pest, title: "Yersinia pestis", text: "Der Erreger der Beulenpest, verbreitet durch Rattenflöhe auf Getreideschiffen." }
+            }
         };
         
         const historicalEvents = [ 
-            // Neue "duration" Eigenschaft für Fading & spezifische Icons
             { year: 375, lat: 48.0, lng: 45.0, title: "Megadürre", type: "climate", icon: "ph-sun-dim", duration: 25, desc: "Jahrzehntelange Trockenheit treibt die Hunnen nach Westen.", quote: "Die Steppe verdorrte." },
             { year: 378, lat: 41.67, lng: 26.56, title: "Schlacht von Adrianopel", type: "battle", desc: "Goten besiegen Valens.", quote: "Ein Gemetzel wie bei Cannae." }, 
             { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Dammbruch am Limes.", quote: "Ganz Gallien rauchte." }, 
@@ -255,14 +268,9 @@
             { year: 476, lat: 44.4, lng: 12.2, title: "Ende Westroms", type: "treaty", desc: "Odoaker übernimmt.", quote: "Das westliche Reich endete." }, 
             { year: 486, lat: 49.3, lng: 3.3, title: "Schlacht von Soissons", type: "battle", desc: "Chlodwig besiegt Syagrius.", quote: "Ende Roms in Gallien." }, 
             { year: 493, lat: 44.4, lng: 12.2, title: "Rabenschlacht", type: "treaty", desc: "Kampf um Italien: Theoderich (im Auftrag Ostroms) besiegt Odoaker (Rex Italiae). Tödliches Friedensmahl.", quote: "Der Verrat von Ravenna." },
-            
-            // LALIA Event
             { year: 536, lat: 42.0, lng: 12.5, title: "Vulkanischer Winter", type: "climate", icon: "ph-snowflake", duration: 10, desc: "Ein Jahr ohne Sommer. Beginn der Kleinen Eiszeit der Spätantike (LALIA).", quote: "Die Sonne gab ihr Licht ohne Strahl." },
-            
             { year: 540, lat: 36.2, lng: 36.1, title: "Perserkrieg", type: "crisis", desc: "Die Sassaniden plündern Antiochia.", quote: "Die zweite Front." },
-            
-            // Pest Event
-            { year: 542, lat: 41.0, lng: 28.9, title: "Justinianische Pest", type: "plague", icon: "ph-skull", duration: 20, desc: "Die Pandemie tötet ein Drittel der Bevölkerung und kehrt in Wellen wieder.", quote: "Gottes Zorn." }
+            { year: 542, lat: 41.0, lng: 28.9, title: "Justinianische Pest", type: "plague", icon: "ph-skull", duration: 20, desc: "Die Pandemie tötet ein Drittel der Bevölkerung.", quote: "Gottes Zorn." }
         ];
 
         // --- LOGIK ---
@@ -285,14 +293,27 @@
                 cityMarkers[idx] = { marker, tooltip, start: city.start, end: city.end };
             });
 
+            // Atmosphärischer Layer (Initial unsichtbar)
+            // Ein riesiger Kreis über Europa, der als "Schleier" dient
+            climateLayer = L.circle([46.0, 15.0], { radius: 1500000, color: '#64748b', fillColor: '#94a3b8', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
+
             Object.keys(routes).forEach(key => {
                 const data = routes[key];
-                const dashStyle = data.type === 'army' ? '10, 5' : '1, 6'; 
+                let dashStyle = '1, 6';
+                if (data.type === 'army') dashStyle = '10, 5';
+                if (data.type === 'plague') dashStyle = '1, 10'; // Gepunktet für Pest
+
                 const line = L.polyline([], { color: data.color, weight: 4, opacity: 0.7, dashArray: dashStyle }).addTo(map);
                 
-                const borderRadius = data.type === 'army' ? '2px' : '50%';
+                let borderRadius = '50%';
+                if (data.type === 'army') borderRadius = '2px';
+                
+                // Spezielle Icons für Pest/Armee
+                let iconClass = 'pulse-icon';
+                if (data.type === 'army') iconClass = 'pulse-icon roman-pulse';
+                if (data.type === 'plague') iconClass = 'pulse-icon plague-pulse';
+
                 const iconHtml = `<div style="background-color: ${data.color}; width: 14px; height: 14px; border-radius: ${borderRadius}; border: 2px solid white;"></div>`;
-                const iconClass = data.type === 'army' ? 'pulse-icon roman-pulse' : 'pulse-icon';
                 
                 const icon = L.divIcon({ className: iconClass, html: iconHtml, iconSize: [14, 14], iconAnchor: [7, 7] });
                 const marker = L.marker([0,0], { icon: icon }).addTo(map);
@@ -303,17 +324,7 @@
 
             historicalEvents.forEach(ev => {
                 const color = (ev.type === 'battle' || ev.type === 'crisis' || ev.type === 'plague') ? '#dc2626' : (ev.type === 'climate' ? '#06b6d4' : '#4b5563');
-                
-                // Flexible Ikonografie: Priorisiere explizites Icon, sonst Typ-Fallback
-                let iconType = ev.icon;
-                if (!iconType) {
-                    if (ev.type === 'battle') iconType = 'ph-swords';
-                    if (ev.type === 'plague') iconType = 'ph-skull';
-                    if (ev.type === 'crisis') iconType = 'ph-fire';
-                    if (ev.type === 'diplomacy') iconType = 'ph-handshake';
-                    if (ev.type === 'climate') iconType = 'ph-snowflake';
-                }
-
+                let iconType = ev.icon || (ev.type === 'battle' ? 'ph-swords' : (ev.type === 'plague' ? 'ph-skull' : (ev.type === 'crisis' ? 'ph-fire' : (ev.type === 'diplomacy' ? 'ph-handshake' : 'ph-snowflake'))));
                 const pulseClass = ev.type === 'climate' || ev.type === 'plague' ? 'climate-pulse' : '';
                 const html = `<div class="battle-marker flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-md border border-stone-200 text-[${color}] ${pulseClass}"><i class="ph-fill ${iconType} text-lg" style="color:${color}"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
@@ -344,6 +355,17 @@
                 if (year >= cm.start && year <= cm.end) { cm.marker.setStyle({ opacity: 1, fillOpacity: 1 }); cm.tooltip.setOpacity(1); } else { cm.marker.setStyle({ opacity: 0, fillOpacity: 0 }); cm.tooltip.setOpacity(0); }
             });
 
+            // ATMOSPHÄRISCHER SCHLEIER (536-545)
+            if (year >= 536 && year <= 545) {
+                // Fade In/Out Logik: Peak bei 537, dann langsames Abklingen
+                let opacity = 0.3; 
+                if(year > 538) opacity = 0.3 - ((year - 538) * 0.04); // Wird schwächer
+                if(opacity < 0) opacity = 0;
+                climateLayer.setStyle({ fillOpacity: opacity, opacity: 0 });
+            } else {
+                climateLayer.setStyle({ fillOpacity: 0, opacity: 0 });
+            }
+
             Object.keys(routes).forEach(key => {
                 const res = getPosition(routes[key].path, year);
                 const layerData = layers[key]; 
@@ -363,21 +385,19 @@
                 } else { layerData.marker.setOpacity(0); layerData.marker.closeTooltip(); layerData.line.setLatLngs([]); layerData.hasStarted = false; }
             });
             
-            // LOGIK FÜR LANGZEIT-EVENTS (Fading)
+            // FADING EVENTS LOGIC
             historicalEvents.forEach(ev => {
                 const marker = eventMarkers[ev.year];
                 if (!marker) return;
-
-                const duration = ev.duration || 2; // Standard 2 Jahre wenn nicht anders definiert
+                const duration = ev.duration || 2;
                 const endYear = ev.year + duration;
 
                 if (year >= ev.year && year <= endYear) {
-                    // Berechne Fading
                     let opacity = 1;
-                    if (duration > 5) { // Nur bei Langzeit-Events faden
+                    // Bei langen Events (Klima/Pest) langsam ausblenden
+                    if (duration > 5) {
                         const progress = (year - ev.year) / duration;
-                        // Formel: Startet bei 1, sinkt langsam auf 0.2
-                        opacity = 1 - (progress * 0.8);
+                        opacity = 1 - (progress * 0.8); // Sinkt auf 0.2
                     }
                     marker.setOpacity(opacity);
                 } else {

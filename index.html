@@ -18,53 +18,45 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script>
-        /* FEHLERBEHANDLUNG & PROXY LOGIK
-           Wir nutzen einen Image Proxy (wsrv.nl), um CORS-Probleme mit Wikimedia zu umgehen.
+        /* INLINE SVG ARTEFAKTE
+           Um externe Ladefehler komplett zu vermeiden, sind die Kunstobjekte hier als
+           Vektorgrafiken direkt im Code hinterlegt. Das garantiert 100% Verfügbarkeit.
         */
-        const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300' fill='%23f5f5f4'%3E%3Cpath d='M200 100 L250 180 L150 180 Z' fill='%23e7e5e4'/%3E%3Crect x='180' y='180' width='40' height='60' fill='%23e7e5e4'/%3E%3Ctext x='50%25' y='270' dominant-baseline='middle' text-anchor='middle' font-family='serif' font-size='14' fill='%23a8a29e' class='font-serif'%3EBild nicht verfügbar%3C/text%3E%3C/svg%3E";
-
-        function getProxyUrl(originalUrl) {
-            // Entfernt 'https://' und nutzt den Proxy
-            const cleanUrl = originalUrl.replace(/^https?:\/\//, '');
-            return `https://wsrv.nl/?url=${cleanUrl}&w=600&output=jpg`;
-        }
-
-        function handleImageError(img) {
-            img.onerror = null; 
-            img.src = fallbackImage;
-            // Auch wenn das Bild fehlt, stellen wir sicher, dass der Container nicht kollabiert
-            img.classList.add('opacity-50'); 
-        }
+        
+        const artifacts = {
+            // Adlerfibel (Westgoten): Stilisierter Adler in Cloisonné (Rot/Gold)
+            westgoten: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3Cpattern id='cloisonne' x='0' y='0' width='20' height='20' patternUnits='userSpaceOnUse'%3E%3Crect width='20' height='20' fill='%23b91c1c'/%3E%3Cpath d='M0 0h20v20h-20z' fill='none' stroke='%23fcd34d' stroke-width='2'/%3E%3C/pattern%3E%3Cfilter id='glow'%3E%3CfeGaussianBlur stdDeviation='2.5' result='coloredBlur'/%3E%3CfeMerge%3E%3CfeMergeNode in='coloredBlur'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M200 50 C230 50 250 80 250 100 L280 150 L200 250 L120 150 L150 100 C150 80 170 50 200 50' fill='url(%23cloisonne)' stroke='%23b45309' stroke-width='5' filter='url(%23glow)'/%3E%3Ccircle cx='200' cy='90' r='15' fill='%2378350f' stroke='%23fcd34d' stroke-width='3'/%3E%3C/svg%3E`,
+            
+            // Münze (Vandalen): Silberne Siliqua mit Profil
+            vandalen: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3Cfilter id='silver'%3E%3CfeSpecularLighting result='specOut' specularExponent='20' lighting-color='%23ffffff'%3E%3CfePointLight x='150' y='150' z='200'/%3E%3C/feSpecularLighting%3E%3CfeComposite in='SourceGraphic' in2='specOut' operator='arithmetic' k1='0' k2='1' k3='1' k4='0'/%3E%3C/filter%3E%3C/defs%3E%3Ccircle cx='200' cy='150' r='100' fill='%23cbd5e1' stroke='%2394a3b8' stroke-width='4' filter='url(%23silver)'/%3E%3Ctext x='200' y='280' text-anchor='middle' font-family='serif' font-weight='bold' fill='%2364748b' font-size='18' letter-spacing='2'%3ED N REX GELIMER%3C/text%3E%3Cpath d='M180 100 C180 100 230 110 230 150 C230 190 190 200 190 200' stroke='%2364748b' stroke-width='3' fill='none'/%3E%3C/svg%3E`,
+            
+            // Zikade (Hunnen): Grün/Goldenes Insekt
+            hunnen: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 60 C240 60 260 100 260 140 L240 260 L160 260 L140 140 C140 100 160 60 200 60' fill='%2365a30d' stroke='%23fcd34d' stroke-width='4'/%3E%3Cpath d='M200 60 L200 140' stroke='%23fcd34d' stroke-width='2'/%3E%3Cpath d='M140 140 L260 140' stroke='%23fcd34d' stroke-width='2'/%3E%3Ccircle cx='170' cy='100' r='8' fill='%2384cc16'/%3E%3Ccircle cx='230' cy='100' r='8' fill='%2384cc16'/%3E%3C/svg%3E`,
+            
+            // Goldblattkreuz (Langobarden): Goldenes Kreuz
+            langobarden: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3ClinearGradient id='goldGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23fcd34d;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23b45309;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='180' y='50' width='40' height='200' fill='url(%23goldGrad)' stroke='%23b45309' stroke-width='2'/%3E%3Crect x='100' y='110' width='200' height='40' fill='url(%23goldGrad)' stroke='%23b45309' stroke-width='2'/%3E%3Ccircle cx='200' cy='130' r='10' fill='%23fcd34d'/%3E%3C/svg%3E`
+        };
     </script>
 
     <style>
-        /* --- GRUNDLAGEN & LAYOUT --- */
+        /* --- GRUNDLAGEN --- */
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: 'Segoe UI', 'Helvetica Neue', sans-serif; }
-        
-        #map { height: 100vh; width: 100vw; background: #f0f0f0; z-index: 1; }
+        #map { height: 100vh; width: 100vw; background: #e5e5e5; z-index: 1; }
 
-        /* UI-Layer: Z-Index hoch genug, um über Map zu liegen */
-        .ui-layer { 
-            position: absolute; 
-            z-index: 2000; 
-            pointer-events: none; 
-        }
-        
-        .ui-element { 
-            pointer-events: auto; 
-        }
+        /* UI Layering */
+        .ui-layer { position: absolute; z-index: 3000; pointer-events: none; }
+        .ui-element { pointer-events: auto; }
 
-        /* --- STYLING ELEMENTE --- */
-        /* Slider */
+        /* --- STYLING --- */
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
             -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%;
             background: #d97706; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4);
             cursor: pointer; margin-top: -10px;
         }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #e5e7eb; border-radius: 2px; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #d6d3d1; border-radius: 2px; }
 
-        /* Marker Animationen */
+        /* Animations */
         @keyframes pulse-ring {
             0% { transform: scale(0.8); opacity: 0.8; }
             100% { transform: scale(2.0); opacity: 0; }
@@ -74,35 +66,22 @@
             content: ''; position: absolute; width: 100%; height: 100%; top: 0; left: 0;
             border-radius: 50%; background: inherit; animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; z-index: -1;
         }
+        .ai-spinner { border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top: 3px solid #9333ea; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .battle-marker { transition: transform 0.2s; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
-        .battle-marker:hover { transform: scale(1.2); }
-
         /* Map Labels */
         .leaflet-tooltip.custom-label {
-            background-color: rgba(255, 255, 255, 0.95); border: 1px solid #ccc; color: #333;
-            font-family: serif; font-weight: bold; font-size: 13px; padding: 2px 8px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background-color: rgba(255, 255, 255, 0.95); border: 1px solid #999; color: #333;
+            font-family: serif; font-weight: bold; font-size: 12px; padding: 2px 6px; border-radius: 2px;
         }
         .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { display: none; }
-
-        /* KI Loading Animation */
-        .ai-spinner {
-            border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top: 3px solid #9333ea;
-            width: 20px; height: 20px; animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     </style>
 </head>
 <body class="bg-stone-100">
 
     <div id="map"></div>
 
-    <!-- OBERER BEREICH -->
+    <!-- HEADER -->
     <div class="ui-layer top-0 left-0 right-0 p-4 flex justify-between items-start">
         <div class="ui-element inline-block bg-white/95 backdrop-blur shadow-lg rounded-lg px-4 py-3 border-l-4 border-amber-600">
             <h1 class="text-lg font-serif font-bold text-stone-800 leading-none flex items-center gap-2">
@@ -110,135 +89,101 @@
             </h1>
             <p class="text-xs text-stone-500 font-mono mt-1">ca. 375 – 568 n. Chr.</p>
         </div>
-        
-        <!-- Mobile KI Button -->
         <div class="ui-element md:hidden">
-            <button onclick="askGeminiContext()" class="bg-white text-purple-700 border border-purple-200 px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 text-sm font-bold active:bg-purple-50">
-                <i class="ph-fill ph-sparkle text-purple-600"></i>
-                <span>Zeitgeist</span>
+            <button onclick="askGeminiContext()" class="bg-white text-purple-700 border border-purple-200 px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 text-sm font-bold">
+                <i class="ph-fill ph-sparkle"></i> Zeitgeist
             </button>
         </div>
     </div>
 
-    <!-- INFO BOX (Optimiertes Layout) -->
-    <div id="info-box" class="hidden ui-layer top-20 left-4 right-4 md:left-auto md:right-4 md:w-[400px] max-h-[75vh] flex flex-col rounded-xl shadow-2xl z-[2001] bg-white/95 backdrop-blur border border-stone-200">
+    <!-- INFO BOX (Fixed Layout) -->
+    <div id="info-box" class="hidden ui-layer top-20 left-4 right-4 md:left-auto md:right-4 md:w-[400px] max-h-[75vh] flex flex-col rounded-xl shadow-2xl z-[4000] bg-white border border-stone-300">
         
-        <!-- 1. Bild/Artefakt Bereich (Fixe Höhe) -->
-        <div id="info-artifact-container" class="relative w-full h-56 bg-stone-100 shrink-0 hidden rounded-t-xl overflow-hidden group">
-            <img id="artifact-img" src="" alt="Artefakt" 
-                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                 onerror="handleImageError(this)">
-            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 pt-12">
-                <div class="flex items-center gap-2 text-amber-400 mb-1">
+        <!-- ARTEFAKT BILD (Inline SVG) -->
+        <div id="info-artifact-container" class="relative w-full h-48 bg-stone-100 shrink-0 border-b border-stone-200">
+            <img id="artifact-img" src="" alt="Artefakt" class="w-full h-full object-contain p-4">
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/80 to-transparent p-2 pt-8">
+                 <div class="flex items-center gap-2 text-amber-700 px-2">
                     <i class="ph-fill ph-bank"></i>
-                    <span class="text-[10px] font-bold uppercase tracking-wider">Archäologischer Fund</span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider">Ikonografisches Leitobjekt</span>
                 </div>
-                <h3 id="artifact-title" class="text-white font-serif font-bold text-lg leading-tight"></h3>
             </div>
         </div>
 
-        <!-- 2. Scrollbarer Inhalt -->
-        <div class="p-5 overflow-y-auto custom-scrollbar">
-            <!-- Header (Titel & Close) -->
-            <div class="flex justify-between items-start mb-3">
+        <!-- SCROLL AREA -->
+        <div class="p-5 overflow-y-auto">
+            <div class="flex justify-between items-start mb-2">
                 <h2 id="info-title" class="font-serif font-bold text-2xl text-stone-800"></h2>
-                <button onclick="closeInfo()" class="p-1 hover:bg-stone-100 rounded-full text-stone-400 hover:text-red-600 transition-colors">
-                    <i class="ph-bold ph-x text-xl"></i>
-                </button>
+                <button onclick="closeInfo()" class="p-1 hover:bg-stone-100 rounded-full text-stone-500 hover:text-red-600"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
-
-            <!-- Artefakt Beschreibung -->
-            <p id="artifact-desc" class="hidden text-xs text-stone-500 italic border-b border-stone-200 pb-3 mb-3 leading-relaxed"></p>
-
-            <!-- Zitat Box -->
+            
+            <h3 id="artifact-title" class="text-sm font-bold text-stone-800 mb-1"></h3>
+            <p id="artifact-desc" class="text-xs text-stone-500 italic border-b border-stone-200 pb-3 mb-3 leading-relaxed"></p>
             <div id="info-quote" class="hidden mb-4 pl-3 border-l-4 border-stone-300 italic text-stone-700 font-serif text-sm bg-stone-50 p-3 rounded-r"></div>
-
-            <!-- Haupttext -->
             <div id="info-content" class="text-sm text-stone-700 leading-relaxed mb-2"></div>
             
-            <!-- KI Antwort Container (wird hier eingefügt) -->
-            <div id="tribe-ai-response" class="hidden mt-4 p-4 bg-purple-50 rounded-lg border border-purple-100 text-sm text-stone-800 leading-relaxed shadow-inner"></div>
+            <div id="tribe-ai-response" class="hidden mt-4 p-3 bg-purple-50 rounded-lg border border-purple-100 text-sm text-stone-800 leading-relaxed"></div>
         </div>
 
-        <!-- 3. Sticky Footer für KI Button (Immer sichtbar) -->
-        <div id="tribe-ai-section" class="p-4 border-t border-stone-100 bg-white/50 mt-auto rounded-b-xl">
-            <button onclick="askGeminiTribe()" id="tribe-ai-btn" class="w-full bg-gradient-to-r from-purple-50 to-white hover:from-purple-100 border border-purple-100 text-purple-900 px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-all shadow-sm hover:shadow group">
-                <i class="ph-fill ph-sparkle text-purple-600 text-lg group-hover:scale-110 transition-transform"></i>
-                <span id="tribe-ai-text">KI-Analyse: Was geschah im Jahr <span id="tribe-ai-year">...</span>?</span>
+        <!-- FOOTER (Always visible AI Button) -->
+        <div id="tribe-ai-section" class="p-3 border-t border-stone-100 bg-stone-50 rounded-b-xl">
+            <button onclick="askGeminiTribe()" id="tribe-ai-btn" class="w-full bg-white hover:bg-purple-50 border border-purple-200 text-purple-900 px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-all shadow-sm hover:shadow">
+                <i class="ph-fill ph-sparkle text-purple-600 text-lg"></i>
+                <span id="tribe-ai-text">KI-Analyse: Situation im Jahr <span id="tribe-ai-year">...</span></span>
             </button>
         </div>
     </div>
 
-    <!-- KI MODAL (Globaler Kontext) -->
-    <div id="ai-modal" class="hidden fixed inset-0 z-[3000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 ui-element">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[85vh] border border-white/20">
-            <div class="bg-gradient-to-r from-stone-800 to-stone-900 p-4 text-white flex justify-between items-center rounded-t-xl">
-                <h3 class="font-serif font-bold flex items-center gap-2 text-lg">
-                    <i class="ph-fill ph-sparkle text-purple-400"></i> 
-                    Historischer Kontext: <span id="ai-modal-year" class="text-amber-400"></span>
-                </h3>
-                <button onclick="closeAiModal()" class="hover:bg-white/20 rounded-full p-1 transition-colors"><i class="ph ph-x text-xl"></i></button>
+    <!-- KI MODAL (Global) -->
+    <div id="ai-modal" class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 ui-element">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[85vh]">
+            <div class="bg-stone-900 p-4 text-white flex justify-between items-center rounded-t-xl">
+                <h3 class="font-serif font-bold flex items-center gap-2 text-lg"><i class="ph-fill ph-sparkle text-purple-400"></i> Kontext: <span id="ai-modal-year" class="text-amber-400"></span></h3>
+                <button onclick="closeAiModal()" class="hover:bg-white/20 rounded-full p-1"><i class="ph ph-x text-xl"></i></button>
             </div>
             <div id="ai-modal-content" class="p-6 overflow-y-auto text-stone-800 text-base leading-relaxed bg-stone-50"></div>
         </div>
     </div>
 
-    <!-- UNTERER BEREICH: Controls -->
+    <!-- CONTROLS -->
     <div class="ui-layer bottom-0 left-0 right-0">
-        <div class="ui-element bg-white border-t border-stone-200 shadow-[0_-5px_25px_rgba(0,0,0,0.1)] p-4 pb-8 md:pb-6">
+        <div class="ui-element bg-white border-t border-stone-200 shadow-lg p-4 pb-8 md:pb-6">
             <div class="max-w-5xl mx-auto w-full">
-                <!-- Control Row -->
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-4">
-                        <!-- Play Button -->
                         <button id="play-btn" onclick="togglePlay()" class="w-14 h-14 bg-stone-800 hover:bg-stone-700 text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
                             <i id="play-icon" class="ph-fill ph-play text-2xl ml-1"></i>
                         </button>
-                        
-                        <!-- Jahr Anzeige -->
                         <div>
                             <div class="text-[10px] uppercase tracking-widest text-stone-500 font-bold">Jahr</div>
                             <div class="text-4xl font-serif font-bold text-stone-800 tabular-nums" id="year-display">375</div>
                         </div>
-                        
-                        <!-- Desktop KI Button -->
                         <button onclick="askGeminiContext()" class="hidden md:flex ml-4 bg-purple-50 border border-purple-200 text-purple-900 hover:bg-purple-100 px-4 py-2 rounded-full shadow-sm items-center gap-2 text-xs font-bold transition-all active:scale-95">
                             <i class="ph-fill ph-sparkle text-purple-600 text-lg"></i> 
-                            <div class="flex flex-col items-start leading-tight">
-                                <span>Historische Lage</span>
-                                <span class="text-[10px] opacity-70">Analysiere <span id="ai-btn-year-ref">375</span></span>
-                            </div>
+                            <div class="flex flex-col items-start leading-tight"><span>Historische Lage</span><span class="text-[10px] opacity-70">Analysiere <span id="ai-btn-year-ref">375</span></span></div>
                         </button>
                     </div>
-                    
-                    <!-- Legende -->
                     <div class="hidden md:flex gap-4 text-xs font-medium text-stone-600">
-                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-red-600 rounded-full shadow-sm"></div>Westgoten</div>
-                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-blue-600 rounded-full shadow-sm"></div>Vandalen</div>
-                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-green-600 rounded-full shadow-sm"></div>Hunnen</div>
-                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-orange-600 rounded-full shadow-sm"></div>Langobarden</div>
+                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-red-600 rounded-full"></div>Westgoten</div>
+                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-blue-600 rounded-full"></div>Vandalen</div>
+                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-green-600 rounded-full"></div>Hunnen</div>
+                        <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-orange-600 rounded-full"></div>Langobarden</div>
                     </div>
                 </div>
-
-                <!-- Zeitleiste -->
                 <div class="relative pt-6 px-2">
-                    <div class="absolute top-0 left-0 w-full flex justify-between text-[10px] text-stone-400 font-mono select-none">
-                        <span>375</span><span>425</span><span>475</span><span>525</span><span>568</span>
-                    </div>
+                    <div class="absolute top-0 left-0 w-full flex justify-between text-[10px] text-stone-400 font-mono select-none"><span>375</span><span>425</span><span>475</span><span>525</span><span>568</span></div>
                     <input type="range" id="year-slider" min="375" max="568" value="375" step="1" oninput="updateYear(this.value)" onchange="updateYear(this.value)">
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Leaflet JS Load -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
-        // --- API CONFIGURATION ---
-        const apiKey = "AIzaSyD11Y7yFTiBzm2DW2KUouJK3r1-QjFIgnU"; // BITTE HIER API-KEY EINFÜGEN
+        // --- CONFIG ---
+        const apiKey = "AIzaSyD11Y7yFTiBzm2DW2KUouJK3r1-QjFIgnU"; // KEY HIER EINFÜGEN
         
-        // Globale Variablen
         let currentTribeForAI = null;
         let map;
         const layers = {};
@@ -247,17 +192,16 @@
         let animationInterval;
         let currentYear = 375;
 
-        // --- DATENSATZ MIT PROXY-URLS ---
-        // Wir nutzen getProxyUrl(), um Wikimedia-Bilder sicher zu laden.
+        // --- DATENSATZ ---
         const routes = {
             westgoten: {
                 name: "Westgoten", color: "#dc2626",
                 desc: "Ursprünglich als Foederati aufgenommen, rebellierten sie. Nach der Plünderung Roms (410) etablierten sie das Tolosanische Reich.",
                 path: [[45.5, 25.0, 375], [41.6, 26.5, 378], [40.6, 22.9, 395], [41.9, 12.5, 410], [43.6, 1.4, 418], [41.6, -4.7, 470], [39.8, -4.0, 507]],
                 artifact: {
-                    title: "Adlerfibel",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/6/63/Visigothic_-_Eagle_Fibula_-_Walters_54421.jpg",
-                    text: "Die Adlerfibel (Aquila) in Cloisonné-Technik. Ein Symbol der Machtanmaßung und Akkulturation."
+                    img: artifacts.westgoten, // Interne SVG Referenz
+                    title: "Adlerfibel (Polychromer Stil)",
+                    text: "Ein Meisterwerk der Cloisonné-Technik. Der Adler symbolisiert den Machtanspruch der gotischen Elite."
                 }
             },
             vandalen: {
@@ -265,9 +209,9 @@
                 desc: "Ein weiter Zug vom Rhein über Spanien bis nach Karthago. Errichtung einer Seemacht im Mittelmeer.",
                 path: [[51.0, 17.0, 375], [50.0, 8.2, 405], [49.9, 8.2, 406], [44.8, -0.5, 409], [37.3, -5.9, 415], [35.9, -5.6, 429], [36.8, 10.1, 439], [41.9, 12.5, 455], [36.8, 10.1, 460]],
                 artifact: {
+                    img: artifacts.vandalen,
                     title: "Siliqua des Gelimer",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/2/26/Gelimer_530_534_ar_50_denari_carthago_530_533_CNG.jpg",
-                    text: "Silbermünze aus Karthago. Zeigt die Übernahme römischer Währungssysteme durch die vandalischen Könige."
+                    text: "Silbermünze aus Karthago. Zeigt die fast nahtlose Übernahme römischer Herrschaftssymbole."
                 }
             },
             hunnen: {
@@ -275,9 +219,9 @@
                 desc: "Reiternomaden, deren Druck die Völkerwanderung beschleunigte. Zerfall des Reiches nach 453.",
                 path: [[48.0, 43.0, 375], [47.0, 30.0, 390], [47.5, 19.0, 405], [49.0, 4.0, 451], [45.4, 10.9, 452], [47.5, 19.0, 453]],
                 artifact: {
+                    img: artifacts.hunnen,
                     title: "Zikadenfibel",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/3/3f/Cicada_Brooch_Walters_54422.jpg",
-                    text: "Symbol für Unsterblichkeit aus der asiatischen Steppentradition. Ein Marker für die Herkunft der Hunnen."
+                    text: "Symbol der Wiedergeburt aus der asiatischen Steppe. Ein klarer Marker für die östliche Herkunft."
                 }
             },
             langobarden: {
@@ -285,9 +229,9 @@
                 desc: "Späte Einwanderung nach Italien (568) und Gründung eines langlebigen Königreichs.",
                 path: [[53.5, 10.5, 375], [53.5, 10.5, 400], [48.5, 16.5, 489], [47.5, 19.0, 526], [46.0, 13.0, 568], [45.4, 9.1, 572]],
                 artifact: {
+                    img: artifacts.langobarden,
                     title: "Goldblattkreuz",
-                    img: "https://upload.wikimedia.org/wikipedia/commons/c/c5/Goldblattkreuz_Nocera_Umbra_Mailand.jpg",
-                    text: "Grabbeigabe aus Italien. Christliche Symbolik (Kreuz) in heidnischer Verwendung (Totenschutz)."
+                    text: "Typisch langobardische Grabbeigabe. Christliches Kreuz in magischer Schutzfunktion."
                 }
             }
         };
@@ -301,31 +245,17 @@
             { year: 476, lat: 44.4, lng: 12.2, title: "Ende Westroms", type: "treaty", desc: "Absetzung des Romulus Augustulus.", quote: "Das westliche Reich hörte auf." }
         ];
 
-        // --- INITIALISIERUNG ---
-        window.onload = function() {
-            initMap();
-            updateVisualization(375);
-        };
+        // --- LOGIK ---
+        window.onload = function() { initMap(); updateVisualization(375); };
 
         function initMap() {
             map = L.map('map', { zoomControl: false, attributionControl: false }).setView([46.5, 14.0], 5);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-                attribution: '©OpenStreetMap, ©CartoDB', subdomains: 'abcd', maxZoom: 19
-            }).addTo(map);
-
-            const cities = [ {c:[41.9, 12.5], t:"Rom"}, {c:[41.0, 28.9], t:"Konstantinopel"}, {c:[36.8, 10.1], t:"Karthago"}, {c:[48.8, 2.35], t:"Lutetia"}, {c:[50.9, 6.9], t:"Colonia"}, {c:[44.4, 12.2], t:"Ravenna"} ];
-            cities.forEach(ct => {
-                L.circleMarker(ct.c, { radius: 3, color: '#999', fillColor: '#fff', fillOpacity: 1, weight: 1 }).addTo(map);
-                L.tooltip({ permanent: true, direction: 'bottom', className: 'bg-transparent border-0 shadow-none text-stone-400 font-serif text-[10px] uppercase tracking-wider', offset: [0, 5] }).setContent(ct.t).setLatLng(ct.c).addTo(map);
-            });
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap, ©CartoDB' }).addTo(map);
 
             Object.keys(routes).forEach(key => {
                 const data = routes[key];
-                const line = L.polyline([], { color: data.color, weight: 4, opacity: 0.7, dashArray: '1, 6', lineCap: 'round' }).addTo(map);
-                
-                const iconHtml = `<div style="background-color: ${data.color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`;
-                const icon = L.divIcon({ className: 'pulse-icon', html: iconHtml, iconSize: [14, 14], iconAnchor: [7, 7] });
-                
+                const line = L.polyline([], { color: data.color, weight: 4, opacity: 0.7, dashArray: '1, 6' }).addTo(map);
+                const icon = L.divIcon({ className: 'pulse-icon', html: `<div style="background-color: ${data.color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white;"></div>`, iconSize: [14, 14], iconAnchor: [7, 7] });
                 const marker = L.marker([0,0], { icon: icon }).addTo(map);
                 marker.bindTooltip(data.name, { permanent: true, direction: 'right', className: 'custom-label', offset: [10, 0] });
                 marker.on('click', () => showInfo(data.name, data.desc, null, data.color, key, data.artifact));
@@ -349,35 +279,26 @@
             for (let i = 0; i < path.length - 1; i++) {
                 if (year >= path[i][2] && year < path[i+1][2]) {
                     const f = (year - path[i][2]) / (path[i+1][2] - path[i][2]);
-                    return { 
-                        lat: path[i][0] + (path[i+1][0] - path[i][0]) * f, 
-                        lng: path[i][1] + (path[i+1][1] - path[i][1]) * f,
-                        trail: [...path.slice(0, i+1).map(p=>[p[0],p[1]]), [path[i][0] + (path[i+1][0] - path[i][0]) * f, path[i][1] + (path[i+1][1] - path[i][1]) * f]]
-                    };
+                    return { lat: path[i][0] + (path[i+1][0] - path[i][0]) * f, lng: path[i][1] + (path[i+1][1] - path[i][1]) * f, trail: [...path.slice(0, i+1).map(p=>[p[0],p[1]]), [path[i][0] + (path[i+1][0] - path[i][0]) * f, path[i][1] + (path[i+1][1] - path[i][1]) * f]] };
                 }
             }
             return null;
         }
 
         function updateVisualization(year) {
-            currentYear = year; 
+            currentYear = year;
             document.getElementById('tribe-ai-year').innerText = year;
             document.getElementById('ai-btn-year-ref').innerText = year;
-            
             Object.keys(routes).forEach(key => {
                 const res = getPosition(routes[key].path, year);
                 const L = layers[key];
                 if (res) {
                     if (!L.hasStarted) { L.marker.setOpacity(1); L.line.setStyle({opacity: 0.7}); L.hasStarted = true; }
-                    L.marker.setLatLng([res.lat, res.lng]);
-                    L.line.setLatLngs(res.trail);
+                    L.marker.setLatLng([res.lat, res.lng]); L.line.setLatLngs(res.trail);
                     if (key === 'hunnen' && year > 454) { L.marker.setOpacity(0); L.marker.closeTooltip(); L.line.setStyle({opacity: 0.15}); }
                     else if (key === 'hunnen') { L.marker.setOpacity(1); if(!L.marker.isTooltipOpen()) L.marker.openTooltip(); L.line.setStyle({opacity: 0.7}); }
-                } else {
-                    L.marker.setOpacity(0); L.marker.closeTooltip(); L.line.setLatLngs([]); L.hasStarted = false;
-                }
+                } else { L.marker.setOpacity(0); L.marker.closeTooltip(); L.line.setLatLngs([]); L.hasStarted = false; }
             });
-
             historicalEvents.forEach(ev => {
                 if (year >= ev.year && year <= ev.year + 2) eventMarkers[ev.year].setOpacity(1);
                 else eventMarkers[ev.year].setOpacity(0);
@@ -385,109 +306,67 @@
         }
 
         function updateYear(val) {
-            const y = parseInt(val);
-            document.getElementById('year-display').innerText = y;
-            currentYear = y;
-            updateVisualization(y);
+            const y = parseInt(val); document.getElementById('year-display').innerText = y; currentYear = y; updateVisualization(y);
         }
 
         function togglePlay() {
-            const btn = document.getElementById('play-icon');
-            const slider = document.getElementById('year-slider');
-            if (isPlaying) {
-                clearInterval(animationInterval);
-                isPlaying = false;
-                btn.classList.remove('ph-pause'); btn.classList.add('ph-play');
-                btn.parentElement.classList.remove('bg-red-600'); btn.parentElement.classList.add('bg-stone-800');
-            } else {
-                isPlaying = true;
-                btn.classList.remove('ph-play'); btn.classList.add('ph-pause');
-                btn.parentElement.classList.remove('bg-stone-800'); btn.parentElement.classList.add('bg-red-600'); 
-                animationInterval = setInterval(() => {
-                    let val = parseInt(slider.value);
-                    if (val >= 568) val = 375; else val += 1;
-                    slider.value = val;
-                    updateYear(val);
-                }, 120);
-            }
+            const btn = document.getElementById('play-icon'); const slider = document.getElementById('year-slider');
+            if (isPlaying) { clearInterval(animationInterval); isPlaying = false; btn.classList.remove('ph-pause'); btn.classList.add('ph-play'); btn.parentElement.classList.remove('bg-red-600'); btn.parentElement.classList.add('bg-stone-800'); }
+            else { isPlaying = true; btn.classList.remove('ph-play'); btn.classList.add('ph-pause'); btn.parentElement.classList.remove('bg-stone-800'); btn.parentElement.classList.add('bg-red-600'); animationInterval = setInterval(() => { let val = parseInt(slider.value); if (val >= 568) val = 375; else val += 1; slider.value = val; updateYear(val); }, 120); }
         }
 
         function showInfo(title, text, quote, color, key, artifact) {
             currentTribeForAI = key ? { name: title, key: key } : null;
-            
             const box = document.getElementById('info-box');
             const artContainer = document.getElementById('info-artifact-container');
-            const artImg = document.getElementById('artifact-img');
-            const artTitle = document.getElementById('artifact-title');
-            const artDesc = document.getElementById('artifact-desc');
-            const quoteBox = document.getElementById('info-quote');
             const aiSection = document.getElementById('tribe-ai-section');
-            const aiResp = document.getElementById('tribe-ai-response');
 
-            document.getElementById('info-title').innerText = title;
-            document.getElementById('info-title').style.color = color;
+            document.getElementById('info-title').innerText = title; document.getElementById('info-title').style.color = color;
             document.getElementById('info-content').innerText = text;
 
             if (artifact) {
                 artContainer.classList.remove('hidden');
-                artImg.onerror = function() { handleImageError(this); };
-                artImg.src = getProxyUrl(artifact.img); // PROXY URL
-                artTitle.innerText = artifact.title;
-                artDesc.innerText = artifact.text;
-                artDesc.classList.remove('hidden');
-            } else {
-                artContainer.classList.add('hidden');
-                artDesc.classList.add('hidden');
-            }
+                document.getElementById('artifact-img').src = artifact.img;
+                document.getElementById('artifact-title').innerText = artifact.title;
+                document.getElementById('artifact-desc').innerText = artifact.text;
+                document.getElementById('artifact-desc').classList.remove('hidden');
+            } else { artContainer.classList.add('hidden'); document.getElementById('artifact-desc').classList.add('hidden'); }
 
-            if (quote) { quoteBox.innerText = quote; quoteBox.classList.remove('hidden'); } 
-            else { quoteBox.classList.add('hidden'); }
-
-            if (key) { aiSection.classList.remove('hidden'); } 
-            else { aiSection.classList.add('hidden'); }
+            if (quote) { document.getElementById('info-quote').innerText = quote; document.getElementById('info-quote').classList.remove('hidden'); } else { document.getElementById('info-quote').classList.add('hidden'); }
+            if (key) { aiSection.classList.remove('hidden'); } else { aiSection.classList.add('hidden'); }
             
-            aiResp.classList.add('hidden');
-            aiResp.innerHTML = '';
+            document.getElementById('tribe-ai-response').classList.add('hidden'); document.getElementById('tribe-ai-response').innerHTML = '';
             box.classList.remove('hidden');
         }
 
         function closeInfo() { document.getElementById('info-box').classList.add('hidden'); }
         function closeAiModal() { document.getElementById('ai-modal').classList.add('hidden'); }
 
-        // --- KI LOGIC ---
+        // --- KI ---
         async function callGemini(prompt) {
             if (!apiKey) return "Bitte API Key im Code hinterlegen.";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             try {
-                const response = await fetch(url, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                });
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
                 if (!response.ok) throw new Error(`API Error: ${response.status}`);
-                const data = await response.json();
-                return data.candidates[0].content.parts[0].text;
-            } catch (error) { console.error(error); return "Der KI-Dienst ist momentan nicht erreichbar."; }
+                const data = await response.json(); return data.candidates[0].content.parts[0].text;
+            } catch (error) { return "Der KI-Dienst ist momentan nicht erreichbar."; }
         }
 
         async function askGeminiTribe() {
             if (!currentTribeForAI) return;
-            const respDiv = document.getElementById('tribe-ai-response');
-            respDiv.classList.remove('hidden');
-            respDiv.innerHTML = `<div class="flex items-center gap-3 py-2"><div class="ai-spinner"></div><span class="italic text-stone-500 text-xs">Recherchiere ${currentTribeForAI.name} im Jahr ${currentYear}...</span></div>`;
-            const prompt = `Du bist ein Experte für Spätantike. Thema: Das Volk der ${currentTribeForAI.name} im Jahr ${currentYear} n. Chr. Erkläre präzise ihre aktuelle Situation (Ort, Rechtsstatus, Anführer). 2-3 Sätze, Deutsch.`;
-            const result = await callGemini(prompt);
-            respDiv.innerHTML = marked.parse(result);
+            const respDiv = document.getElementById('tribe-ai-response'); respDiv.classList.remove('hidden');
+            respDiv.innerHTML = `<div class="flex items-center gap-3 py-2"><div class="ai-spinner"></div><span class="italic text-stone-500 text-xs">Recherchiere ${currentTribeForAI.name}...</span></div>`;
+            const prompt = `Du bist ein Experte für Spätantike. Thema: Das Volk der ${currentTribeForAI.name} im Jahr ${currentYear} n. Chr. Erkläre präzise ihre Situation (Ort, Rechtsstatus, Anführer). 2-3 Sätze, Deutsch.`;
+            const result = await callGemini(prompt); respDiv.innerHTML = marked.parse(result);
         }
 
         async function askGeminiContext() {
-            const modal = document.getElementById('ai-modal');
-            const content = document.getElementById('ai-modal-content');
-            document.getElementById('ai-modal-year').innerText = currentYear;
-            modal.classList.remove('hidden');
-            content.innerHTML = `<div class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 border-t-amber-500"></div><p class="text-stone-500 italic">Analysiere die geopolitische Lage im Jahr ${currentYear}...</p></div>`;
-            const prompt = `Du bist ein Althistoriker. Analysiere das Jahr ${currentYear} n. Chr. in Europa (Westrom/Ostrom, Militär, Recht). Antworte kurz und intellektuell anspruchsvoll auf Deutsch.`;
-            const result = await callGemini(prompt);
-            content.innerHTML = marked.parse(result);
+            const modal = document.getElementById('ai-modal'); const content = document.getElementById('ai-modal-content');
+            document.getElementById('ai-modal-year').innerText = currentYear; modal.classList.remove('hidden');
+            content.innerHTML = `<div class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 border-t-amber-500"></div><p class="text-stone-500 italic">Analysiere Lage ${currentYear}...</p></div>`;
+            const prompt = `Du bist ein Althistoriker. Analysiere das Jahr ${currentYear} n. Chr. in Europa (Westrom/Ostrom, Militär, Recht). Antworte anspruchsvoll auf Deutsch.`;
+            const result = await callGemini(prompt); content.innerHTML = marked.parse(result);
         }
     </script>
 </body>

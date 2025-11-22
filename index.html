@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Smart Pacing</title>
+    <title>Völkerwanderung: Narrative Steuerung</title>
     
     <!-- Leaflet CSS (Karte) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -493,11 +493,15 @@
                 }
           
                 let val = parseFloat(document.getElementById('year-slider').value);
-                if (val >= 568) val = 375; 
-                else val += currentStep;
                 
-                document.getElementById('year-slider').value = val;
-                updateYear(val);
+                // FIX: Use the high-precision variable
+                let preciseVal = currentYear; 
+
+                if (preciseVal >= 568) preciseVal = 375; 
+                else preciseVal += currentStep;
+                
+                document.getElementById('year-slider').value = preciseVal;
+                updateYear(preciseVal);
             }, 50); // Fixed 20fps interval
         }
 

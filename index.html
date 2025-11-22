@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Narrative Steuerung</title>
+    <title>Völkerwanderung: Cinematic & Smooth</title>
     
     <!-- Leaflet CSS (Karte) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -223,8 +223,8 @@
 
                         <!-- NEU: Speed Controls -->
                         <div class="hidden md:flex items-center ml-4 bg-stone-100 rounded-lg p-1 border border-stone-200">
-                            <button onclick="setSpeed('slow')" id="speed-slow" class="px-3 py-1 text-xs font-bold rounded-md transition-colors text-stone-600 hover:bg-white">Langsam</button>
-                            <button onclick="setSpeed('medium')" id="speed-medium" class="px-3 py-1 text-xs font-bold rounded-md transition-colors text-stone-600 hover:bg-white bg-white shadow-sm">Mittel</button>
+                            <button onclick="setSpeed('slow')" id="speed-slow" class="px-3 py-1 text-xs font-bold rounded-md transition-colors bg-white shadow-sm text-black">Langsam</button>
+                            <button onclick="setSpeed('medium')" id="speed-medium" class="px-3 py-1 text-xs font-bold rounded-md transition-colors text-stone-600 hover:bg-white">Mittel</button>
                             <button onclick="setSpeed('fast')" id="speed-fast" class="px-3 py-1 text-xs font-bold rounded-md transition-colors text-stone-600 hover:bg-white">Schnell</button>
                         </div>
                     </div>
@@ -251,7 +251,7 @@
 
                 <!-- Slider -->
                 <div class="relative px-2">
-                    <input type="range" id="year-slider" min="375" max="568" value="375" step="1" oninput="updateYear(this.value)" onchange="updateYear(this.value)">
+                    <input type="range" id="year-slider" min="375" max="568" value="375" step="0.1" oninput="updateYear(this.value)" onchange="updateYear(this.value)">
                 </div>
             </div>
         </div>
@@ -274,9 +274,14 @@
         let currentYear = 375;
         let activeAlertEvent = null;
         
-        // NEU: GESCHWINDIGKEITS-STEUERUNG
-        let playbackSpeed = 800; // Standard: Langsam (ms pro Jahr)
-        const speeds = { slow: 800, medium: 300, fast: 100 };
+        // NEU: GESCHWINDIGKEITS-STEUERUNG MIT JAHR-SCHRITTEN (NICHT ZEIT)
+        // High FPS Animation: Wir updaten alle 50ms, aber erhöhen das Jahr um unterschiedliche Werte
+        const speedConfig = { 
+            slow: 0.15,   // +0.15 Jahre pro Frame (sehr smooth, langsam)
+            medium: 0.5,  // +0.5 Jahre pro Frame
+            fast: 1.2     // +1.2 Jahre pro Frame
+        };
+        let yearStep = speedConfig.slow; 
 
         // --- GEO-DATEN ---
         const limesPath = [ [52.2, 4.4], [52.0, 5.1], [51.2, 6.8], [50.9, 7.0], [50.0, 8.2], [49.0, 8.4], [49.0, 10.9], [48.9, 12.0], [48.4, 13.4], [48.3, 14.3], [48.1, 16.4], [47.8, 17.6], [47.5, 19.0], [44.8, 20.4], [44.6, 22.6], [45.2, 29.6] ];
@@ -323,7 +328,8 @@
 
         // Setze Standardgeschwindigkeit (Narrative Mode)
         function setSpeed(level) {
-            playbackSpeed = speeds[level];
+            yearStep = speedConfig[level]; // UPDATED: Change step size, not interval
+            
             // UI Feedback
             document.querySelectorAll('[id^="speed-"]').forEach(btn => {
                 btn.classList.remove('bg-white', 'shadow-sm', 'text-black');
@@ -332,16 +338,18 @@
             const activeBtn = document.getElementById(`speed-${level}`);
             activeBtn.classList.add('bg-white', 'shadow-sm', 'text-black');
             activeBtn.classList.remove('text-stone-600');
-            
-            // Wenn läuft, neu starten mit neuer Speed
-            if(isPlaying) {
-                clearInterval(animationInterval);
-                startAnimation();
-            }
         }
 
         function initMap() {
-            map = L.map('map', { zoomControl: false, attributionControl: false }).setView([46.5, 14.0], 5);
+            // UPDATED: Enable zoom control and fractional zooming
+            map = L.map('map', { 
+                zoomControl: true, 
+                attributionControl: false,
+                zoomSnap: 0.25, 
+                zoomDelta: 0.25 
+            }).setView([46.5, 14.0], 5);
+            map.zoomControl.setPosition('topright'); // Move to avoid UI conflict
+
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap, ©CartoDB' }).addTo(map);
             L.polyline(limesPath, { color: '#44403c', weight: 2, dashArray: '5, 10', opacity: 0.5 }).addTo(map);
             
@@ -401,9 +409,8 @@
 
         function updateVisualization(year) {
             currentYear = year;
-            // Update AI UI Elements
-            const aiYearEl = document.getElementById('tribe-ai-year'); if (aiYearEl) aiYearEl.innerText = year;
-            const aiBtnRef = document.getElementById('ai-btn-year-ref'); if (aiBtnRef) aiBtnRef.innerText = year;
+            const aiYearEl = document.getElementById('tribe-ai-year'); if (aiYearEl) aiYearEl.innerText = Math.floor(year);
+            const aiBtnRef = document.getElementById('ai-btn-year-ref'); if (aiBtnRef) aiBtnRef.innerText = Math.floor(year);
             
             Object.values(cityMarkers).forEach(cm => {
                 if (year >= cm.start && year <= cm.end) { cm.marker.setStyle({ opacity: 1, fillOpacity: 1 }); cm.tooltip.setOpacity(1); } else { cm.marker.setStyle({ opacity: 0, fillOpacity: 0 }); cm.tooltip.setOpacity(0); }
@@ -472,15 +479,15 @@
             });
         }
 
-        function updateYear(val) { const y = parseInt(val); document.getElementById('year-display').innerText = y; currentYear = y; updateVisualization(y); }
+        function updateYear(val) { const y = parseFloat(val); document.getElementById('year-display').innerText = Math.floor(y); currentYear = y; updateVisualization(y); }
         
         function startAnimation() {
             animationInterval = setInterval(() => {
-                let val = parseInt(document.getElementById('year-slider').value);
-                if (val >= 568) val = 375; else val += 1;
+                let val = parseFloat(document.getElementById('year-slider').value);
+                if (val >= 568) val = 375; else val += yearStep;
                 document.getElementById('year-slider').value = val;
                 updateYear(val);
-            }, playbackSpeed);
+            }, 50); // UPDATED: Fixed 20fps interval
         }
 
         function togglePlay() {
@@ -546,15 +553,15 @@
             if (!currentTribeForAI) return;
             const respDiv = document.getElementById('tribe-ai-response'); respDiv.classList.remove('hidden');
             respDiv.innerHTML = `<div class="flex items-center gap-3 py-2"><div class="ai-spinner"></div><span class="italic text-stone-500 text-xs">Recherchiere ${currentTribeForAI.name}...</span></div>`;
-            const prompt = `Du bist ein Experte für Spätantike. Thema: Die Gruppe '${currentTribeForAI.name}' im Jahr ${currentYear} n. Chr. Erkläre präzise ihre Situation (Ort, Rechtsstatus, Anführer, militärische Ziele). 2-3 Sätze, Deutsch.`;
+            const prompt = `Du bist ein Experte für Spätantike. Thema: Die Gruppe '${currentTribeForAI.name}' im Jahr ${Math.floor(currentYear)} n. Chr. Erkläre präzise ihre Situation (Ort, Rechtsstatus, Anführer, militärische Ziele). 2-3 Sätze, Deutsch.`;
             const result = await callGemini(prompt); respDiv.innerHTML = formatText(result);
         }
 
         async function askGeminiContext() {
             const modal = document.getElementById('ai-modal'); const content = document.getElementById('ai-modal-content');
-            document.getElementById('ai-modal-year').innerText = currentYear; modal.classList.remove('hidden');
-            content.innerHTML = `<div class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 border-t-amber-500"></div><p class="text-stone-500 italic">Analysiere Lage ${currentYear}...</p></div>`;
-            const prompt = `Du bist ein Althistoriker. Analysiere das Jahr ${currentYear} n. Chr. in Europa. Fokus: Militärische Lage (Westrom/Ostrom), Völkerwanderung, diplomatische Zäsuren. Antworte anspruchsvoll auf Deutsch.`;
+            document.getElementById('ai-modal-year').innerText = Math.floor(currentYear); modal.classList.remove('hidden');
+            content.innerHTML = `<div class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 border-t-amber-500"></div><p class="text-stone-500 italic">Analysiere Lage ${Math.floor(currentYear)}...</p></div>`;
+            const prompt = `Du bist ein Althistoriker. Analysiere das Jahr ${Math.floor(currentYear)} n. Chr. in Europa. Fokus: Militärische Lage (Westrom/Ostrom), Völkerwanderung, diplomatische Zäsuren. Antworte anspruchsvoll auf Deutsch.`;
             const result = await callGemini(prompt); content.innerHTML = formatText(result);
         }
 

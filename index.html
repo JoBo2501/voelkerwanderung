@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Imperium & Heere</title>
+    <title>Völkerwanderung: Geopolitik & Krisen</title>
     
     <!-- Leaflet CSS (Karte) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -15,7 +15,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <script>
-        /* API KEY LOGIK (Tresor) */
+        /* API KEY TRESOR */
         function getApiKey() {
             let key = localStorage.getItem('gemini_api_key');
             if (!key) {
@@ -42,7 +42,7 @@
             location.reload();
         }
 
-        /* ARTEFAKTE & ICONS (SVG) */
+        /* ARTEFAKTE (SVG) */
         const artifacts = {
             westgoten: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 50 C230 50 250 80 250 100 L280 150 L200 250 L120 150 L150 100 C150 80 170 50 200 50' fill='%23b91c1c' stroke='%23b45309' stroke-width='5'/%3E%3Ccircle cx='200' cy='90' r='15' fill='%2378350f' stroke='%23fcd34d' stroke-width='3'/%3E%3C/svg%3E`,
             vandalen: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Ccircle cx='200' cy='150' r='100' fill='%23cbd5e1' stroke='%2394a3b8' stroke-width='4'/%3E%3Ctext x='200' y='280' text-anchor='middle' font-family='serif' font-weight='bold' fill='%2364748b' font-size='18' letter-spacing='2'%3ED N REX GELIMER%3C/text%3E%3C/svg%3E`,
@@ -50,7 +50,6 @@
             langobarden: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Crect x='180' y='50' width='40' height='200' fill='%23fcd34d' stroke='%23b45309' stroke-width='2'/%3E%3Crect x='100' y='110' width='200' height='40' fill='%23fcd34d' stroke='%23b45309' stroke-width='2'/%3E%3C/svg%3E`,
             franken: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 80 C220 80 240 100 240 130 C240 160 200 220 200 220 C200 220 160 160 160 130 C160 100 180 80 200 80' fill='%23fbbf24' stroke='%23b45309' stroke-width='2'/%3E%3Cpath d='M160 130 L120 110' fill='%23ef4444'/%3E%3Cpath d='M240 130 L280 110' fill='%23ef4444'/%3E%3C/svg%3E`,
             ostgoten: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 40 L240 80 L220 180 L200 260 L180 180 L160 80 Z' fill='%23be123c' stroke='%23fbbf24' stroke-width='4'/%3E%3C/svg%3E`,
-            // NEU: Römische Armee (Schild mit Chi-Rho)
             rom: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3CradialGradient id='shield' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' style='stop-color:%237e22ce;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23581c87;stop-opacity:1' /%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='200' cy='150' r='110' fill='url(%23shield)' stroke='%23fbbf24' stroke-width='8'/%3E%3Cpath d='M200 60 L200 240 M150 100 L250 200 M250 100 L150 200' stroke='%23fbbf24' stroke-width='12' stroke-linecap='round'/%3E%3Cpath d='M200 60 C220 40 240 60 230 80' stroke='%23fbbf24' stroke-width='8' fill='none'/%3E%3C/svg%3E`
         };
 
@@ -84,11 +83,14 @@
         @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(2.0); opacity: 0; } }
         .pulse-icon { position: relative; }
         .pulse-icon:after { content: ''; position: absolute; width: 100%; height: 100%; top: 0; left: 0; border-radius: 50%; background: inherit; animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; z-index: -1; }
-        .ai-spinner { border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top: 3px solid #9333ea; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        
-        /* Spezielles Styling für Römische Armeen */
         .roman-pulse:after { border: 2px solid #7e22ce; animation: pulse-ring 2s infinite; }
+        
+        /* Pest-Marker Pulsieren */
+        .plague-pulse:after { border: 2px solid #000; animation: pulse-ring 1.5s infinite; background: rgba(0,0,0,0.2); }
 
+        .ai-spinner { border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top: 3px solid #9333ea; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
         .leaflet-tooltip.custom-label { background-color: rgba(255, 255, 255, 0.95); border: 1px solid #999; color: #333; font-family: serif; font-weight: bold; font-size: 12px; padding: 2px 6px; border-radius: 2px; }
         .leaflet-tooltip.region-label { background: transparent; border: none; box-shadow: none; font-family: 'Times New Roman', serif; font-weight: bold; color: #78716c; text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px; opacity: 0.7; pointer-events: none; text-shadow: 1px 1px 0px rgba(255,255,255,0.5); }
         .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { display: none; }
@@ -191,7 +193,7 @@
                             <div class="flex flex-col items-start leading-tight"><span>Historische Lage</span><span class="text-[10px] opacity-70">Analysiere <span id="ai-btn-year-ref">375</span></span></div>
                         </button>
                     </div>
-                    <!-- ERWEITERTE LEGENDE MIT ROM -->
+                    <!-- LEGENDE -->
                     <div class="hidden md:flex gap-4 text-xs font-medium text-stone-600 flex-wrap">
                         <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-red-600 rounded-full"></div>Westgoten</div>
                         <div class="flex items-center gap-1.5"><div class="w-3 h-3 bg-blue-600 rounded-full"></div>Vandalen</div>
@@ -224,43 +226,36 @@
         let animationInterval;
         let currentYear = 375;
 
-        // --- GEO-DATEN & STRUKTUR ---
+        // --- GEO-DATEN ---
         const limesPath = [ [52.2, 4.4], [52.0, 5.1], [51.2, 6.8], [50.9, 7.0], [50.0, 8.2], [49.0, 8.4], [49.0, 10.9], [48.9, 12.0], [48.4, 13.4], [48.3, 14.3], [48.1, 16.4], [47.8, 17.6], [47.5, 19.0], [44.8, 20.4], [44.6, 22.6], [45.2, 29.6] ];
         const historicalRegions = [ { c: [46.5, 2.0], t: "GALLIA", s: 16 }, { c: [40.0, -4.0], t: "HISPANIA", s: 16 }, { c: [42.5, 12.5], t: "ITALIA", s: 16 }, { c: [45.0, 17.0], t: "PANNONIA", s: 14 }, { c: [43.0, 22.0], t: "ILLYRICUM", s: 14 }, { c: [42.0, 25.0], t: "THRACIA", s: 14 }, { c: [35.0, 2.0], t: "AFRICA", s: 16 }, { c: [51.0, 10.0], t: "GERMANIA", s: 16, color: "#a8a29e" }, { c: [48.0, 30.0], t: "SCYTHIA", s: 14, color: "#a8a29e" } ];
         const dynamicCities = [ { c: [41.9, 12.5], t: "Rom", type: 'capital', start: 0, end: 600 }, { c: [41.0, 28.9], t: "Konstantinopel", type: 'capital', start: 330, end: 600 }, { c: [36.8, 10.1], t: "Karthago", type: 'city', start: 0, end: 600 }, { c: [44.4, 12.2], t: "Ravenna", type: 'capital', start: 402, end: 600 }, { c: [43.6, 1.4], t: "Tolosa", type: 'barbarian', start: 418, end: 507 }, { c: [39.8, -4.0], t: "Toledo", type: 'barbarian', start: 507, end: 600 }, { c: [41.5, 13.8], t: "Monte Cassino", type: 'monastery', start: 529, end: 600 } ];
         
-        // ROUTEN: Völker & Römische Armeen (type: 'army')
         const routes = {
-            // Völker (Migration)
             westgoten: { name: "Westgoten", color: "#dc2626", desc: "Foederati, dann Tolosanisches Reich.", path: [[45.5, 25.0, 375], [41.6, 26.5, 378], [40.6, 22.9, 395], [41.9, 12.5, 410], [43.6, 1.4, 418], [41.6, -4.7, 470], [39.8, -4.0, 507]], artifact: { img: localImages.westgoten, fallback: artifacts.westgoten, title: "Adlerfibel", text: "Meisterwerk der Cloisonné-Technik." } },
             vandalen: { name: "Vandalen", color: "#2563eb", desc: "Zug nach Karthago, Seemacht.", path: [[51.0, 17.0, 375], [50.0, 8.2, 405], [49.9, 8.2, 406], [44.8, -0.5, 409], [37.3, -5.9, 415], [35.9, -5.6, 429], [36.8, 10.1, 439], [41.9, 12.5, 455], [36.8, 10.1, 460]], artifact: { img: localImages.vandalen, fallback: artifacts.vandalen, title: "Siliqua des Gelimer", text: "Vandalische Silbermünze." } },
             hunnen: { name: "Hunnen", color: "#16a34a", desc: "Reiternomaden, 'Geißel Gottes'.", path: [[48.0, 43.0, 375], [47.0, 30.0, 390], [47.5, 19.0, 405], [49.0, 4.0, 451], [45.4, 10.9, 452], [47.5, 19.0, 453]], artifact: { img: localImages.hunnen, fallback: artifacts.hunnen, title: "Zikadenfibel", text: "Symbol der Wiedergeburt." } },
             langobarden: { name: "Langobarden", color: "#d97706", desc: "Späte Einwanderung nach Italien.", path: [[53.5, 10.5, 375], [53.5, 10.5, 400], [48.5, 16.5, 489], [47.5, 19.0, 526], [46.0, 13.0, 568], [45.4, 9.1, 572]], artifact: { img: localImages.langobarden, fallback: artifacts.langobarden, title: "Goldblattkreuz", text: "Langobardische Grabbeigabe." } },
             franken: { name: "Franken", color: "#9333ea", desc: "Expansion vom Rhein nach Gallien.", path: [[51.5, 5.0, 375], [51.0, 4.5, 430], [50.0, 3.5, 451], [49.4, 3.3, 486], [48.8, 2.3, 500], [46.5, 0.5, 507], [48.8, 2.3, 511]], artifact: { img: localImages.franken, fallback: artifacts.franken, title: "Goldbiene", text: "Aus dem Grab Childerichs." } },
             ostgoten: { name: "Ostgoten", color: "#9f1239", desc: "Zug nach Italien (489).", path: [[47.0, 32.0, 375], [46.5, 29.0, 400], [47.5, 19.0, 454], [46.0, 14.5, 488], [45.4, 11.0, 489], [44.4, 12.2, 493], [44.4, 12.2, 526]], artifact: { img: localImages.ostgoten, fallback: artifacts.ostgoten, title: "Adlerfibel", text: "Ostgotische Goldschmiedekunst." } },
-            
-            // NEU: Römische Militäroperationen (Imperial Purple)
-            stilicho: { 
-                name: "Legionen (Stilicho)", color: "#7e22ce", type: "army",
-                desc: "401: Stilicho zieht Truppen von der Rheingrenze ab, um Italien gegen Alarich zu schützen. Dies öffnet die Tür für den Rheinübergang 406.",
-                path: [[50.0, 8.2, 401], [47.5, 7.5, 401.5], [45.4, 9.2, 402]], // Mainz -> Mailand
-                artifact: { img: localImages.rom, fallback: artifacts.rom, title: "Schildzeichen (Chi-Rho)", text: "Das Christusmonogramm auf den Schilden der spätantiken Armee." }
-            },
-            aetius: { 
-                name: "Heer des Aetius", color: "#7e22ce", type: "army",
-                desc: "451: Der 'letzte Römer' Aetius mobilisiert die verbliebenen Truppen und Verbündete in Gallien gegen Attila.",
-                path: [[41.9, 12.5, 450], [45.0, 5.0, 450.5], [49.0, 4.0, 451]], // Rom -> Gallien
-                artifact: { img: localImages.rom, fallback: artifacts.rom, title: "Schildzeichen (Chi-Rho)", text: "Symbol des christlichen Imperiums." }
-            },
-            belisarius: { 
-                name: "Flotte (Belisar)", color: "#7e22ce", type: "army",
-                desc: "533: Oströmische Rückeroberung (Justinian). Belisar segelt nach Afrika und Italien.",
-                path: [[41.0, 28.9, 533], [37.0, 15.0, 533.4], [36.8, 10.1, 533.8], [37.5, 14.0, 535], [41.9, 12.5, 536], [44.4, 12.2, 540]], // Kon -> Karthago -> Rom -> Ravenna
-                artifact: { img: localImages.rom, fallback: artifacts.rom, title: "Schildzeichen (Chi-Rho)", text: "Symbol der Restauratio Imperii." }
-            }
+            stilicho: { name: "Legionen (Stilicho)", color: "#7e22ce", type: "army", desc: "401: Stilicho zieht Truppen von der Rheingrenze ab.", path: [[50.0, 8.2, 401], [47.5, 7.5, 401.5], [45.4, 9.2, 402]], artifact: { img: localImages.rom, fallback: artifacts.rom, title: "Schildzeichen (Chi-Rho)", text: "Das Christusmonogramm auf den Schilden." } },
+            aetius: { name: "Heer des Aetius", color: "#7e22ce", type: "army", desc: "451: Aetius mobilisiert gegen Attila.", path: [[41.9, 12.5, 450], [45.0, 5.0, 450.5], [49.0, 4.0, 451]], artifact: { img: localImages.rom, fallback: artifacts.rom, title: "Schildzeichen (Chi-Rho)", text: "Symbol des christlichen Imperiums." } },
+            belisarius: { name: "Flotte (Belisar)", color: "#7e22ce", type: "army", desc: "533: Oströmische Rückeroberung.", path: [[41.0, 28.9, 533], [37.0, 15.0, 533.4], [36.8, 10.1, 533.8], [37.5, 14.0, 535], [41.9, 12.5, 536], [44.4, 12.2, 540]], artifact: { img: localImages.rom, fallback: artifacts.rom, title: "Schildzeichen (Chi-Rho)", text: "Symbol der Restauratio Imperii." } }
         };
         
-        const historicalEvents = [ { year: 378, lat: 41.67, lng: 26.56, title: "Schlacht von Adrianopel", type: "battle", desc: "Goten besiegen Valens.", quote: "Ein Gemetzel wie bei Cannae." }, { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Dammbruch am Limes.", quote: "Ganz Gallien rauchte." }, { year: 410, lat: 41.9, lng: 12.5, title: "Plünderung Roms", type: "battle", desc: "Alarich in Rom.", quote: "Die Stadt ist erobert." }, { year: 451, lat: 49.0, lng: 4.0, title: "Katalaunische Felder", type: "battle", desc: "Aetius stoppt Attila.", quote: "Ein wilder Kampf." }, { year: 455, lat: 41.9, lng: 12.5, title: "Sack von Rom", type: "battle", desc: "Vandalen plündern.", quote: null }, { year: 476, lat: 44.4, lng: 12.2, title: "Ende Westroms", type: "treaty", desc: "Odoaker übernimmt.", quote: "Das westliche Reich endete." }, { year: 486, lat: 49.3, lng: 3.3, title: "Schlacht von Soissons", type: "battle", desc: "Chlodwig besiegt Syagrius.", quote: "Ende Roms in Gallien." }, { year: 493, lat: 44.4, lng: 12.2, title: "Rabenschlacht", type: "treaty", desc: "Theoderich tötet Odoaker.", quote: "Verrat in Ravenna." } ];
+        const historicalEvents = [ 
+            { year: 378, lat: 41.67, lng: 26.56, title: "Schlacht von Adrianopel", type: "battle", desc: "Goten besiegen Valens.", quote: "Ein Gemetzel wie bei Cannae." }, 
+            { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Dammbruch am Limes.", quote: "Ganz Gallien rauchte." }, 
+            { year: 410, lat: 41.9, lng: 12.5, title: "Plünderung Roms", type: "battle", desc: "Alarich in Rom.", quote: "Die Stadt ist erobert." }, 
+            { year: 447, lat: 41.0, lng: 28.0, title: "Hunnen-Tribut", type: "diplomacy", desc: "Ostrom erkauft Frieden von Attila. Der Hunnensturm wendet sich nach Westen.", quote: "Gold statt Blut." },
+            { year: 451, lat: 49.0, lng: 4.0, title: "Katalaunische Felder", type: "battle", desc: "Aetius stoppt Attila.", quote: "Ein wilder Kampf." }, 
+            { year: 455, lat: 41.9, lng: 12.5, title: "Sack von Rom", type: "battle", desc: "Vandalen plündern.", quote: null }, 
+            { year: 476, lat: 44.4, lng: 12.2, title: "Ende Westroms", type: "treaty", desc: "Odoaker übernimmt.", quote: "Das westliche Reich endete." }, 
+            { year: 486, lat: 49.3, lng: 3.3, title: "Schlacht von Soissons", type: "battle", desc: "Chlodwig besiegt Syagrius.", quote: "Ende Roms in Gallien." }, 
+            { year: 493, lat: 44.4, lng: 12.2, title: "Rabenschlacht", type: "treaty", desc: "Kampf um Italien: Theoderich (im Auftrag Ostroms) besiegt Odoaker (Rex Italiae). Tödliches Friedensmahl.", quote: "Der Verrat von Ravenna." },
+            { year: 540, lat: 36.2, lng: 36.1, title: "Perserkrieg", type: "crisis", desc: "Die Sassaniden plündern Antiochia. Justinian muss Belisar aus Italien abziehen.", quote: "Die zweite Front." },
+            { year: 542, lat: 41.0, lng: 28.9, title: "Justinianische Pest", type: "plague", desc: "Die Pandemie tötet ein Drittel der Bevölkerung und stoppt die Reconquista.", quote: "Gottes Zorn." }
+        ];
 
         // --- LOGIK ---
         window.onload = function() { getApiKey(); initMap(); updateVisualization(375); };
@@ -284,11 +279,9 @@
 
             Object.keys(routes).forEach(key => {
                 const data = routes[key];
-                // Style Unterscheidung für Armeen (gestrichelt) vs Völker (gepunktet/solid)
                 const dashStyle = data.type === 'army' ? '10, 5' : '1, 6'; 
                 const line = L.polyline([], { color: data.color, weight: 4, opacity: 0.7, dashArray: dashStyle }).addTo(map);
                 
-                // Marker Unterscheidung (Rund für Völker, Eckig für Armeen)
                 const borderRadius = data.type === 'army' ? '2px' : '50%';
                 const iconHtml = `<div style="background-color: ${data.color}; width: 14px; height: 14px; border-radius: ${borderRadius}; border: 2px solid white;"></div>`;
                 const iconClass = data.type === 'army' ? 'pulse-icon roman-pulse' : 'pulse-icon';
@@ -301,8 +294,14 @@
             });
 
             historicalEvents.forEach(ev => {
-                const color = ev.type === 'battle' ? '#dc2626' : '#4b5563';
-                const iconType = ev.type === 'battle' ? 'ph-swords' : 'ph-scroll';
+                const color = (ev.type === 'battle' || ev.type === 'crisis' || ev.type === 'plague') ? '#dc2626' : '#4b5563';
+                
+                let iconType = 'ph-scroll';
+                if (ev.type === 'battle') iconType = 'ph-swords';
+                if (ev.type === 'plague') iconType = 'ph-skull';
+                if (ev.type === 'crisis') iconType = 'ph-fire';
+                if (ev.type === 'diplomacy') iconType = 'ph-handshake';
+
                 const html = `<div class="battle-marker flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-md border border-stone-200 text-[${color}]"><i class="ph-fill ${iconType} text-lg" style="color:${color}"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
                 const marker = L.marker([ev.lat, ev.lng], { icon: icon, opacity: 0 }).addTo(map);
@@ -339,11 +338,9 @@
                     if (!layerData.hasStarted) { layerData.marker.setOpacity(1); layerData.line.setStyle({opacity: 0.7}); layerData.hasStarted = true; }
                     layerData.marker.setLatLng([res.lat, res.lng]); layerData.line.setLatLngs(res.trail);
                     
-                    // Logik für verschwindende Einheiten (Hunnen nach 454, Stilicho nach 408, Belisar nach 540)
                     const isHunnenEnd = (key === 'hunnen' && year > 454);
                     const isStilichoEnd = (key === 'stilicho' && year > 408);
                     const isAetiusEnd = (key === 'aetius' && year > 454);
-                    // Belisar bleibt als oströmische Präsenz sichtbar
                     
                     if (isHunnenEnd || isStilichoEnd || isAetiusEnd) { 
                         layerData.marker.setOpacity(0); layerData.marker.closeTooltip(); layerData.line.setStyle({opacity: 0.15}); 

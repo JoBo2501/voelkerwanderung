@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Völkerwanderung & KI-Analyse</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Markdown Parser für KI Antworten -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        /* Reset & Basis */
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        
+        /* Map Container */
+        #map { 
+            height: 100vh; 
+            width: 100vw; 
+            background: #f0f0f0; 
+            z-index: 1; 
+        }
+
+        /* UI Overlay Container */
+        .ui-layer {
+            position: absolute;
+            z-index: 1000; 
+            pointer-events: none; 
+        }
+        .ui-element {
+            pointer-events: auto; 
+        }
+
+        /* Custom Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #d97706;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            cursor: pointer;
+            margin-top: -10px;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #e5e7eb;
+            border-radius: 2px;
+        }
+
+        /* Label Styling auf der Karte */
+        .leaflet-tooltip.custom-label {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ccc;
+            color: #333;
+            font-family: serif;
+            font-weight: bold;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .leaflet-tooltip-left:before, .leaflet-tooltip-right:before {
+            display: none; 
+        }
+
+        /* Animation für den Marker (Pulsieren) */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.8; }
+            100% { transform: scale(2.0); opacity: 0; }
+        }
+        .pulse-icon {
+            position: relative;
+        }
+        .pulse-icon:after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            border-radius: 50%;
+            background: inherit;
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+            z-index: -1;
+        }
+
+        /* AI Loading Spinner */
+        .ai-spinner {
+            border: 3px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top: 3px solid #d97706;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* AI Gradient Text */
+        .text-gradient-ai {
+            background: linear-gradient(45deg, #d97706, #9333ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-stone-100">
+
+    <!-- Map -->
+    <div id="map"></div>
+
+    <!-- Header UI -->
+    <div class="ui-layer top-0 left-0 right-0 p-4 flex justify-between items-start">
+        <div class="ui-element inline-block bg-white/95 backdrop-blur shadow-lg rounded-lg px-4 py-3 border-l-4 border-amber-600">
+            <h1 class="text-lg font-serif font-bold text-stone-800 leading-none">Völkerwanderung</h1>
+            <p class="text-xs text-stone-500 font-mono mt-1">ca. 375 – 568 n. Chr.</p>
+        </div>
+        
+        <!-- Global AI Context Button (Mobile top right) -->
+        <div class="ui-element md:hidden">
+            <button onclick="askGeminiContext()" class="bg-gradient-to-r from-amber-600 to-purple-600 text-white px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 text-sm font-bold">
+                <i class="ph-fill ph-sparkle"></i>
+                <span id="ai-btn-text-mobile">Zeitgeist</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Info Box (Hidden by default) -->
+    <div id="info-box" class="hidden ui-layer top-20 left-4 right-4 md:left-auto md:right-4 md:w-80">
+        <div class="ui-element bg-white/95 backdrop-blur shadow-xl rounded-lg p-4 border border-stone-200">
+            <div class="flex justify-between items-start mb-2">
+                <h2 id="info-title" class="font-serif font-bold text-lg text-stone-800">Titel</h2>
+                <button onclick="closeInfo()" class="text-stone-400 hover:text-red-600"><i class="ph ph-x text-lg"></i></button>
+            </div>
+            <div id="info-content" class="text-sm text-stone-600 leading-relaxed mb-4"></div>
+            
+            <!-- AI Button for Specific Tribe -->
+            <button onclick="askGeminiTribe()" id="tribe-ai-btn" class="w-full bg-stone-100 hover:bg-white border border-stone-300 text-stone-700 px-3 py-2 rounded flex items-center justify-center gap-2 text-xs font-bold transition-all hover:shadow-md group">
+                <i class="ph-fill ph-sparkle text-purple-600 group-hover:scale-110 transition-transform"></i>
+                <span id="tribe-ai-text">KI-Analyse: Situation im Jahr <span id="tribe-ai-year">...</span></span>
+            </button>
+            
+            <!-- AI Response Area inside Info Box -->
+            <div id="tribe-ai-response" class="hidden mt-3 p-3 bg-purple-50 rounded border border-purple-100 text-xs text-stone-800 leading-relaxed animate-pulse">
+                Wird geladen...
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Modal Overlay (Global Context) -->
+    <div id="ai-modal" class="hidden fixed inset-0 z-[2000] bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[80vh]">
+            <div class="bg-gradient-to-r from-amber-600 to-purple-600 p-4 text-white flex justify-between items-center">
+                <h3 class="font-serif font-bold flex items-center gap-2">
+                    <i class="ph-fill ph-sparkle"></i>
+                    Historischer Kontext: <span id="ai-modal-year"></span>
+                </h3>
+                <button onclick="closeAiModal()" class="hover:bg-white/20 rounded-full p-1"><i class="ph ph-x"></i></button>
+            </div>
+            <div id="ai-modal-content" class="p-6 overflow-y-auto text-stone-700 text-sm leading-relaxed">
+                <!-- Content injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Controls UI -->
+    <div class="ui-layer bottom-0 left-0 right-0">
+        <div class="ui-element bg-white border-t border-stone-200 shadow-[0_-5px_25px_rgba(0,0,0,0.1)] p-4 pb-8 md:pb-6">
+            <div class="max-w-4xl mx-auto w-full">
+                
+                <!-- Top Row: Play & Year & AI & Legend -->
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-4">
+                        <button id="play-btn" onclick="togglePlay()" class="w-12 h-12 bg-stone-800 hover:bg-stone-700 text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
+                            <i id="play-icon" class="ph-fill ph-play text-xl"></i>
+                        </button>
+                        <div>
+                            <div class="text-[10px] uppercase tracking-widest text-stone-500 font-bold">Jahr</div>
+                            <div class="text-3xl font-serif font-bold text-stone-800 tabular-nums" id="year-display">375</div>
+                        </div>
+                        
+                        <!-- Desktop AI Context Button -->
+                        <button onclick="askGeminiContext()" class="hidden md:flex ml-2 bg-gradient-to-r from-amber-50 to-purple-50 border border-purple-200 text-purple-900 hover:from-amber-100 hover:to-purple-100 px-3 py-1 rounded-full shadow-sm items-center gap-2 text-xs font-bold transition-all active:scale-95">
+                            <i class="ph-fill ph-sparkle text-purple-600"></i>
+                            <span id="ai-btn-text-desktop">Was geschah <span id="ai-btn-year-ref">375</span>?</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Mini Legend -->
+                    <div class="hidden md:flex gap-3 text-xs">
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 bg-red-600 rounded-full"></div>Westgoten</div>
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 bg-blue-600 rounded-full"></div>Vandalen</div>
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 bg-green-600 rounded-full"></div>Hunnen</div>
+                    </div>
+                </div>
+
+                <!-- Timeline Slider -->
+                <div class="relative pt-6 px-1">
+                    <!-- Scale Labels -->
+                    <div class="absolute top-0 left-0 w-full flex justify-between text-[10px] text-stone-400 font-mono">
+                        <span>375</span>
+                        <span>425</span>
+                        <span>475</span>
+                        <span>525</span>
+                        <span>568</span>
+                    </div>
+                    
+                    <!-- Slider -->
+                    <input type="range" id="year-slider" min="375" max="568" value="375" step="1" oninput="updateYear(this.value)">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS Load -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        // --- GEMINI API CONFIGURATION ---
+        const apiKey = "AIzaSyD11Y7yFTiBzm2DW2KUouJK3r1-QjFIgnU"; // Provided by environment
+        let currentTribeForAI = null;
+
+        // --- DATA ---
+        const routes = {
+            westgoten: {
+                name: "Westgoten",
+                color: "#dc2626",
+                desc: "Beginn: Flucht über die Donau (376). Nach dem Sieg bei Adrianopel (378) und der Plünderung Roms (410) Gründung des Tolosanischen Reichs in Südgallien.",
+                path: [
+                    [45.5, 25.0, 375], [41.6, 26.5, 378], [40.6, 22.9, 395], 
+                    [41.9, 12.5, 410], [43.6, 1.4, 418], [41.6, -4.7, 470], [39.8, -4.0, 507]
+                ]
+            },
+            vandalen: {
+                name: "Vandalen",
+                color: "#2563eb",
+                desc: "Beginn: Schlesien/Oder (375). Der große Zug: Rheinübergang (406), Durchquerung Spaniens, Eroberung Karthagos (439).",
+                path: [
+                    [51.0, 17.0, 375], [50.0, 8.2, 405], [49.9, 8.2, 406], 
+                    [44.8, -0.5, 409], [37.3, -5.9, 415], [35.9, -5.6, 429], 
+                    [36.8, 10.1, 439], [41.9, 12.5, 455], [36.8, 10.1, 460]
+                ]
+            },
+            hunnen: {
+                name: "Hunnen",
+                color: "#16a34a",
+                desc: "Beginn: Steppen nördlich des Schwarzen Meeres. Unter Attila Zentrum in Ungarn. Züge bis Gallien (Katalaunische Felder 451) und Italien.",
+                path: [
+                    [48.0, 43.0, 375], [47.0, 30.0, 390], [47.5, 19.0, 405], 
+                    [49.0, 4.0, 451], [45.4, 10.9, 452], [47.5, 19.0, 453]
+                ]
+            },
+            langobarden: {
+                name: "Langobarden",
+                color: "#d97706",
+                desc: "Beginn: Unterelbe. Langsame Südwanderung. 568 Einfall in Italien und Gründung des Langobardenreichs.",
+                path: [
+                    [53.5, 10.5, 375], [53.5, 10.5, 400], [48.5, 16.5, 489], 
+                    [47.5, 19.0, 526], [46.0, 13.0, 568], [45.4, 9.1, 572]
+                ]
+            }
+        };
+
+        // --- CORE VISUALIZATION ---
+        let map;
+        const layers = {};
+        let isPlaying = false;
+        let animationInterval;
+        let currentYear = 375;
+
+        window.onload = function() {
+            initMap();
+            updateVisualization(375);
+        };
+
+        function initMap() {
+            map = L.map('map', { zoomControl: false, attributionControl: false }).setView([46.5, 14.0], 5);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+                attribution: '©OpenStreetMap, ©CartoDB', subdomains: 'abcd', maxZoom: 19
+            }).addTo(map);
+
+            const cities = [
+                {c:[41.9, 12.5], t:"Rom"}, {c:[41.0, 28.9], t:"Konstantinopel"}, 
+                {c:[36.8, 10.1], t:"Karthago"}, {c:[48.8, 2.35], t:"Lutetia"}, {c:[50.9, 6.9], t:"Colonia"}
+            ];
+            cities.forEach(ct => addCityLabel(ct.c, ct.t));
+
+            Object.keys(routes).forEach(key => {
+                const data = routes[key];
+                const line = L.polyline([], { color: data.color, weight: 4, opacity: 0.7, dashArray: '1, 6', lineCap: 'round' }).addTo(map);
+                
+                const iconHtml = `<div style="background-color: ${data.color}; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`;
+                const icon = L.divIcon({ className: 'pulse-icon', html: iconHtml, iconSize: [16, 16], iconAnchor: [8, 8] });
+
+                const marker = L.marker([0,0], { icon: icon }).addTo(map);
+                marker.bindTooltip(data.name, { permanent: true, direction: 'right', className: 'custom-label', offset: [10, 0] });
+                
+                marker.on('click', () => {
+                    showInfo(data.name, data.desc, data.color, key);
+                });
+
+                layers[key] = { line, marker, hasStarted: false };
+            });
+        }
+
+        function addCityLabel(coords, text) {
+            L.circleMarker(coords, { radius: 3, color: '#666', fillColor: '#fff', fillOpacity: 1, weight: 1 }).addTo(map);
+            L.tooltip({ permanent: true, direction: 'bottom', className: 'bg-transparent border-0 shadow-none text-stone-400 font-serif text-[10px] uppercase tracking-wider', offset: [0, 5] }).setContent(text).setLatLng(coords).addTo(map);
+        }
+
+        function getPosition(path, year) {
+            const startYear = path[0][2];
+            const endYear = path[path.length - 1][2];
+            if (year < startYear) return null;
+            if (year >= endYear) return { lat: path[path.length-1][0], lng: path[path.length-1][1], trail: path.map(p => [p[0], p[1]]) };
+
+            for (let i = 0; i < path.length - 1; i++) {
+                const p1 = path[i];
+                const p2 = path[i+1];
+                if (year >= p1[2] && year < p2[2]) {
+                    const fraction = (year - p1[2]) / (p2[2] - p1[2]);
+                    const lat = p1[0] + (p2[0] - p1[0]) * fraction;
+                    const lng = p1[1] + (p2[1] - p1[1]) * fraction;
+                    const currentTrail = path.slice(0, i+1).map(p => [p[0], p[1]]);
+                    currentTrail.push([lat, lng]);
+                    return { lat, lng, trail: currentTrail };
+                }
+            }
+            return null;
+        }
+
+        function updateVisualization(year) {
+            currentYear = year;
+            document.getElementById('tribe-ai-year').innerText = year;
+            document.getElementById('ai-btn-year-ref').innerText = year;
+            
+            Object.keys(routes).forEach(key => {
+                const layer = layers[key];
+                const result = getPosition(routes[key].path, year);
+
+                if (result) {
+                    if (!layer.hasStarted) { layer.marker.setOpacity(1); layer.line.setStyle({opacity: 0.7}); layer.hasStarted = true; }
+                    layer.marker.setLatLng([result.lat, result.lng]);
+                    layer.line.setLatLngs(result.trail);
+
+                    if (key === 'hunnen' && year > 454) {
+                        layer.marker.setOpacity(0); layer.marker.closeTooltip(); layer.line.setStyle({opacity: 0.2});
+                    } else if (key === 'hunnen') {
+                        layer.marker.setOpacity(1); if(!layer.marker.isTooltipOpen()) layer.marker.openTooltip();
+                    }
+                } else {
+                    layer.marker.setOpacity(0); layer.marker.closeTooltip(); layer.line.setLatLngs([]); layer.hasStarted = false;
+                }
+            });
+        }
+
+        // --- UI LOGIC ---
+        function updateYear(val) {
+            const y = parseInt(val);
+            document.getElementById('year-display').innerText = y;
+            updateVisualization(y);
+        }
+
+        function togglePlay() {
+            const btn = document.getElementById('play-icon');
+            const slider = document.getElementById('year-slider');
+            if (isPlaying) {
+                clearInterval(animationInterval);
+                isPlaying = false;
+                btn.classList.remove('ph-pause'); btn.classList.add('ph-play');
+            } else {
+                isPlaying = true;
+                btn.classList.remove('ph-play'); btn.classList.add('ph-pause');
+                animationInterval = setInterval(() => {
+                    let val = parseInt(slider.value);
+                    if (val >= 568) val = 375; else val += 1;
+                    slider.value = val; updateYear(val);
+                }, 100);
+            }
+        }
+
+        function showInfo(title, text, color, key) {
+            currentTribeForAI = { name: title, key: key };
+            const box = document.getElementById('info-box');
+            const t = document.getElementById('info-title');
+            const c = document.getElementById('info-content');
+            
+            t.innerText = title; t.style.color = color; c.innerText = text;
+            box.classList.remove('hidden');
+            
+            // Reset AI area
+            document.getElementById('tribe-ai-response').classList.add('hidden');
+            document.getElementById('tribe-ai-response').innerHTML = '';
+            document.getElementById('tribe-ai-btn').classList.remove('hidden');
+        }
+
+        function closeInfo() {
+            document.getElementById('info-box').classList.add('hidden');
+        }
+
+        function closeAiModal() {
+            document.getElementById('ai-modal').classList.add('hidden');
+        }
+
+        // --- GEMINI API INTEGRATION ---
+
+        async function callGemini(prompt) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+
+                if (!response.ok) throw new Error(`API Error: ${response.status}`);
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
+            } catch (error) {
+                console.error(error);
+                return "Entschuldigung, der KI-Dienst ist momentan nicht erreichbar. Bitte versuche es später noch einmal.";
+            }
+        }
+
+        // Feature 1: Tribe Context
+        async function askGeminiTribe() {
+            if (!currentTribeForAI) return;
+            
+            const btn = document.getElementById('tribe-ai-btn');
+            const respDiv = document.getElementById('tribe-ai-response');
+            const tribeName = currentTribeForAI.name;
+            
+            // UI Loading State
+            btn.classList.add('hidden');
+            respDiv.classList.remove('hidden', 'animate-pulse');
+            respDiv.innerHTML = `<div class="flex items-center gap-2"><div class="ai-spinner"></div><span class="italic text-stone-500">Die KI durchsucht Geschichtsbücher zum Jahr ${currentYear}...</span></div>`;
+
+            const prompt = `Du bist ein Historiker der Spätantike.
+            Erkläre kurz und spannend (max 3 Sätze), was das Volk der ${tribeName} im Jahr ${currentYear} n. Chr. macht oder wo sie sich befinden.
+            Der Kontext ist eine Karte der Völkerwanderung.
+            Antworte auf Deutsch.`;
+
+            const result = await callGemini(prompt);
+            
+            respDiv.classList.remove('animate-pulse');
+            respDiv.innerHTML = marked.parse(result);
+        }
+
+        // Feature 2: Global Context
+        async function askGeminiContext() {
+            const modal = document.getElementById('ai-modal');
+            const content = document.getElementById('ai-modal-content');
+            const headerYear = document.getElementById('ai-modal-year');
+            
+            headerYear.innerText = currentYear;
+            modal.classList.remove('hidden');
+            content.innerHTML = `<div class="flex flex-col items-center justify-center py-10"><div class="ai-spinner mb-4 w-8 h-8"></div><p class="text-stone-500 italic">Analysiere geopolitische Lage im Jahr ${currentYear}...</p></div>`;
+            
+            const prompt = `Du bist ein Experte für die Völkerwanderung.
+            Beschreibe die geopolitische Situation in Europa im Jahr ${currentYear} n. Chr.
+            - Was macht das Römische Reich (West/Ost)?
+            - Gibt es große Schlachten oder Wanderungen in diesem spezifischen Jahr?
+            Fasse dich kurz (max 100 Wörter). Formatiere wichtige Begriffe fett. Antworte auf Deutsch.`;
+
+            const result = await callGemini(prompt);
+            
+            content.innerHTML = marked.parse(result);
+        }
+    </script>
+</body>
+</html>

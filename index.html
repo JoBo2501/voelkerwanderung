@@ -14,23 +14,36 @@
     <!-- Phosphor Icons (Symbole) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- HINWEIS: Wir verzichten auf externe Markdown-Bibliotheken, um Ladefehler zu vermeiden. -->
-
     <script>
-        /* INLINE SVG ARTEFAKTE (Base64) - Garantiert ladbar ohne Internet */
+        /* FEHLERBEHANDLUNG FÜR BILDER
+           Falls ein lokales Bild nicht gefunden wird (z.B. Tippfehler im Dateinamen),
+           wird automatisch dieser Platzhalter (SVG) geladen.
+        */
+        const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300' fill='%23f5f5f4'%3E%3Cpath d='M200 100 L250 180 L150 180 Z' fill='%23e7e5e4'/%3E%3Crect x='180' y='180' width='40' height='60' fill='%23e7e5e4'/%3E%3Ctext x='50%25' y='270' dominant-baseline='middle' text-anchor='middle' font-family='serif' font-size='14' fill='%23a8a29e' class='font-serif'%3EBild fehlt%3C/text%3E%3C/svg%3E";
+
+        function handleImageError(img) {
+            img.onerror = null; // Verhindert Endlosschleife
+            img.src = fallbackImage;
+            img.parentElement.classList.remove('hidden'); 
+        }
+
+        /* KONFIGURATION DER LOKALEN BILDER
+           Hier verknüpfen wir die Völker mit den Dateien in Ihrem 'img'-Ordner.
+           Achten Sie darauf, dass die Dateinamen exakt übereinstimmen!
+        */
         const artifacts = {
-            westgoten: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3Cpattern id='cloisonne' x='0' y='0' width='20' height='20' patternUnits='userSpaceOnUse'%3E%3Crect width='20' height='20' fill='%23b91c1c'/%3E%3Cpath d='M0 0h20v20h-20z' fill='none' stroke='%23fcd34d' stroke-width='2'/%3E%3C/pattern%3E%3Cfilter id='glow'%3E%3CfeGaussianBlur stdDeviation='2.5' result='coloredBlur'/%3E%3CfeMerge%3E%3CfeMergeNode in='coloredBlur'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M200 50 C230 50 250 80 250 100 L280 150 L200 250 L120 150 L150 100 C150 80 170 50 200 50' fill='url(%23cloisonne)' stroke='%23b45309' stroke-width='5' filter='url(%23glow)'/%3E%3Ccircle cx='200' cy='90' r='15' fill='%2378350f' stroke='%23fcd34d' stroke-width='3'/%3E%3C/svg%3E`,
-            vandalen: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3Cfilter id='silver'%3E%3CfeSpecularLighting result='specOut' specularExponent='20' lighting-color='%23ffffff'%3E%3CfePointLight x='150' y='150' z='200'/%3E%3C/feSpecularLighting%3E%3CfeComposite in='SourceGraphic' in2='specOut' operator='arithmetic' k1='0' k2='1' k3='1' k4='0'/%3E%3C/filter%3E%3C/defs%3E%3Ccircle cx='200' cy='150' r='100' fill='%23cbd5e1' stroke='%2394a3b8' stroke-width='4' filter='url(%23silver)'/%3E%3Ctext x='200' y='280' text-anchor='middle' font-family='serif' font-weight='bold' fill='%2364748b' font-size='18' letter-spacing='2'%3ED N REX GELIMER%3C/text%3E%3Cpath d='M180 100 C180 100 230 110 230 150 C230 190 190 200 190 200' stroke='%2364748b' stroke-width='3' fill='none'/%3E%3C/svg%3E`,
-            hunnen: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 60 C240 60 260 100 260 140 L240 260 L160 260 L140 140 C140 100 160 60 200 60' fill='%2365a30d' stroke='%23fcd34d' stroke-width='4'/%3E%3Cpath d='M200 60 L200 140' stroke='%23fcd34d' stroke-width='2'/%3E%3Cpath d='M140 140 L260 140' stroke='%23fcd34d' stroke-width='2'/%3E%3Ccircle cx='170' cy='100' r='8' fill='%2384cc16'/%3E%3Ccircle cx='230' cy='100' r='8' fill='%2384cc16'/%3E%3C/svg%3E`,
-            langobarden: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3ClinearGradient id='goldGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23fcd34d;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23b45309;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='180' y='50' width='40' height='200' fill='url(%23goldGrad)' stroke='%23b45309' stroke-width='2'/%3E%3Crect x='100' y='110' width='200' height='40' fill='url(%23goldGrad)' stroke='%23b45309' stroke-width='2'/%3E%3Ccircle cx='200' cy='130' r='10' fill='%23fcd34d'/%3E%3C/svg%3E`
+            westgoten: './img/westgoten.jpg',
+            vandalen:  './img/vandalen.jpg',
+            hunnen:    './img/hunnen.jpg',
+            langobarden: './img/langobarden.jpg'
         };
 
         /* Eigener Mini-Parser für KI-Texte */
         function formatText(text) {
             if (!text) return '';
             return text
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Fettgedrucktes
-                .replace(/\n/g, '<br>'); // Zeilenumbrüche
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
         }
     </script>
 
@@ -68,14 +81,11 @@
             font-family: serif; font-weight: bold; font-size: 12px; padding: 2px 6px; border-radius: 2px;
         }
         
-        /* Region Labels Styling (NEU) - Klassische römische Typografie */
         .leaflet-tooltip.region-label {
             background: transparent; border: none; box-shadow: none;
             font-family: 'Times New Roman', serif; font-weight: bold; 
-            color: #78716c; /* Stone-500 */
-            text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px;
-            opacity: 0.7; pointer-events: none;
-            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+            color: #78716c; text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px;
+            opacity: 0.7; pointer-events: none; text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
         }
 
         .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { display: none; }
@@ -104,7 +114,8 @@
     <!-- INFO BOX -->
     <div id="info-box" class="hidden ui-layer top-20 left-4 right-4 md:left-auto md:right-4 md:w-[400px] max-h-[75vh] flex flex-col rounded-xl shadow-2xl z-[4000] bg-white border border-stone-300 ui-element">
         <div id="info-artifact-container" class="relative w-full h-48 bg-stone-100 shrink-0 border-b border-stone-200">
-            <img id="artifact-img" src="" alt="Artefakt" class="w-full h-full object-contain p-4">
+            <!-- Hier wird das lokale Bild geladen -->
+            <img id="artifact-img" src="" alt="Artefakt" class="w-full h-full object-cover transition-transform duration-700 hover:scale-105" onerror="handleImageError(this)">
             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/80 to-transparent p-2 pt-8">
                  <div class="flex items-center gap-2 text-amber-700 px-2">
                     <i class="ph-fill ph-bank"></i>
@@ -179,7 +190,10 @@
 
     <script>
         // --- CONFIG ---
-        const apiKey = "AIzaSyD11Y7yFTiBzm2DW2KUouJK3r1-QjFIgnU"; // BITTE API KEY HIER EINFÜGEN
+        
+        // WICHTIG: Hier muss Ihr API-Key stehen. Ohne diesen Key funktioniert die KI nicht.
+        // Beispiel: const apiKey = "AIzaSyD_Dein_Langer_Schluessel_Hier";
+        const apiKey = "AIzaSyD11Y7yFTiBzm2DW2KUouJK3r1-QjFIgnU"; 
         
         let currentTribeForAI = null;
         let map;
@@ -197,7 +211,6 @@
             [48.3, 14.3], [48.1, 16.4], [47.8, 17.6], [47.5, 19.0], [44.8, 20.4], [44.6, 22.6], [45.2, 29.6]
         ];
 
-        // NEU: Historische Regionen (Labels)
         const historicalRegions = [
             { c: [46.5, 2.0], t: "GALLIA", s: 16 },
             { c: [40.0, -4.0], t: "HISPANIA", s: 16 },
@@ -206,7 +219,7 @@
             { c: [43.0, 22.0], t: "ILLYRICUM", s: 14 },
             { c: [42.0, 25.0], t: "THRACIA", s: 14 },
             { c: [35.0, 2.0], t: "AFRICA", s: 16 },
-            { c: [51.0, 10.0], t: "GERMANIA", s: 16, color: "#a8a29e" }, // Barbaricum
+            { c: [51.0, 10.0], t: "GERMANIA", s: 16, color: "#a8a29e" }, 
             { c: [48.0, 30.0], t: "SCYTHIA", s: 14, color: "#a8a29e" }
         ];
 
@@ -225,7 +238,7 @@
                 name: "Westgoten", color: "#dc2626",
                 desc: "Ursprünglich als Foederati aufgenommen, rebellierten sie. Nach der Plünderung Roms (410) etablierten sie das Tolosanische Reich.",
                 path: [[45.5, 25.0, 375], [41.6, 26.5, 378], [40.6, 22.9, 395], [41.9, 12.5, 410], [43.6, 1.4, 418], [41.6, -4.7, 470], [39.8, -4.0, 507]],
-                artifact: { img: artifacts.westgoten, title: "Adlerfibel (Polychromer Stil)", text: "Ein Meisterwerk der Cloisonné-Technik. Der Adler symbolisiert den Machtanspruch der gotischen Elite." }
+                artifact: { img: artifacts.westgoten, title: "Adlerfibel", text: "Ein Meisterwerk der Cloisonné-Technik. Der Adler symbolisiert den Machtanspruch der gotischen Elite." }
             },
             vandalen: {
                 name: "Vandalen", color: "#2563eb",
@@ -266,18 +279,12 @@
             // Limes zeichnen
             L.polyline(limesPath, { color: '#44403c', weight: 2, dashArray: '5, 10', opacity: 0.5 }).addTo(map);
 
-            // NEU: Region Labels platzieren (Statisch)
+            // Region Labels
             historicalRegions.forEach(reg => {
                 const color = reg.color || '#78716c';
                 L.tooltip({
-                    permanent: true,
-                    direction: 'center',
-                    className: 'region-label',
-                    opacity: 0.8
-                })
-                .setContent(`<span style="font-size:${reg.s}px; color:${color}">${reg.t}</span>`)
-                .setLatLng(reg.c)
-                .addTo(map);
+                    permanent: true, direction: 'center', className: 'region-label', opacity: 0.8
+                }).setContent(`<span style="font-size:${reg.s}px; color:${color}">${reg.t}</span>`).setLatLng(reg.c).addTo(map);
             });
 
             // Städte initialisieren
@@ -333,6 +340,7 @@
             const aiBtnRef = document.getElementById('ai-btn-year-ref');
             if (aiBtnRef) aiBtnRef.innerText = year;
             
+            // Zentren updaten - Nutzt .setStyle() für CircleMarker
             Object.values(cityMarkers).forEach(cm => {
                 if (year >= cm.start && year <= cm.end) {
                     cm.marker.setStyle({ opacity: 1, fillOpacity: 1 }); 
@@ -380,7 +388,12 @@
 
             if (artifact) {
                 artContainer.classList.remove('hidden');
-                document.getElementById('artifact-img').src = artifact.img;
+                const img = document.getElementById('artifact-img');
+                
+                // Reset error handler before changing source
+                img.onerror = function() { handleImageError(this); };
+                img.src = artifact.img;
+                
                 document.getElementById('artifact-title').innerText = artifact.title;
                 document.getElementById('artifact-desc').innerText = artifact.text;
                 document.getElementById('artifact-desc').classList.remove('hidden');
@@ -396,15 +409,26 @@
         function closeInfo() { document.getElementById('info-box').classList.add('hidden'); }
         function closeAiModal() { document.getElementById('ai-modal').classList.add('hidden'); }
 
-        // --- KI ---
+        // --- KI FEHLERBEHANDLUNG (NEU) ---
         async function callGemini(prompt) {
-            if (!apiKey) return "Bitte API Key im Code hinterlegen.";
+            if (!apiKey) return "FEHLER: Kein API-Schlüssel gefunden. Bitte fügen Sie Ihren Schlüssel in Zeile 362 der HTML-Datei ein.";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             try {
                 const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
-                if (!response.ok) throw new Error(`API Error: ${response.status}`);
-                const data = await response.json(); return data.candidates[0].content.parts[0].text;
-            } catch (error) { return "Der KI-Dienst ist momentan nicht erreichbar."; }
+                
+                // Verbesserte Fehleranzeige für den Nutzer
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("API Error Details:", errorData);
+                    return `<b>API Fehler (${response.status}):</b> ${errorData.error?.message || 'Unbekannter Fehler'}`;
+                }
+                
+                const data = await response.json(); 
+                return data.candidates[0].content.parts[0].text;
+            } catch (error) { 
+                console.error(error);
+                return `<b>Verbindungsfehler:</b> ${error.message}. Überprüfen Sie Ihre Internetverbindung.`; 
+            }
         }
 
         async function askGeminiTribe() {
@@ -413,7 +437,6 @@
             respDiv.innerHTML = `<div class="flex items-center gap-3 py-2"><div class="ai-spinner"></div><span class="italic text-stone-500 text-xs">Recherchiere ${currentTribeForAI.name}...</span></div>`;
             const prompt = `Du bist ein Experte für Spätantike. Thema: Das Volk der ${currentTribeForAI.name} im Jahr ${currentYear} n. Chr. Erkläre präzise ihre Situation (Ort, Rechtsstatus, Anführer). 2-3 Sätze, Deutsch.`;
             const result = await callGemini(prompt); 
-            // NUTZT JETZT INTERNEN FORMATTER STATT MARKED.JS
             respDiv.innerHTML = formatText(result);
         }
 
@@ -423,7 +446,6 @@
             content.innerHTML = `<div class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 border-t-amber-500"></div><p class="text-stone-500 italic">Analysiere Lage ${currentYear}...</p></div>`;
             const prompt = `Du bist ein Althistoriker. Analysiere das Jahr ${currentYear} n. Chr. in Europa (Westrom/Ostrom, Militär, Recht). Antworte anspruchsvoll auf Deutsch.`;
             const result = await callGemini(prompt); 
-            // NUTZT JETZT INTERNEN FORMATTER STATT MARKED.JS
             content.innerHTML = formatText(result);
         }
     </script>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Geografie & Strategie</title>
+    <title>Völkerwanderung: Relief & Struktur</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -42,7 +42,6 @@
         /* BILDER & LOGIK HELPER */
         const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300' fill='%23f5f5f4'%3E%3Crect width='400' height='300' fill='%23e5e5e5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' fill='%23999'%3EBild nicht verfügbar%3C/text%3E%3C/svg%3E";
         
-        // Lokale Pfade (Platzhalter) - im echten Einsatz Pfade prüfen
         const localImages = {
             westgoten: './img/westgoten.jpg', vandalen: './img/vandalen.jpg',
             hunnen: './img/hunnen.jpg', langobarden: './img/langobarden.jpg',
@@ -50,7 +49,6 @@
             rom: './img/rom_armee.jpg', pest: './img/pest.jpg'
         };
 
-        // Fallback Artefakte (SVG Strings)
         const artifacts = {
             westgoten: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 50 C230 50 250 80 250 100 L280 150 L200 250 L120 150 L150 100 C150 80 170 50 200 50' fill='%23b91c1c' stroke='%23b45309' stroke-width='5'/%3E%3Ccircle cx='200' cy='90' r='15' fill='%2378350f' stroke='%23fcd34d' stroke-width='3'/%3E%3C/svg%3E`,
             vandalen: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Ccircle cx='200' cy='150' r='100' fill='%23cbd5e1' stroke='%2394a3b8' stroke-width='4'/%3E%3Ctext x='200' y='280' text-anchor='middle' font-family='serif' font-weight='bold' fill='%2364748b' font-size='18' letter-spacing='2'%3ED N REX GELIMER%3C/text%3E%3C/svg%3E`,
@@ -105,24 +103,44 @@
         .culture-marker { background: #fff; border: 2px solid #d97706; color: #d97706; box-shadow: 0 0 10px rgba(217, 119, 6, 0.4); animation: pulse-culture 3s infinite; }
         @keyframes pulse-culture { 0% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(217, 119, 6, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); } }
 
-        /* --- VERBESSERTE OPTIK: STRATEGIE STATT SEPIA --- */
+        /* --- VERBESSERTE OPTIK --- */
         
-        /* Kein aggressiver Filter auf der Karte selbst, damit Berge sichtbar bleiben */
         .leaflet-layer { 
-            /* Leicht entsättigt für historischen Look, aber Kontrast behalten */
-            filter: saturate(0.7) contrast(1.1); 
+            /* Relief stärker betonen, aber nicht verschlucken */
+            filter: saturate(0.8) contrast(1.1); 
         }
 
-        /* Subtileres Overlay: Nur Textur, keine Farbüberlagerung, die Details schluckt */
         .parchment-overlay {
             position: absolute; inset: 0; pointer-events: none; z-index: 2000;
-            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-            /* Leichte Vignette an den Rändern */
-            box-shadow: inset 0 0 150px rgba(60, 50, 40, 0.3);
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+            box-shadow: inset 0 0 120px rgba(80, 70, 60, 0.2);
+            mix-blend-mode: multiply;
         }
 
-        /* Stil für die Römerstraßen */
-        .road-roman { transition: opacity 2s ease, stroke-dasharray 2s ease; stroke-linejoin: round; }
+        /* NEU: Flachrelief-Stil für Straßen */
+        .road-relief { 
+            /* Multiplizieren verschmilzt die Farbe mit dem Terrain-Relief darunter */
+            mix-blend-mode: multiply; 
+            /* Leichter weißer Schatten suggeriert eine Kante/Tiefe */
+            filter: drop-shadow(0 1px 0px rgba(255,255,255,0.4));
+            transition: opacity 2s ease, stroke-dasharray 2s ease;
+            stroke-linecap: round;
+        }
+
+        /* NEU: Bessere Sichtbarkeit für Flüsse */
+        .river-style {
+            /* Helleres Blau für Kontrast */
+            stroke: #3b82f6;
+            /* Leichter Schein drumherum, damit sie sich abheben */
+            filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.8));
+        }
+
+        /* NEU: Limes Stil */
+        .limes-style {
+            stroke: #27272a;
+            filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.6));
+        }
+
     </style>
 </head>
 <body class="bg-stone-200">
@@ -261,7 +279,7 @@
                     <div class="flex items-center gap-1"><div class="w-2 h-2 bg-purple-600 rounded-full"></div>Franken</div>
                     <div class="flex items-center gap-1"><div class="w-2 h-2 bg-rose-800 rounded-full"></div>Ostgoten</div>
                     <div class="flex items-center gap-1 border-l pl-2 border-stone-300 text-amber-700"><i class="ph-fill ph-scales"></i> Recht</div>
-                    <div class="flex items-center gap-1 border-l pl-2 border-stone-300 text-amber-900 font-bold"><i class="ph-bold ph-road-horizon"></i> Römerstraßen</div>
+                    <div class="flex items-center gap-1 border-l pl-2 border-stone-300 text-stone-800 font-bold"><i class="ph-bold ph-road-horizon"></i> Römerstraßen</div>
                 </div>
 
                 <div class="relative px-2">
@@ -290,10 +308,8 @@
         let yearStep = speedConfig.slow; 
 
         // --- GEO-DATEN ---
-        // Der Limes ist nun eine Grenzlinie, die Flüsse kommen extra
         const limesPath = [ [52.2, 4.4], [52.0, 5.1], [51.2, 6.8], [50.9, 7.0], [50.0, 8.2], [49.0, 8.4], [49.0, 10.9], [48.9, 12.0], [48.4, 13.4], [48.3, 14.3], [48.1, 16.4], [47.8, 17.6], [47.5, 19.0], [44.8, 20.4], [44.6, 22.6], [45.2, 29.6] ];
         
-        // NEU: Strategische Flüsse (Rhein, Donau, Nil, etc.)
         const strategicRivers = {
             rhein: [[46.6, 9.3], [47.6, 9.4], [47.5, 7.6], [48.6, 7.9], [50.0, 8.2], [50.9, 7.0], [51.9, 4.5]],
             donau: [[48.0, 8.1], [48.4, 10.0], [48.2, 16.4], [47.5, 19.0], [44.8, 20.4], [44.2, 22.7], [45.2, 29.6]],
@@ -305,7 +321,6 @@
         const historicalRegions = [ { c: [46.5, 2.0], t: "GALLIA", s: 16 }, { c: [40.0, -4.0], t: "HISPANIA", s: 16 }, { c: [42.5, 12.5], t: "ITALIA", s: 16 }, { c: [45.0, 17.0], t: "PANNONIA", s: 14 }, { c: [43.0, 22.0], t: "ILLYRICUM", s: 14 }, { c: [42.0, 25.0], t: "THRACIA", s: 14 }, { c: [35.0, 2.0], t: "AFRICA", s: 16 }, { c: [51.0, 10.0], t: "GERMANIA", s: 16, color: "#a8a29e" }, { c: [48.0, 30.0], t: "SCYTHIA", s: 14, color: "#a8a29e" } ];
         const dynamicCities = [ { c: [41.9, 12.5], t: "Rom", type: 'capital', start: 0, end: 600 }, { c: [41.0, 28.9], t: "Konstantinopel", type: 'capital', start: 330, end: 600 }, { c: [36.8, 10.1], t: "Karthago", type: 'city', start: 0, end: 600 }, { c: [44.4, 12.2], t: "Ravenna", type: 'capital', start: 402, end: 600 }, { c: [43.6, 1.4], t: "Tolosa", type: 'barbarian', start: 418, end: 507 }, { c: [39.8, -4.0], t: "Toledo", type: 'barbarian', start: 507, end: 600 }, { c: [41.5, 13.8], t: "Monte Cassino", type: 'monastery', start: 529, end: 600 } ];
         
-        // Römerstraßen (jetzt mit Namen für Tooltips)
         const romanRoads = {
             viaAppia: { name: "Via Appia", path: [[41.9, 12.5], [41.3, 13.2], [41.1, 14.2], [40.8, 14.8], [40.6, 17.9]], region: 'west' }, 
             viaDomitia: { name: "Via Domitia", path: [[45.0, 6.7], [43.8, 4.4], [43.6, 3.9], [43.2, 3.0], [42.4, 2.9]], region: 'west' },   
@@ -381,22 +396,32 @@
                 attribution: 'Esri', opacity: 0.8 
             }).addTo(map);
 
-            // FLÜSSE ZEICHNEN
+            // FLÜSSE ZEICHNEN (Neuer Stil: Breiter und Glowing)
             Object.values(strategicRivers).forEach(riverPath => {
-                L.polyline(riverPath, { color: '#3b82f6', weight: 2, opacity: 0.6 }).addTo(map);
+                L.polyline(riverPath, { 
+                    className: 'river-style', // Nutzt den CSS-Glow
+                    weight: 3, 
+                    opacity: 0.8 
+                }).addTo(map);
             });
 
-            // LIMES (Grenze)
-            L.polyline(limesPath, { color: '#44403c', weight: 2, dashArray: '5, 10', opacity: 0.8 }).addTo(map);
+            // LIMES (Grenze) - NEU MIT TOOLTIP
+            const limes = L.polyline(limesPath, { 
+                className: 'limes-style',
+                weight: 2, 
+                dashArray: '4, 4', 
+                opacity: 0.8 
+            }).addTo(map);
+            limes.bindTooltip("Limes Germanicus", { sticky: true, className: 'leaflet-tooltip custom-label', direction: 'top' });
             
-            // RÖMERSTRASSEN (Mit Tooltips)
+            // RÖMERSTRASSEN (Mit Tooltips und Relief-Stil)
             Object.keys(romanRoads).forEach(key => {
                 const road = romanRoads[key];
                 road.line = L.polyline(road.path, { 
-                    color: '#574635', // Dunkles "Pflasterstein"-Braun
-                    weight: 3, 
+                    color: '#5c4d3c', // Dunkles "Pflasterstein"-Braun
+                    weight: 4, 
                     opacity: 0.7,
-                    className: 'road-roman'
+                    className: 'road-relief' // Der CSS Mix-Blend-Mode Trick
                 }).addTo(map);
                 road.line.bindTooltip(road.name, { sticky: true, className: 'leaflet-tooltip custom-label' });
             });

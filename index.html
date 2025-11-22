@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Interaktive Analyse</title>
+    <title>Völkerwanderung: Finale Version</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -69,7 +69,9 @@
     <style>
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
         #map { height: 100vh; width: 100vw; background: #d6d3d1; z-index: 1; }
-        .ui-layer { position: absolute; z-index: 3000; pointer-events: none; }
+        
+        /* UI Layer ganz oben */
+        .ui-layer { position: absolute; z-index: 5000; pointer-events: none; }
         .ui-element { pointer-events: auto; }
         .pointer-events-auto { pointer-events: auto !important; }
         
@@ -104,49 +106,20 @@
         @keyframes pulse-culture { 0% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(217, 119, 6, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); } }
 
         /* KLARHEIT & NATÜRLICHKEIT */
-        .leaflet-layer { 
-            /* Sepia entfernt, Kontrast natürlich gehalten */
-            filter: contrast(1.05); 
-        }
+        .leaflet-layer { filter: contrast(1.05); }
 
-        /* Textur nur minimal, um "Digital-Look" zu brechen, aber ohne Nebel */
+        /* KORRIGIERT: Z-INDEX 350 (Zwischen Map und Markern) */
         .parchment-overlay {
-            position: absolute; inset: 0; pointer-events: none; z-index: 2000;
+            position: absolute; inset: 0; pointer-events: none; z-index: 350;
             background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
             box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.1);
             mix-blend-mode: multiply;
         }
 
-        /* Straßen: Dezent, braun, in die Karte "geprägt" */
-        .road-relief { 
-            mix-blend-mode: multiply; 
-            opacity: 0.7;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        /* Flüsse: Klares, natürliches Wasserblau */
-        .river-style {
-            stroke: #3b82f6; 
-            opacity: 0.75;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            mix-blend-mode: normal; /* Kein Blending, damit sie gut sichtbar sind */
-        }
-
-        /* Limes: Klar definiert */
-        .limes-style {
-            stroke: #3f3f46;
-            opacity: 0.8;
-            stroke-linecap: square;
-        }
-        
-        /* NEU: Reichsteilungslinie */
-        .division-style {
-            stroke: #7e22ce;
-            opacity: 0.6;
-            dash-array: 5, 10;
-        }
+        .road-relief { mix-blend-mode: multiply; opacity: 0.7; stroke-linecap: round; stroke-linejoin: round; }
+        .river-style { stroke: #3b82f6; opacity: 0.75; stroke-linecap: round; stroke-linejoin: round; mix-blend-mode: normal; }
+        .limes-style { stroke: #3f3f46; opacity: 0.8; stroke-linecap: square; }
+        .division-style { stroke: #7e22ce; opacity: 0.6; dash-array: 5, 10; }
 
     </style>
 </head>
@@ -219,7 +192,7 @@
             <p id="artifact-desc" class="text-xs text-stone-500 italic border-b border-stone-200 pb-3 mb-3 leading-relaxed"></p>
             <div id="info-quote" class="hidden mb-4 pl-3 border-l-4 border-stone-300 italic text-stone-700 font-serif text-sm bg-stone-50 p-3 rounded-r"></div>
             <div id="info-content" class="text-sm text-stone-700 leading-relaxed mb-2"></div>
-            </div>
+        </div>
         <div id="tribe-ai-section" class="p-3 border-t border-stone-100 bg-stone-50 rounded-b-xl">
             <button onclick="askGeminiTribe()" id="tribe-ai-btn" class="w-full bg-white hover:bg-purple-50 border border-purple-200 text-purple-900 px-4 py-3 rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-all shadow-sm hover:shadow cursor-pointer">
                 <i class="ph-fill ph-sparkle text-purple-600 text-lg"></i>
@@ -312,19 +285,17 @@
         let chatContext = []; 
         const speedConfig = { slow: 0.15, medium: 0.5, fast: 1.2 };
         let yearStep = speedConfig.slow; 
-        let empireDivisionLine = null; // Referenz für die Teilungslinie
+        let empireDivisionLine = null;
 
         // --- GEO-DATEN ---
         
         const limesPath = [ [52.18, 4.41], [52.05, 5.10], [51.87, 5.80], [51.60, 6.20], [51.20, 6.80], [50.93, 6.96], [50.36, 7.60], [50.00, 8.20], [49.97, 8.90], [50.18, 8.95], [50.50, 9.50], [49.80, 10.90], [48.90, 11.50], [48.90, 12.00], [48.50, 13.50], [48.30, 14.30], [48.10, 16.40], [47.80, 17.60], [47.80, 19.00], [44.80, 20.40], [44.60, 22.60], [45.20, 29.60] ];
         
-        // Die Diokletianisch-Theodosianische Teilungslinie (ca. 395 n.Chr.)
         const divisionPath = [ [45.0, 19.5], [44.0, 19.0], [42.5, 18.5], [42.0, 19.0], [41.0, 19.5], [39.0, 19.8], [35.0, 20.0], [32.0, 20.0] ];
 
         const strategicRivers = {
             rhein: [[46.6, 9.3], [47.0, 9.5], [47.5, 9.6], [47.6, 9.4], [47.5, 8.5], [47.5, 7.6], [48.0, 7.6], [48.6, 7.9], [49.0, 8.4], [50.0, 8.2], [50.4, 7.5], [50.9, 7.0], [51.2, 6.8], [51.5, 6.5], [51.9, 5.0]],
             donau: [[48.0, 8.1], [48.4, 10.0], [48.5, 12.0], [48.3, 14.0], [48.2, 16.4], [47.8, 17.5], [47.7, 18.5], [47.5, 19.0], [45.5, 19.5], [44.8, 20.4], [44.5, 21.5], [44.2, 22.7], [43.8, 24.5], [44.2, 26.0], [45.2, 29.0]],
-            // NEU: Die Elbe (Herkunft der Langobarden)
             elbe: [[53.9, 8.7], [53.5, 9.5], [53.4, 10.5], [52.5, 11.5], [52.0, 12.0], [51.8, 12.5], [51.0, 13.0], [50.5, 14.0], [50.0, 15.0]],
             rhone: [[46.5, 8.3], [46.3, 7.0], [46.2, 6.0], [45.7, 5.0], [45.7, 4.8], [45.0, 4.8], [44.5, 4.7], [43.5, 4.7]],
             po: [[44.7, 7.0], [45.1, 9.0], [45.0, 10.0], [44.9, 11.5], [44.9, 12.5]],
@@ -344,7 +315,7 @@
         const culturalEvents = [
             { year: 325, lat: 40.4, lng: 29.7, title: "Konzil von Nicäa", type: "religion", icon: "ph-cross", desc: "Definition des katholischen Glaubens.", prompt: "Erkläre den Konflikt Arianismus vs Katholizismus." },
             { year: 380, lat: 41.0, lng: 28.9, title: "Edikt Cunctos populos", type: "religion", icon: "ph-scroll", desc: "Theodosius I. macht das Christentum zur Staatsreligion.", prompt: "Analysiere das Edikt von Thessaloniki rechtshistorisch." },
-            { year: 395, lat: 42.5, lng: 19.5, title: "Reichsteilung", type: "treaty", icon: "ph-arrows-split", desc: "Tod Theodosius I. Endgültige Trennung in West- und Ostrom.", prompt: "Welche staatsrechtlichen und administrativen Folgen hatte die Teilung 395?" }, // NEU
+            { year: 395, lat: 42.5, lng: 19.5, title: "Reichsteilung", type: "treaty", icon: "ph-arrows-split", desc: "Tod Theodosius I. Endgültige Trennung in West- und Ostrom.", prompt: "Welche staatsrechtlichen Folgen hatte die Teilung 395?" },
             { year: 438, lat: 41.0, lng: 28.9, title: "Codex Theodosianus", type: "law", icon: "ph-scales", desc: "Erste offizielle Gesetzessammlung seit den Zwölftafeln.", prompt: "Welche Bedeutung hat der Codex Theodosianus für die Rechtseinheit?" },
             { year: 475, lat: 43.6, lng: 1.4, title: "Codex Euricianus", type: "law", icon: "ph-book-bookmark", desc: "Westgotisches Volksrecht.", prompt: "Analysiere den Codex Euricianus." },
             { year: 506, lat: 43.6, lng: 1.4, title: "Breviarium Alaricianum", type: "law", icon: "ph-scales", desc: "Lex Romana Visigothorum.", prompt: "Erkläre das Personalitätsprinzip." },
@@ -401,54 +372,26 @@
         }
 
         function initMap() {
-            // Relief Map für Geografie (Originalfarben)
             map = L.map('map', { zoomControl: true, attributionControl: false, zoomSnap: 0.25, zoomDelta: 0.25 }).setView([46.5, 14.0], 5);
             map.zoomControl.setPosition('topright'); 
 
-            // Esri World Shaded Relief
             L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}', { 
                 attribution: 'Esri', opacity: 0.8 
             }).addTo(map);
 
-            // FLÜSSE ZEICHNEN
             Object.values(strategicRivers).forEach(riverPath => {
-                L.polyline(riverPath, { 
-                    className: 'river-style', 
-                    weight: 2, 
-                    opacity: 0.7,
-                    smoothFactor: 1 
-                }).addTo(map);
+                L.polyline(riverPath, { className: 'river-style', weight: 2, opacity: 0.7, smoothFactor: 1 }).addTo(map);
             });
 
-            // LIMES (Grenze)
-            const limes = L.polyline(limesPath, { 
-                className: 'limes-style',
-                weight: 2, 
-                dashArray: '4, 4', 
-                opacity: 0.7,
-                smoothFactor: 1
-            }).addTo(map);
+            const limes = L.polyline(limesPath, { className: 'limes-style', weight: 2, dashArray: '4, 4', opacity: 0.7, smoothFactor: 1 }).addTo(map);
             limes.bindTooltip("Limes Germanicus", { sticky: true, className: 'leaflet-tooltip custom-label', direction: 'top' });
             
-            // REICHSTEILUNGSLINIE (Initial unsichtbar)
-            empireDivisionLine = L.polyline(divisionPath, {
-                color: '#7e22ce',
-                weight: 2,
-                dashArray: '10, 5',
-                opacity: 0
-            }).addTo(map);
+            empireDivisionLine = L.polyline(divisionPath, { color: '#7e22ce', weight: 2, dashArray: '10, 5', opacity: 0 }).addTo(map);
             empireDivisionLine.bindTooltip("Teilungslinie (395 n. Chr.)", { sticky: true, className: 'leaflet-tooltip custom-label', direction: 'top' });
 
-            // RÖMERSTRASSEN
             Object.keys(romanRoads).forEach(key => {
                 const road = romanRoads[key];
-                road.line = L.polyline(road.path, { 
-                    color: '#5c4d3c', 
-                    weight: 3, 
-                    opacity: 0.6,
-                    smoothFactor: 1, 
-                    className: 'road-relief' 
-                }).addTo(map);
+                road.line = L.polyline(road.path, { color: '#5c4d3c', weight: 3, opacity: 0.6, smoothFactor: 1, className: 'road-relief' }).addTo(map);
                 road.line.bindTooltip(road.name, { sticky: true, className: 'leaflet-tooltip custom-label' });
             });
 
@@ -476,9 +419,14 @@
                 let iconClass = 'pulse-icon'; if (data.type === 'army') iconClass = 'pulse-icon roman-pulse'; if (data.type === 'plague') iconClass = 'pulse-icon plague-pulse';
                 const iconHtml = `<div style="background-color: ${data.color}; width: 14px; height: 14px; border-radius: ${borderRadius}; border: 2px solid white;"></div>`;
                 const icon = L.divIcon({ className: iconClass, html: iconHtml, iconSize: [14, 14], iconAnchor: [7, 7] });
+                
+                // Klickbare Marker für Stämme
                 const marker = L.marker([0,0], { icon: icon }).addTo(map);
                 marker.bindTooltip(data.name, { permanent: true, direction: 'right', className: 'custom-label', offset: [10, 0] });
+                
+                // Event Listener für Klicks
                 marker.on('click', () => showInfo(data.name, data.desc, null, data.color, key, data.artifact));
+                
                 layers[key] = { line, marker, hasStarted: false };
             });
 
@@ -526,13 +474,8 @@
                 if (year >= cm.start && year <= cm.end) { cm.marker.setStyle({ opacity: 1, fillOpacity: 1 }); cm.tooltip.setOpacity(1); } else { cm.marker.setStyle({ opacity: 0, fillOpacity: 0 }); cm.tooltip.setOpacity(0); }
             });
 
-            // Empire Division Line visibility
-            if (empireDivisionLine) {
-                if (year >= 395) { empireDivisionLine.setStyle({opacity: 0.7}); } 
-                else { empireDivisionLine.setStyle({opacity: 0}); }
-            }
+            if (empireDivisionLine) { if (year >= 395) { empireDivisionLine.setStyle({opacity: 0.7}); } else { empireDivisionLine.setStyle({opacity: 0}); } }
 
-            // Road Decay Logic
             Object.values(romanRoads).forEach(road => {
                 let opacity = 0.6;
                 let dashArray = null;
@@ -544,7 +487,6 @@
                 road.line.setStyle({ opacity: opacity, dashArray: dashArray });
             });
 
-            // Alerts
             const alertDiv = document.getElementById('narrative-alert');
             const alertBtn = document.getElementById('alert-btn');
             const alertIcon = document.getElementById('alert-icon');
@@ -670,19 +612,11 @@
         }
 
         function closeInfo() { document.getElementById('info-box').classList.add('hidden'); }
-        
-        // --- CHAT & AI LOGIK (NUN UNIFIZIERT) ---
-
-        function closeAiModal() { 
-            document.getElementById('ai-modal').classList.add('hidden'); 
-            chatContext = []; // Reset History
-            document.getElementById('ai-input-area').classList.add('hidden');
-        }
+        function closeAiModal() { document.getElementById('ai-modal').classList.add('hidden'); chatContext = []; document.getElementById('ai-input-area').classList.add('hidden'); }
 
         function appendMessage(text, sender) {
             const container = document.getElementById('ai-chat-container');
             const div = document.createElement('div');
-            
             if (sender === 'ai') {
                 div.className = "bg-white p-4 rounded-lg border border-stone-200 shadow-sm text-stone-800";
                 div.innerHTML = `<div class="font-bold text-xs text-purple-600 mb-1 uppercase tracking-wider">Historiker</div>${formatText(text)}`;
@@ -690,11 +624,9 @@
                 div.className = "bg-stone-200 p-3 rounded-lg border border-stone-300 text-stone-700 ml-12 text-right self-end"; 
                 div.innerHTML = `<div class="font-bold text-xs text-stone-500 mb-1 uppercase tracking-wider">Ihre Nachfrage</div>${formatText(text)}`;
             }
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight; 
+            container.appendChild(div); container.scrollTop = container.scrollHeight; 
         }
 
-        // UPDATE: Nutzt jetzt das Chat Modal statt die Sidebar!
         async function askGeminiTribe() {
             if (!currentTribeForAI) return;
             const modal = document.getElementById('ai-modal'); 
@@ -723,96 +655,55 @@
         async function askGeminiContext() {
             const modal = document.getElementById('ai-modal'); 
             const container = document.getElementById('ai-chat-container');
-            
             document.getElementById('ai-modal-year').innerText = Math.floor(currentYear); 
-            modal.classList.remove('hidden');
-            container.innerHTML = ''; 
-            
+            modal.classList.remove('hidden'); container.innerHTML = ''; 
             container.innerHTML = `<div id="loading-spinner" class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 border-t-amber-500"></div><p class="text-stone-500 italic">Analysiere Quellen...</p></div>`;
-
-            const prompt = `Du bist ein Althistoriker. Analysiere das Jahr ${Math.floor(currentYear)} n. Chr. in Europa. Fokus: Militärische Lage (Westrom/Ostrom), Völkerwanderung, diplomatische Zäsuren. Antworte anspruchsvoll auf Deutsch.`;
-            
+            const prompt = `Du bist ein Althistoriker. Analysiere das Jahr ${Math.floor(currentYear)} n. Chr. in Europa. Fokus: Militärische Lage, Völkerwanderung, Diplomatie. Anspruchsvoll, Deutsch.`;
             chatContext = [{ role: 'user', parts: [{ text: prompt }] }];
-
             const result = await callGeminiWithHistory(chatContext);
-            
             document.getElementById('loading-spinner').remove();
             appendMessage(result, 'ai');
-            
             chatContext.push({ role: 'model', parts: [{ text: result }] });
             document.getElementById('ai-input-area').classList.remove('hidden');
-            document.getElementById('follow-up-input').focus();
         }
 
         async function askGeminiEvent() {
             if (!activeAlertEvent) return;
             const modal = document.getElementById('ai-modal'); 
             const container = document.getElementById('ai-chat-container');
-            
             document.getElementById('ai-modal-year').innerText = activeAlertEvent.title; 
-            modal.classList.remove('hidden');
-            container.innerHTML = ''; 
-            
+            modal.classList.remove('hidden'); container.innerHTML = ''; 
             container.innerHTML = `<div id="loading-spinner" class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 border-t-red-600"></div><p class="text-stone-500 italic">Analysiere Ereignis...</p></div>`;
-
             const promptText = activeAlertEvent.aiPrompt || `Analysiere das Ereignis '${activeAlertEvent.title}' im Jahr ${activeAlertEvent.year}.`;
             const prompt = `Du bist Historiker. ${promptText} Antworte präzise, analytisch und auf Deutsch.`;
-
             chatContext = [{ role: 'user', parts: [{ text: prompt }] }];
-            
             const result = await callGeminiWithHistory(chatContext);
-            
             document.getElementById('loading-spinner').remove();
             appendMessage(result, 'ai');
-            
             chatContext.push({ role: 'model', parts: [{ text: result }] });
             document.getElementById('ai-input-area').classList.remove('hidden');
         }
 
         async function sendFollowUp() {
-            const input = document.getElementById('follow-up-input');
-            const text = input.value.trim();
-            if (!text) return;
-
-            appendMessage(text, 'user');
-            input.value = ''; 
-            
+            const input = document.getElementById('follow-up-input'); const text = input.value.trim(); if (!text) return;
+            appendMessage(text, 'user'); input.value = ''; 
             const container = document.getElementById('ai-chat-container');
-            const loaderDiv = document.createElement('div');
-            loaderDiv.id = "temp-loader";
+            const loaderDiv = document.createElement('div'); loaderDiv.id = "temp-loader";
             loaderDiv.innerHTML = `<div class="flex items-center gap-2 p-4 text-stone-400 italic text-sm"><div class="ai-spinner w-4 h-4"></div> Der Historiker denkt nach...</div>`;
-            container.appendChild(loaderDiv);
-            container.scrollTop = container.scrollHeight;
-
+            container.appendChild(loaderDiv); container.scrollTop = container.scrollHeight;
             chatContext.push({ role: 'user', parts: [{ text: text }] });
-
             const result = await callGeminiWithHistory(chatContext);
-            
-            document.getElementById('temp-loader').remove();
-            appendMessage(result, 'ai');
-            
+            document.getElementById('temp-loader').remove(); appendMessage(result, 'ai');
             chatContext.push({ role: 'model', parts: [{ text: result }] });
         }
 
         async function callGeminiWithHistory(contentsArray) {
-            const key = getApiKey();
-            if (!key) return "FEHLER: Kein API-Key.";
+            const key = getApiKey(); if (!key) return "FEHLER: Kein API-Key.";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
-            
             try {
-                const response = await fetch(url, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ contents: contentsArray })
-                });
-                
-                if (!response.ok) {
-                    const err = await response.json();
-                    if(response.status === 403) return `<b>API Fehler (403):</b> Key abgelehnt.`;
-                    return `<b>API Fehler:</b> ${err.error?.message}`;
-                }
-                const data = await response.json(); 
-                return data.candidates[0].content.parts[0].text;
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: contentsArray }) });
+                if (!response.ok) { const err = await response.json(); return `<b>API Fehler:</b> ${err.error?.message}`; }
+                const data = await response.json(); return data.candidates[0].content.parts[0].text;
             } catch (error) { return `<b>Netzwerkfehler:</b> ${error.message}`; }
         }
     </script>

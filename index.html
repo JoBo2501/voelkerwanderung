@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Cinematic, Law & Logistics</title>
+    <title>Völkerwanderung: Cinematic History</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -95,7 +95,7 @@
         .alert-battle { background: linear-gradient(135deg, #dc2626, #991b1b); border-color: #fca5a5; }
         .alert-treaty { background: linear-gradient(135deg, #7e22ce, #581c87); border-color: #d8b4fe; }
         .alert-move { background: linear-gradient(135deg, #4f46e5, #312e81); border-color: #a5b4fc; }
-        /* Neue Styles für Recht & Philosophie */
+        /* Styles für Recht & Philosophie */
         .alert-law { background: linear-gradient(135deg, #4c1d95, #ca8a04); border-color: #fde047; }
         .alert-philosophy { background: linear-gradient(135deg, #1c1917, #57534e); border-color: #a8a29e; }
 
@@ -307,7 +307,7 @@
         let animationId = null;
         let lastFrameTime = 0;
         
-        // MASTER-VARIABLE FÜR ZEIT (Präziser als der Slider)
+        // MASTER-VARIABLE FÜR ZEIT
         let currentYear = 375.0; 
         
         let activeAlertEvent = null;
@@ -735,7 +735,7 @@
             historyDiv.innerHTML = ''; 
             chatHistory = []; 
 
-            const prompt = `Du bist ein spezialisierter Althistoriker und Jurist. Analysiere das Jahr ${year} n. Chr. Fokus: Staatsrecht, Logistik und Militär. Antworte präzise, elegant und auf Deutsch.`;
+            const prompt = `Du bist ein spezialisierter Althistoriker und Kulturwissenschaftler. Analysiere das Jahr ${year} n. Chr. Fokus: Geopolitik, Sozialgeschichte, Logistik und Mentalitätsgeschichte. Vermeide anachronistische moderne Rechtsbegriffe. Antworte präzise, elegant, essayistisch und auf Deutsch.`;
             
             appendMessage('ai', '<i class="ph-bold ph-spinner animate-spin"></i> Analysiere Quellenlage...');
             const result = await callGemini(prompt);
@@ -788,7 +788,7 @@
             if (!currentTribeForAI) return;
             const respDiv = document.getElementById('tribe-ai-response'); respDiv.classList.remove('hidden');
             respDiv.innerHTML = `<div class="flex items-center gap-3 py-2"><div class="ai-spinner"></div><span class="italic text-stone-500 text-xs">Recherchiere ${currentTribeForAI.name}...</span></div>`;
-            const prompt = `Du bist ein Experte für Spätantike. Thema: Die Gruppe '${currentTribeForAI.name}' im Jahr ${Math.floor(currentYear)} n. Chr. Erkläre präzise ihre Situation (Ort, Rechtsstatus, Anführer, militärische Ziele). 2-3 Sätze, Deutsch.`;
+            const prompt = `Du bist ein Experte für Spätantike. Thema: Die Gruppe '${currentTribeForAI.name}' im Jahr ${Math.floor(currentYear)} n. Chr. Erkläre präzise ihre Situation (Ort, Rechtsstatus im antiken Sinn, Anführer, militärische Ziele). 2-3 Sätze, Deutsch.`;
             const result = await callGemini(prompt); respDiv.innerHTML = formatText(result);
         }
 
@@ -804,7 +804,7 @@
             chatHistory = []; 
 
             const promptText = activeAlertEvent.aiPrompt || `Analysiere das Ereignis '${activeAlertEvent.title}' im Jahr ${activeAlertEvent.year}.`;
-            const prompt = `Du bist Historiker und Jurist. ${promptText} Antworte präzise, analytisch und auf Deutsch.`;
+            const prompt = `Du bist ein Althistoriker. Analysiere das Ereignis aus historischer und strategischer Sicht (Ursachen, unmittelbare Folgen, zeitgenössische Wahrnehmung). Vermeide moderne juristische Bewertungen (wie Völkerrecht). ${promptText} Antworte präzise und auf Deutsch.`;
 
             appendMessage('ai', '<i class="ph-bold ph-spinner animate-spin"></i> Untersuche Ereignis...');
             const result = await callGemini(prompt);

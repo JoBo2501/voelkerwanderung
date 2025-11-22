@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Cinematic & Smooth</title>
+    <title>Völkerwanderung: Cinematic, Law & Logistics</title>
     
-    <!-- Leaflet CSS (Karte) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
-    <!-- Tailwind CSS (Design) -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Phosphor Icons (Symbole) -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <script>
@@ -75,7 +72,6 @@
         #map { height: 100vh; width: 100vw; background: #e5e5e5; z-index: 1; }
         .ui-layer { position: absolute; z-index: 3000; pointer-events: none; }
         .ui-element { pointer-events: auto; }
-        .pointer-events-auto { pointer-events: auto !important; }
         
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: #d97706; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); cursor: pointer; margin-top: -10px; }
@@ -99,6 +95,9 @@
         .alert-battle { background: linear-gradient(135deg, #dc2626, #991b1b); border-color: #fca5a5; }
         .alert-treaty { background: linear-gradient(135deg, #7e22ce, #581c87); border-color: #d8b4fe; }
         .alert-move { background: linear-gradient(135deg, #4f46e5, #312e81); border-color: #a5b4fc; }
+        /* Neue Styles für Recht & Philosophie */
+        .alert-law { background: linear-gradient(135deg, #4c1d95, #ca8a04); border-color: #fde047; }
+        .alert-philosophy { background: linear-gradient(135deg, #1c1917, #57534e); border-color: #a8a29e; }
 
         .ai-spinner { border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top: 3px solid #9333ea; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -107,13 +106,28 @@
         .leaflet-tooltip.region-label { background: transparent; border: none; box-shadow: none; font-family: 'Times New Roman', serif; font-weight: bold; color: #78716c; text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px; opacity: 0.7; pointer-events: none; text-shadow: 1px 1px 0px rgba(255,255,255,0.5); }
         .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { display: none; }
         .leaflet-marker-icon, .leaflet-tooltip { transition: opacity 0.5s ease-in-out; }
+
+        /* Ameisenstraße Animation (Logistik) */
+        @keyframes grain-flow { to { stroke-dashoffset: -20; } }
+        .grain-route-line { animation: grain-flow 1s linear infinite; }
+
+        /* Roms Hunger-Pulsieren */
+        @keyframes famine-pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.3); opacity: 0.4; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+        .famine-marker {
+            background: radial-gradient(circle, rgba(220, 38, 38, 0.8) 0%, rgba(220, 38, 38, 0) 70%);
+            border-radius: 50%;
+            animation: famine-pulse 2s infinite;
+        }
     </style>
 </head>
 <body class="bg-stone-100">
 
     <div id="map"></div>
 
-    <!-- HEADER -->
     <div class="ui-layer top-0 left-0 right-0 p-4 flex flex-col md:flex-row justify-between items-start gap-3 pointer-events-none">
         <div class="ui-element inline-block bg-white/95 backdrop-blur shadow-lg rounded-lg px-4 py-3 border-l-4 border-amber-600 pointer-events-auto">
             <h1 class="text-lg font-serif font-bold text-stone-800 leading-none flex items-center gap-2">
@@ -122,7 +136,6 @@
             <p class="text-xs text-stone-500 font-mono mt-1">ca. 375 – 568 n. Chr.</p>
         </div>
 
-        <!-- NARRATIVER NEWS-TICKER -->
         <div id="narrative-alert" class="hidden ui-element mx-auto md:absolute md:left-1/2 md:-translate-x-1/2 md:top-4 transition-all duration-500 z-[5000]">
             <button id="alert-btn" onclick="askGeminiEvent()" class="alert-base px-6 py-3 rounded-full flex items-center gap-3 text-sm font-bold cursor-pointer hover:scale-105 transition-transform min-w-[280px] justify-between">
                 <div class="flex items-center gap-3">
@@ -146,7 +159,6 @@
         </div>
     </div>
 
-    <!-- API KEY MODAL -->
     <div id="key-modal" class="hidden fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 ui-element">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 border border-stone-200">
             <div class="text-center mb-4">
@@ -161,7 +173,6 @@
         </div>
     </div>
 
-    <!-- INFO BOX -->
     <div id="info-box" class="hidden ui-layer top-20 left-4 right-4 md:left-auto md:right-4 md:w-[400px] max-h-[75vh] flex flex-col rounded-xl shadow-2xl z-[4000] bg-white border border-stone-300 pointer-events-auto">
         <div id="info-artifact-container" class="relative w-full h-48 bg-stone-100 shrink-0 border-b border-stone-200">
             <img id="artifact-img" src="" alt="Artefakt" class="w-full h-full object-contain p-4">
@@ -191,37 +202,50 @@
         </div>
     </div>
 
-    <!-- KI MODAL -->
-    <div id="ai-modal" class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 ui-element">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[85vh]">
-            <div class="bg-stone-900 p-4 text-white flex justify-between items-center rounded-t-xl">
-                <h3 class="font-serif font-bold flex items-center gap-2 text-lg"><i class="ph-fill ph-sparkle text-purple-400"></i> Kontext: <span id="ai-modal-year" class="text-amber-400"></span></h3>
-                <button onclick="closeAiModal()" class="hover:bg-white/20 rounded-full p-1"><i class="ph ph-x text-xl"></i></button>
+    <div id="ai-modal" class="hidden fixed inset-0 z-[5000] bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4 ui-element">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col h-[80vh] overflow-hidden border border-stone-300">
+            <div class="bg-stone-100 p-4 border-b border-stone-200 flex justify-between items-center">
+                <div>
+                    <h3 class="font-serif font-bold text-lg text-stone-800 flex items-center gap-2">
+                        <i class="ph-fill ph-chat-circle-text text-purple-600"></i> 
+                        Historischer Diskurs
+                    </h3>
+                    <p class="text-xs text-stone-500 font-mono" id="ai-context-label">Kontext: Jahr <span id="ai-modal-year"></span></p>
+                </div>
+                <button onclick="closeAiModal()" class="hover:bg-stone-200 rounded-full p-2 transition-colors"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
-            <div id="ai-modal-content" class="p-6 overflow-y-auto text-stone-800 text-base leading-relaxed bg-stone-50"></div>
+            
+            <div id="ai-chat-history" class="flex-1 p-6 overflow-y-auto bg-stone-50 flex flex-col gap-4">
+                </div>
+
+            <div class="p-4 bg-white border-t border-stone-200">
+                <div class="flex gap-2">
+                    <input type="text" id="ai-user-input" placeholder="Stellen Sie eine Nachfrage (z.B. 'Welche Folgen hatte das für die Plebs?')" 
+                           class="flex-1 border border-stone-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 focus:outline-none font-serif text-sm"
+                           onkeypress="if(event.key === 'Enter') sendFollowUp()">
+                    <button onclick="sendFollowUp()" class="bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center">
+                        <i class="ph-bold ph-paper-plane-right text-xl"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- CONTROLS -->
     <div class="ui-layer bottom-0 left-0 right-0">
         <div class="ui-element bg-white border-t border-stone-200 shadow-lg p-4 pb-8 md:pb-6">
             <div class="max-w-5xl mx-auto w-full">
                 
-                <!-- OBJEKTE & SPEED CONTROL -->
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-4">
-                        <!-- Play -->
                         <button id="play-btn" onclick="togglePlay()" class="w-14 h-14 bg-stone-800 hover:bg-stone-700 text-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
                             <i id="play-icon" class="ph-fill ph-play text-2xl ml-1"></i>
                         </button>
                         
-                        <!-- Jahr -->
                         <div>
                             <div class="text-[10px] uppercase tracking-widest text-stone-500 font-bold">Jahr</div>
                             <div class="text-4xl font-serif font-bold text-stone-800 tabular-nums" id="year-display">375</div>
                         </div>
 
-                        <!-- NEU: Speed Controls -->
                         <div class="hidden md:flex items-center ml-4 bg-stone-100 rounded-lg p-1 border border-stone-200">
                             <button onclick="setSpeed('slow')" id="speed-slow" class="px-3 py-1 text-xs font-bold rounded-md transition-colors bg-white shadow-sm text-black">Langsam</button>
                             <button onclick="setSpeed('medium')" id="speed-medium" class="px-3 py-1 text-xs font-bold rounded-md transition-colors text-stone-600 hover:bg-white">Mittel</button>
@@ -229,14 +253,12 @@
                         </div>
                     </div>
 
-                    <!-- KI Button (Kontext) -->
                     <button onclick="askGeminiContext()" class="hidden md:flex bg-purple-50 border border-purple-200 text-purple-900 hover:bg-purple-100 px-4 py-2 rounded-full shadow-sm items-center gap-2 text-xs font-bold transition-all active:scale-95">
                         <i class="ph-fill ph-sparkle text-purple-600 text-lg"></i> 
                         <div class="flex flex-col items-start leading-tight"><span>Historische Lage</span><span class="text-[10px] opacity-70">Analysiere <span id="ai-btn-year-ref">375</span></span></div>
                     </button>
                 </div>
 
-                <!-- Legende (Kompakt) -->
                 <div class="hidden md:flex gap-3 text-[10px] font-medium text-stone-500 flex-wrap mb-2">
                     <div class="flex items-center gap-1"><div class="w-2 h-2 bg-red-600 rounded-full"></div>Westgoten</div>
                     <div class="flex items-center gap-1"><div class="w-2 h-2 bg-blue-600 rounded-full"></div>Vandalen</div>
@@ -247,9 +269,9 @@
                     <div class="flex items-center gap-1 border-l pl-2 border-stone-300"><div class="w-2 h-2 bg-purple-700 rounded-full"></div>Rom. Armee</div>
                     <div class="flex items-center gap-1"><div class="w-2 h-2 bg-emerald-500 rounded-full"></div>Pest</div>
                     <div class="flex items-center gap-1"><div class="w-2 h-2 bg-cyan-500 rounded-full"></div>Klima</div>
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 bg-amber-600 rounded-full"></div>Annona (Korn)</div>
                 </div>
 
-                <!-- Slider -->
                 <div class="relative px-2">
                     <input type="range" id="year-slider" min="375" max="568" value="375" step="0.1" oninput="updateYear(this.value)" onchange="updateYear(this.value)">
                 </div>
@@ -270,16 +292,29 @@
         let climateLayer = null, plagueLayer = null, droughtLayer = null;
         
         let isPlaying = false;
-        let animationInterval;
+        let animationId = null;
+        let lastFrameTime = 0;
         let currentYear = 375;
         let activeAlertEvent = null;
         
-        // NEU: GESCHWINDIGKEITS-STEUERUNG MIT JAHR-SCHRITTEN (NICHT ZEIT)
-        // High FPS Animation: Wir updaten alle 50ms, aber erhöhen das Jahr um unterschiedliche Werte
+        let chatHistory = []; // KI Kontext
+
+        // LOGISTIK GLOBALS
+        let grainRouteLayer = null;
+        let romeStatusIcon = null;
+        const grainPathCoords = [
+            [36.8, 10.1], // Karthago
+            [37.5, 11.0], 
+            [39.0, 11.5], // Tyrrhenisches Meer
+            [40.5, 12.0],
+            [41.8, 12.2]  // Ostia/Rom
+        ];
+        
+        // Speed Controls
         const speedConfig = { 
-            slow: 0.15,   // +0.15 Jahre pro Frame (sehr smooth, langsam)
-            medium: 0.5,  // +0.5 Jahre pro Frame
-            fast: 1.2     // +1.2 Jahre pro Frame
+            slow: 0.15,   
+            medium: 0.5,  
+            fast: 1.2     
         };
         let yearStep = speedConfig.slow; 
 
@@ -302,21 +337,24 @@
         };
         
         const historicalEvents = [ 
-            // Erweiterte Liste für Narrative Dichte
             { year: 375, lat: 48.0, lng: 45.0, title: "Megadürre", type: "climate", icon: "ph-sun-dim", duration: 25, desc: "Jahrzehntelange Trockenheit treibt die Hunnen nach Westen.", quote: "Die Steppe verdorrte." },
             { year: 378, lat: 41.67, lng: 26.56, title: "Schlacht von Adrianopel", type: "battle", desc: "Goten besiegen Valens. Ein Schock für das Imperium.", quote: "Ein Gemetzel wie bei Cannae." }, 
             { year: 401, lat: 45.4, lng: 9.2, title: "Alarichs Einfall", type: "move", desc: "Goten fallen in Italien ein. Stilicho zieht Truppen vom Rhein ab.", quote: "Die Mauern erzittern." },
             { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Vandalen & Sueben brechen durch den unbewachten Limes.", quote: "Ganz Gallien rauchte." }, 
             { year: 410, lat: 41.9, lng: 12.5, title: "Plünderung Roms", type: "battle", desc: "Alarich in Rom. Das psychologische Ende der Antike.", quote: "Die Stadt ist erobert." }, 
             { year: 429, lat: 35.9, lng: -5.6, title: "Zug nach Afrika", type: "move", desc: "Vandalen setzen über. Rom verliert seine Kornkammer.", quote: "Das Brot geht aus." },
+            { year: 438, lat: 41.0, lng: 28.9, title: "Codex Theodosianus", type: "law", icon: "ph-scales", desc: "Kaiser Theodosius II. veröffentlicht die erste offizielle Gesetzessammlung.", quote: "Ordnung in das Chaos der Gesetze bringen.", aiPrompt: "Analysiere die verfassungsrechtliche Bedeutung des Codex Theodosianus." },
             { year: 447, lat: 41.0, lng: 28.0, title: "Hunnen-Tribut", type: "diplomacy", desc: "Ostrom erkauft Frieden von Attila.", quote: "Gold statt Blut." },
             { year: 451, lat: 49.0, lng: 4.0, title: "Katalaunische Felder", type: "battle", desc: "Die Völkerschlacht. Aetius stoppt Attila in Gallien.", quote: "Ein wilder Kampf." }, 
             { year: 455, lat: 41.9, lng: 12.5, title: "Sack von Rom", type: "battle", desc: "Vandalen plündern Rom systematisch von See aus.", quote: null }, 
             { year: 476, lat: 44.4, lng: 12.2, title: "Ende Westroms", type: "treaty", desc: "Odoaker setzt den letzten Kaiser ab.", quote: "Kein Kaiser mehr im Westen." }, 
             { year: 486, lat: 49.3, lng: 3.3, title: "Schlacht von Soissons", type: "battle", desc: "Chlodwig besiegt Syagrius. Aufstieg der Franken.", quote: "Ende Roms in Gallien." }, 
             { year: 493, lat: 44.4, lng: 12.2, title: "Rabenschlacht", type: "treaty", desc: "Theoderich tötet Odoaker. Ostgoten beherrschen Italien.", quote: "Der Verrat von Ravenna." },
+            { year: 506, lat: 43.6, lng: 1.4, title: "Lex Romana Visigothorum", type: "law", icon: "ph-scroll", desc: "Alarich II. kodifiziert römisches Recht für seine romanische Bevölkerung.", quote: "Rechtssicherheit als Machtinstrument." },
             { year: 507, lat: 46.5, lng: 0.5, title: "Schlacht von Vouillé", type: "battle", desc: "Franken besiegen Westgoten. Gallien wird fränkisch.", quote: "Die Goten weichen nach Spanien." },
+            { year: 529, lat: 37.98, lng: 23.72, title: "Ende der Akademie", type: "philosophy", icon: "ph-columns", desc: "Justinian schließt die Platonische Akademie in Athen.", quote: "Das Schweigen der Philosophen." },
             { year: 533, lat: 36.8, lng: 10.1, title: "Vandalenkrieg", type: "battle", desc: "Belisar landet in Afrika. Schnelles Ende des Vandalenreichs.", quote: "Justinians Traum." },
+            { year: 533, lat: 41.0, lng: 28.9, title: "Digesten & Institutionen", type: "law", icon: "ph-book-open", desc: "Das Herzstück des Corpus Iuris Civilis wird publiziert.", quote: "Suum cuique tribuere." },
             { year: 536, lat: 42.0, lng: 12.5, title: "Vulkanischer Winter", type: "climate", icon: "ph-snowflake", duration: 10, desc: "Ein Jahr ohne Sommer. Missernten schwächen die Bevölkerung.", quote: "Die Sonne gab ihr Licht ohne Strahl." },
             { year: 540, lat: 36.2, lng: 36.1, title: "Perserkrieg", type: "crisis", desc: "Sassaniden plündern Antiochia. Zweifrontenkrieg für Ostrom.", quote: "Die zweite Front." },
             { year: 542, lat: 41.0, lng: 28.9, title: "Justinianische Pest", type: "plague", icon: "ph-skull", duration: 20, desc: "Pandemie tötet Millionen. Ende der Reconquista-Träume.", quote: "Gottes Zorn." },
@@ -326,11 +364,9 @@
         // --- LOGIK ---
         window.onload = function() { getApiKey(); initMap(); updateVisualization(375); };
 
-        // Setze Standardgeschwindigkeit (Narrative Mode)
         function setSpeed(level) {
-            yearStep = speedConfig[level]; // UPDATED: Change step size, not interval
+            yearStep = speedConfig[level]; 
             
-            // UI Feedback
             document.querySelectorAll('[id^="speed-"]').forEach(btn => {
                 btn.classList.remove('bg-white', 'shadow-sm', 'text-black');
                 btn.classList.add('text-stone-600', 'hover:bg-white');
@@ -341,14 +377,13 @@
         }
 
         function initMap() {
-            // UPDATED: Enable zoom control and fractional zooming
             map = L.map('map', { 
                 zoomControl: true, 
                 attributionControl: false,
                 zoomSnap: 0.25, 
                 zoomDelta: 0.25 
             }).setView([46.5, 14.0], 5);
-            map.zoomControl.setPosition('topright'); // Move to avoid UI conflict
+            map.zoomControl.setPosition('topright');
 
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap, ©CartoDB' }).addTo(map);
             L.polyline(limesPath, { color: '#44403c', weight: 2, dashArray: '5, 10', opacity: 0.5 }).addTo(map);
@@ -369,6 +404,9 @@
             plagueLayer = L.circle([38.0, 18.0], { radius: 1500000, color: '#10b981', fillColor: '#10b981', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
             droughtLayer = L.circle([48.0, 40.0], { radius: 800000, color: '#d97706', fillColor: '#d97706', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
 
+            // LOGISTIK INIT
+            initGrainLogistics();
+
             Object.keys(routes).forEach(key => {
                 const data = routes[key];
                 let dashStyle = '1, 6'; if (data.type === 'army') dashStyle = '10, 5'; if (data.type === 'plague') dashStyle = '1, 10'; 
@@ -384,7 +422,11 @@
             });
 
             historicalEvents.forEach(ev => {
-                const color = (ev.type === 'battle' || ev.type === 'crisis' || ev.type === 'plague') ? '#dc2626' : (ev.type === 'climate' ? '#06b6d4' : '#4b5563');
+                let color = '#4b5563';
+                if (ev.type === 'battle' || ev.type === 'crisis' || ev.type === 'plague') color = '#dc2626';
+                else if (ev.type === 'climate') color = '#06b6d4';
+                else if (ev.type === 'law') color = '#9333ea'; // VIOLETT FÜR RECHT
+                
                 let iconType = ev.icon || (ev.type === 'battle' ? 'ph-swords' : (ev.type === 'plague' ? 'ph-skull' : (ev.type === 'crisis' ? 'ph-fire' : (ev.type === 'diplomacy' ? 'ph-handshake' : 'ph-snowflake'))));
                 const pulseClass = ev.type === 'climate' || ev.type === 'plague' ? 'climate-pulse' : '';
                 const html = `<div class="battle-marker flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-md border border-stone-200 text-[${color}] ${pulseClass}"><i class="ph-fill ${iconType} text-lg" style="color:${color}"></i></div>`;
@@ -393,6 +435,32 @@
                 marker.on('click', () => showInfo(ev.title, ev.desc, ev.quote, color, null, null));
                 eventMarkers[ev.year] = marker;
             });
+        }
+
+        function initGrainLogistics() {
+            // 1. Die Route (Ameisenstraße)
+            grainRouteLayer = L.polyline(grainPathCoords, {
+                color: '#d97706', // Amber-600
+                weight: 5,
+                dashArray: '4, 8', // Punkteabstand
+                className: 'grain-route-line', // CSS Animation
+                opacity: 0.8
+            }).addTo(map);
+
+            // 2. Das Status-Icon über Rom
+            const iconHtml = `<div id="rome-icon-inner" class="flex items-center justify-center w-8 h-8 bg-white rounded-full border-2 border-amber-500 shadow-md transition-all duration-500">
+                                <i class="ph-fill ph-grains text-amber-600 text-lg"></i>
+                              </div>`;
+            
+            const divIcon = L.divIcon({
+                className: 'bg-transparent',
+                html: iconHtml,
+                iconSize: [32, 32],
+                iconAnchor: [16, 36]
+            });
+
+            romeStatusIcon = L.marker([41.9, 12.5], { icon: divIcon, zIndexOffset: 1000 }).addTo(map);
+            romeStatusIcon.bindTooltip("Annona: Aktiv", { direction: 'top', className: 'custom-label' });
         }
 
         function getPosition(path, year) {
@@ -423,17 +491,39 @@
             const alertType = document.getElementById('alert-type');
             const alertTitle = document.getElementById('alert-title');
             
-            let activeEvent = null;
-
             // Layer Opacity Logic
             if (year >= 370 && year <= 400) { let op = 0.3; if(year < 375) op = (year - 370) * 0.06; if(year > 385) op = 0.3 - ((year - 385) * 0.02); droughtLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 }); } else { droughtLayer.setStyle({ fillOpacity: 0 }); }
             if (year >= 536 && year <= 545) { let op = 0.3; if(year > 538) op = 0.3 - ((year - 538) * 0.04); climateLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 }); } else { climateLayer.setStyle({ fillOpacity: 0 }); }
             if (year >= 541 && year <= 560) { let op = 0.3; if(year > 545) op = 0.3 - ((year - 545) * 0.02); plagueLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 }); } else { plagueLayer.setStyle({ fillOpacity: 0 }); }
 
+            // LOGISTIK UPDATE (Annona)
+            if (grainRouteLayer && romeStatusIcon) {
+                const vandalConquest = 439;
+                const byzantineReconquest = 533;
+                const routeActive = (year < vandalConquest) || (year > byzantineReconquest);
+                const iconInner = document.getElementById('rome-icon-inner');
+                
+                if (routeActive) {
+                    if (!map.hasLayer(grainRouteLayer)) map.addLayer(grainRouteLayer);
+                    if(iconInner) {
+                        iconInner.className = "flex items-center justify-center w-8 h-8 bg-white rounded-full border-2 border-amber-500 shadow-md";
+                        iconInner.innerHTML = '<i class="ph-fill ph-grains text-amber-600 text-lg"></i>';
+                    }
+                    romeStatusIcon.setTooltipContent("Annona: Gesichert");
+                } else {
+                    if (map.hasLayer(grainRouteLayer)) map.removeLayer(grainRouteLayer);
+                    if(iconInner) {
+                        iconInner.className = "flex items-center justify-center w-8 h-8 bg-red-50 rounded-full border-2 border-red-600 shadow-md famine-marker";
+                        iconInner.innerHTML = '<i class="ph-fill ph-warning text-red-600 text-lg"></i>';
+                    }
+                    romeStatusIcon.setTooltipContent("Annona: UNTERBROCHEN (Hungersnot)");
+                }
+            }
+
             // Event Detection
             let currentEvents = historicalEvents.filter(ev => year >= ev.year && year <= (ev.year + (ev.duration || 2)));
             if (currentEvents.length > 0) {
-                currentEvents.sort((a, b) => { const p = { 'plague': 3, 'climate': 3, 'crisis': 3, 'battle': 2, 'move': 2, 'treaty': 1 }; return (p[b.type] || 0) - (p[a.type] || 0); });
+                currentEvents.sort((a, b) => { const p = { 'plague': 3, 'climate': 3, 'crisis': 3, 'battle': 2, 'law': 2, 'philosophy': 2, 'move': 2, 'treaty': 1 }; return (p[b.type] || 0) - (p[a.type] || 0); });
                 let ev = currentEvents[0];
                 let btnClass = 'alert-base'; let icon = 'ph-info'; let typeText = 'Ereignis';
 
@@ -446,6 +536,8 @@
                 }
                 else if (ev.type === 'plague') { btnClass += ' alert-plague'; icon = 'ph-skull'; typeText = 'Pandemie'; }
                 else if (ev.type === 'crisis') { btnClass += ' alert-battle'; icon = 'ph-fire'; typeText = 'Reichskrise'; }
+                else if (ev.type === 'law') { btnClass += ' alert-law'; icon = 'ph-scales'; typeText = 'Rechtsgeschichte'; }
+                else if (ev.type === 'philosophy') { btnClass += ' alert-philosophy'; icon = 'ph-columns'; typeText = 'Philosophie & Geist'; }
 
                 activeAlertEvent = ev;
                 alertBtn.className = btnClass;
@@ -481,20 +573,37 @@
 
         function updateYear(val) { const y = parseFloat(val); document.getElementById('year-display').innerText = Math.floor(y); currentYear = y; updateVisualization(y); }
         
-        function startAnimation() {
-            animationInterval = setInterval(() => {
+        // --- ANIMATION LOOP (RequestAnimationFrame) ---
+        function gameLoop(timestamp) {
+            if (!lastFrameTime) lastFrameTime = timestamp;
+            const deltaTime = timestamp - lastFrameTime;
+
+            if (deltaTime >= 33) { // ca 30 FPS Limit
                 let val = parseFloat(document.getElementById('year-slider').value);
-                if (val >= 568) val = 375; else val += yearStep;
+                if (val >= 568) val = 375;
+                else val += yearStep;
+
                 document.getElementById('year-slider').value = val;
                 updateYear(val);
-            }, 50); // UPDATED: Fixed 20fps interval
+                lastFrameTime = timestamp;
+            }
+
+            if (isPlaying) {
+                animationId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        function startAnimation() {
+            if (!isPlaying) return;
+            lastFrameTime = 0;
+            animationId = requestAnimationFrame(gameLoop);
         }
 
         function togglePlay() {
             const btn = document.getElementById('play-icon');
             if (isPlaying) {
-                clearInterval(animationInterval);
                 isPlaying = false;
+                cancelAnimationFrame(animationId);
                 btn.classList.remove('ph-pause'); btn.classList.add('ph-play');
                 btn.parentElement.classList.remove('bg-red-600'); btn.parentElement.classList.add('bg-stone-800');
             } else {
@@ -537,7 +646,7 @@
         async function callGemini(prompt) {
             const key = getApiKey();
             if (!key) return "FEHLER: Kein API-Key gespeichert.";
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${key}`;
             try {
                 const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
                 if (!response.ok) {
@@ -548,6 +657,87 @@
                 const data = await response.json(); return data.candidates[0].content.parts[0].text;
             } catch (error) { return `<b>Netzwerkfehler:</b> ${error.message}`; }
         }
+        
+        // --- CHAT SYSTEM (NEU) ---
+        function appendMessage(role, text) {
+            const historyDiv = document.getElementById('ai-chat-history');
+            const isUser = role === 'user';
+            
+            const div = document.createElement('div');
+            div.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+            
+            div.innerHTML = `
+                <div class="max-w-[85%] rounded-2xl px-5 py-3 shadow-sm ${
+                    isUser 
+                    ? 'bg-stone-200 text-stone-800 rounded-tr-none' 
+                    : 'bg-white border border-stone-200 text-stone-800 rounded-tl-none font-serif leading-relaxed'
+                }">
+                    ${isUser ? '' : '<div class="mb-1 text-[10px] uppercase tracking-widest text-purple-600 font-bold">Analyse</div>'}
+                    ${formatText(text)}
+                </div>
+            `;
+            historyDiv.appendChild(div);
+            historyDiv.scrollTop = historyDiv.scrollHeight; 
+        }
+
+        async function askGeminiContext() {
+            const modal = document.getElementById('ai-modal');
+            const historyDiv = document.getElementById('ai-chat-history');
+            const year = Math.floor(currentYear);
+            
+            document.getElementById('ai-modal-year').innerText = year;
+            modal.classList.remove('hidden');
+            historyDiv.innerHTML = ''; 
+            chatHistory = []; 
+
+            const prompt = `Du bist ein spezialisierter Althistoriker und Jurist. Analysiere das Jahr ${year} n. Chr. Fokus: Staatsrecht, Logistik und Militär. Antworte präzise, elegant und auf Deutsch.`;
+            
+            appendMessage('ai', '<i class="ph-bold ph-spinner animate-spin"></i> Analysiere Quellenlage...');
+            const result = await callGemini(prompt);
+            historyDiv.lastElementChild.remove();
+            appendMessage('ai', result);
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            chatHistory.push({ role: "model", parts: [{ text: result }] });
+        }
+
+        async function sendFollowUp() {
+            const input = document.getElementById('ai-user-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            appendMessage('user', text);
+            input.value = '';
+            
+            appendMessage('ai', '<i class="ph-bold ph-spinner animate-spin"></i>');
+
+            const chatSession = {
+                contents: [...chatHistory, { role: "user", parts: [{ text: text }] }]
+            };
+
+            const key = getApiKey();
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${key}`; 
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(chatSession)
+                });
+                const data = await response.json();
+                const reply = data.candidates[0].content.parts[0].text;
+
+                const loadingMsg = document.getElementById('ai-chat-history').lastElementChild;
+                if(loadingMsg) loadingMsg.remove();
+                
+                appendMessage('ai', reply);
+                
+                chatHistory.push({ role: "user", parts: [{ text: text }] });
+                chatHistory.push({ role: "model", parts: [{ text: reply }] });
+
+            } catch (e) {
+                appendMessage('ai', `Fehler: ${e.message}`);
+            }
+        }
 
         async function askGeminiTribe() {
             if (!currentTribeForAI) return;
@@ -557,29 +747,31 @@
             const result = await callGemini(prompt); respDiv.innerHTML = formatText(result);
         }
 
-        async function askGeminiContext() {
-            const modal = document.getElementById('ai-modal'); const content = document.getElementById('ai-modal-content');
-            document.getElementById('ai-modal-year').innerText = Math.floor(currentYear); modal.classList.remove('hidden');
-            content.innerHTML = `<div class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 border-t-amber-500"></div><p class="text-stone-500 italic">Analysiere Lage ${Math.floor(currentYear)}...</p></div>`;
-            const prompt = `Du bist ein Althistoriker. Analysiere das Jahr ${Math.floor(currentYear)} n. Chr. in Europa. Fokus: Militärische Lage (Westrom/Ostrom), Völkerwanderung, diplomatische Zäsuren. Antworte anspruchsvoll auf Deutsch.`;
-            const result = await callGemini(prompt); content.innerHTML = formatText(result);
-        }
-
         async function askGeminiEvent() {
             if (!activeAlertEvent) return;
-            const modal = document.getElementById('ai-modal'); const content = document.getElementById('ai-modal-content');
-            document.getElementById('ai-modal-year').innerText = activeAlertEvent.title; modal.classList.remove('hidden');
+            // Nutzt hier (noch) das einfache Modal, könnte man auch auf Chat umbauen,
+            // aber für schnellen Kontext ist Single-Shot gut.
+            // Wir nutzen hier das INFO-BOX-Overlay für schnelle Event-Infos, 
+            // ODER wir öffnen den Chat mit Kontext?
+            // Entscheidung: Wir nutzen den Chat für maximale Tiefe!
             
-            let colorClass = "border-t-stone-500";
-            if (activeAlertEvent.type === 'battle' || activeAlertEvent.type === 'crisis') colorClass = "border-t-red-600";
-            if (activeAlertEvent.type === 'treaty') colorClass = "border-t-purple-600";
-            if (activeAlertEvent.type === 'plague') colorClass = "border-t-emerald-500";
-            if (activeAlertEvent.type === 'climate') colorClass = "border-t-cyan-500";
+            const modal = document.getElementById('ai-modal');
+            const historyDiv = document.getElementById('ai-chat-history');
+            
+            document.getElementById('ai-modal-year').innerText = activeAlertEvent.title; 
+            modal.classList.remove('hidden');
+            historyDiv.innerHTML = ''; 
+            chatHistory = []; 
 
-            content.innerHTML = `<div class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 ${colorClass}"></div><p class="text-stone-500 italic">Analysiere Ereignis...</p></div>`;
             const promptText = activeAlertEvent.aiPrompt || `Analysiere das Ereignis '${activeAlertEvent.title}' im Jahr ${activeAlertEvent.year}.`;
-            const prompt = `Du bist Historiker. ${promptText} Antworte präzise, analytisch und auf Deutsch (max 100 Wörter).`;
-            const result = await callGemini(prompt); content.innerHTML = formatText(result);
+            const prompt = `Du bist Historiker und Jurist. ${promptText} Antworte präzise, analytisch und auf Deutsch.`;
+
+            appendMessage('ai', '<i class="ph-bold ph-spinner animate-spin"></i> Untersuche Ereignis...');
+            const result = await callGemini(prompt);
+            historyDiv.lastElementChild.remove();
+            appendMessage('ai', result);
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            chatHistory.push({ role: "model", parts: [{ text: result }] });
         }
     </script>
 </body>

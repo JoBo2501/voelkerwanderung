@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Autark & Robust</title>
+    <title>Völkerwanderung: Imperium & Provinzen</title>
     
     <!-- Leaflet CSS (Karte) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -25,7 +25,7 @@
             langobarden: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3ClinearGradient id='goldGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23fcd34d;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23b45309;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='180' y='50' width='40' height='200' fill='url(%23goldGrad)' stroke='%23b45309' stroke-width='2'/%3E%3Crect x='100' y='110' width='200' height='40' fill='url(%23goldGrad)' stroke='%23b45309' stroke-width='2'/%3E%3Ccircle cx='200' cy='130' r='10' fill='%23fcd34d'/%3E%3C/svg%3E`
         };
 
-        /* Eigener Mini-Parser für KI-Texte (ersetzt externe marked.js Bibliothek) */
+        /* Eigener Mini-Parser für KI-Texte */
         function formatText(text) {
             if (!text) return '';
             return text
@@ -39,9 +39,10 @@
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: 'Segoe UI', 'Helvetica Neue', sans-serif; }
         #map { height: 100vh; width: 100vw; background: #e5e5e5; z-index: 1; }
 
-        /* UI Layering - WICHTIG: pointer-events */
+        /* UI Layering */
         .ui-layer { position: absolute; z-index: 3000; pointer-events: none; }
-        .ui-element { pointer-events: auto; } /* Erlaubt Klicks auf Buttons */
+        .ui-element { pointer-events: auto; } 
+        .pointer-events-auto { pointer-events: auto !important; }
         
         /* Controls */
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
@@ -66,6 +67,17 @@
             background-color: rgba(255, 255, 255, 0.95); border: 1px solid #999; color: #333;
             font-family: serif; font-weight: bold; font-size: 12px; padding: 2px 6px; border-radius: 2px;
         }
+        
+        /* Region Labels Styling (NEU) - Klassische römische Typografie */
+        .leaflet-tooltip.region-label {
+            background: transparent; border: none; box-shadow: none;
+            font-family: 'Times New Roman', serif; font-weight: bold; 
+            color: #78716c; /* Stone-500 */
+            text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px;
+            opacity: 0.7; pointer-events: none;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.5);
+        }
+
         .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { display: none; }
         .leaflet-marker-icon, .leaflet-tooltip { transition: opacity 0.5s ease-in-out; }
     </style>
@@ -89,7 +101,7 @@
         </div>
     </div>
 
-    <!-- INFO BOX (Mit Klick-Fix) -->
+    <!-- INFO BOX -->
     <div id="info-box" class="hidden ui-layer top-20 left-4 right-4 md:left-auto md:right-4 md:w-[400px] max-h-[75vh] flex flex-col rounded-xl shadow-2xl z-[4000] bg-white border border-stone-300 ui-element">
         <div id="info-artifact-container" class="relative w-full h-48 bg-stone-100 shrink-0 border-b border-stone-200">
             <img id="artifact-img" src="" alt="Artefakt" class="w-full h-full object-contain p-4">
@@ -185,6 +197,19 @@
             [48.3, 14.3], [48.1, 16.4], [47.8, 17.6], [47.5, 19.0], [44.8, 20.4], [44.6, 22.6], [45.2, 29.6]
         ];
 
+        // NEU: Historische Regionen (Labels)
+        const historicalRegions = [
+            { c: [46.5, 2.0], t: "GALLIA", s: 16 },
+            { c: [40.0, -4.0], t: "HISPANIA", s: 16 },
+            { c: [42.5, 12.5], t: "ITALIA", s: 16 },
+            { c: [45.0, 17.0], t: "PANNONIA", s: 14 },
+            { c: [43.0, 22.0], t: "ILLYRICUM", s: 14 },
+            { c: [42.0, 25.0], t: "THRACIA", s: 14 },
+            { c: [35.0, 2.0], t: "AFRICA", s: 16 },
+            { c: [51.0, 10.0], t: "GERMANIA", s: 16, color: "#a8a29e" }, // Barbaricum
+            { c: [48.0, 30.0], t: "SCYTHIA", s: 14, color: "#a8a29e" }
+        ];
+
         const dynamicCities = [
             { c: [41.9, 12.5], t: "Rom", type: 'capital', start: 0, end: 600, desc: "Die ewige Stadt." },
             { c: [41.0, 28.9], t: "Konstantinopel", type: 'capital', start: 330, end: 600, desc: "Das neue Rom." },
@@ -241,6 +266,20 @@
             // Limes zeichnen
             L.polyline(limesPath, { color: '#44403c', weight: 2, dashArray: '5, 10', opacity: 0.5 }).addTo(map);
 
+            // NEU: Region Labels platzieren (Statisch)
+            historicalRegions.forEach(reg => {
+                const color = reg.color || '#78716c';
+                L.tooltip({
+                    permanent: true,
+                    direction: 'center',
+                    className: 'region-label',
+                    opacity: 0.8
+                })
+                .setContent(`<span style="font-size:${reg.s}px; color:${color}">${reg.t}</span>`)
+                .setLatLng(reg.c)
+                .addTo(map);
+            });
+
             // Städte initialisieren
             dynamicCities.forEach((city, idx) => {
                 let color = '#666'; 
@@ -289,13 +328,11 @@
 
         function updateVisualization(year) {
             currentYear = year;
-            // Update AI UI elements if they exist (Desk/Mob)
             const aiYearEl = document.getElementById('tribe-ai-year');
             if (aiYearEl) aiYearEl.innerText = year;
             const aiBtnRef = document.getElementById('ai-btn-year-ref');
             if (aiBtnRef) aiBtnRef.innerText = year;
             
-            // Zentren updaten
             Object.values(cityMarkers).forEach(cm => {
                 if (year >= cm.start && year <= cm.end) {
                     cm.marker.setStyle({ opacity: 1, fillOpacity: 1 }); 
@@ -308,7 +345,7 @@
 
             Object.keys(routes).forEach(key => {
                 const res = getPosition(routes[key].path, year);
-                const layerData = layers[key]; // Renamed to avoid conflict with L
+                const layerData = layers[key]; 
                 if (res) {
                     if (!layerData.hasStarted) { layerData.marker.setOpacity(1); layerData.line.setStyle({opacity: 0.7}); layerData.hasStarted = true; }
                     layerData.marker.setLatLng([res.lat, res.lng]); layerData.line.setLatLngs(res.trail);

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Korrigierte Finalversion</title>
+    <title>Völkerwanderung: Vollständige Analyse</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -70,6 +70,7 @@
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
         
         #map { height: 100vh; width: 100vw; background: #e5e5e5; z-index: 1; }
+        
         .ui-layer { position: absolute; z-index: 5000; pointer-events: none; }
         .ui-element { pointer-events: auto; }
         
@@ -100,16 +101,19 @@
         .leaflet-tooltip.custom-label { background-color: rgba(255, 255, 255, 0.95); border: 1px solid #999; color: #333; font-family: serif; font-weight: bold; font-size: 12px; padding: 2px 6px; border-radius: 2px; }
         .leaflet-tooltip.region-label { background: transparent; border: none; box-shadow: none; font-family: 'Times New Roman', serif; font-weight: bold; color: #333; text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px; opacity: 0.9; pointer-events: none; text-shadow: 1px 1px 0px rgba(255,255,255,0.8); }
         
+        /* FIX: Marker müssen über allem liegen */
+        .leaflet-marker-pane { z-index: 9000 !important; }
+        .leaflet-marker-icon { pointer-events: auto !important; cursor: pointer !important; }
+        
         .culture-marker { background: #fff; border: 2px solid #d97706; color: #d97706; box-shadow: 0 0 10px rgba(217, 119, 6, 0.4); animation: pulse-culture 3s infinite; }
         @keyframes pulse-culture { 0% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(217, 119, 6, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); } }
 
         /* KORRIGIERTE KARTE OHNE MODERNE STÄDTE & MEHR FARBE */
-        .leaflet-layer { 
-            /* Sättigung erhöht für sattes Grün, Kontrast für klare Berge */
-            filter: saturate(1.2) contrast(1.1); 
-        }
+        .leaflet-layer { filter: saturate(1.2) contrast(1.1); }
 
-        /* Linien Stile */
+        /* KEIN SEPIA OVERLAY */
+        .parchment-overlay { display: none; }
+
         .road-relief { mix-blend-mode: multiply; opacity: 0.7; stroke-linecap: round; stroke-linejoin: round; }
         .river-style { stroke: #3b82f6; opacity: 0.75; stroke-linecap: round; stroke-linejoin: round; mix-blend-mode: normal; }
         .limes-style { stroke: #3f3f46; opacity: 0.8; stroke-linecap: square; }
@@ -364,7 +368,7 @@
         }
 
         function initMap() {
-            // ZURÜCK ZUR ESRI KARTE (KEINE MODERNEN NAMEN, REINE PHYSIS)
+            // 1. ESRI Relief Map (Keine Labels)
             map = L.map('map', { zoomControl: true, attributionControl: false, zoomSnap: 0.25, zoomDelta: 0.25 }).setView([46.5, 14.0], 5);
             map.zoomControl.setPosition('topright'); 
 
@@ -372,9 +376,9 @@
                 attribution: 'Esri', opacity: 1.0 
             }).addTo(map);
 
-            // CREATE CUSTOM PANE FOR CLICKS (NUCLEAR OPTION)
+            // 2. INTERAKTIONSEBENE (Klicke MÜSSEN durchgehen)
             map.createPane('clickPane');
-            map.getPane('clickPane').style.zIndex = 2000; // Highest priority
+            map.getPane('clickPane').style.zIndex = 2000; 
 
             // FLÜSSE
             Object.values(strategicRivers).forEach(riverPath => {
@@ -385,7 +389,7 @@
             const limes = L.polyline(limesPath, { className: 'limes-style', weight: 2, dashArray: '4, 4', opacity: 0.7, smoothFactor: 1 }).addTo(map);
             limes.bindTooltip("Limes Germanicus", { sticky: true, className: 'leaflet-tooltip custom-label', direction: 'top' });
             
-            // REICHSTEILUNGSLINIE
+            // REICHSTEILUNG
             empireDivisionLine = L.polyline(divisionPath, { color: '#7e22ce', weight: 2, dashArray: '10, 5', opacity: 0 }).addTo(map);
             empireDivisionLine.bindTooltip("Teilungslinie (395 n. Chr.)", { sticky: true, className: 'leaflet-tooltip custom-label', direction: 'top' });
 
@@ -403,7 +407,7 @@
 
             dynamicCities.forEach((city, idx) => {
                 let color = '#666'; if (city.type === 'capital') color = '#7e22ce'; if (city.type === 'barbarian') color = '#d97706'; if (city.type === 'monastery') color = '#0ea5e9'; 
-                const marker = L.circleMarker(city.c, { radius: 4, color: color, fillColor: '#fff', fillOpacity: 1, weight: 2, opacity: 0, pane: 'clickPane' }).addTo(map);
+                const marker = L.circleMarker(city.c, { radius: 4, color: color, fillColor: '#fff', fillOpacity: 1, weight: 2, opacity: 0, pane: 'clickPane', interactive: true }).addTo(map);
                 const tooltip = L.tooltip({ permanent: true, direction: 'bottom', className: 'bg-transparent border-0 shadow-none text-stone-700 font-serif text-[10px] uppercase tracking-wider font-bold', offset: [0, 5], opacity: 0 }).setContent(city.t).setLatLng(city.c).addTo(map);
                 cityMarkers[idx] = { marker, tooltip, start: city.start, end: city.end };
             });
@@ -412,33 +416,40 @@
             plagueLayer = L.circle([38.0, 18.0], { radius: 1500000, color: '#10b981', fillColor: '#10b981', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
             droughtLayer = L.circle([48.0, 40.0], { radius: 800000, color: '#d97706', fillColor: '#d97706', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
 
-            // STÄMME (ROUTES) - USING CUSTOM PANE
+            // STÄMME (ROUTES) - MIT DOPPELTER KLICK-ABFANGUNG
             Object.keys(routes).forEach(key => {
                 const data = routes[key];
                 let dashStyle = '1, 6'; if (data.type === 'army') dashStyle = '10, 5'; if (data.type === 'plague') dashStyle = '1, 10'; 
-                const line = L.polyline([], { color: data.color, weight: 4, opacity: 0.8, dashArray: dashStyle }).addTo(map);
+                
+                // 1. Die Linie
+                const line = L.polyline([], { color: data.color, weight: 4, opacity: 0.8, dashArray: dashStyle, pane: 'clickPane', interactive: true }).addTo(map);
+                
                 let borderRadius = '50%'; if (data.type === 'army') borderRadius = '2px';
                 let iconClass = 'pulse-icon'; if (data.type === 'army') iconClass = 'pulse-icon roman-pulse'; if (data.type === 'plague') iconClass = 'pulse-icon plague-pulse';
                 const iconHtml = `<div style="background-color: ${data.color}; width: 14px; height: 14px; border-radius: ${borderRadius}; border: 2px solid white;"></div>`;
-                
                 const icon = L.divIcon({ className: iconClass, html: iconHtml, iconSize: [14, 14], iconAnchor: [7, 7] });
                 
-                // Marker in die 'clickPane' zwingen
-                const marker = L.marker([0,0], { icon: icon, pane: 'clickPane' }).addTo(map);
+                // 2. Der Marker
+                const marker = L.marker([0,0], { icon: icon, pane: 'clickPane', interactive: true }).addTo(map);
                 marker.bindTooltip(data.name, { permanent: true, direction: 'right', className: 'custom-label', offset: [10, 0] });
                 
-                marker.on('click', function() {
+                // Klick-Funktion definieren
+                const clickHandler = () => {
                     showInfo(data.name, data.desc, null, data.color, data.artifact, { 
                         type: 'tribe', 
                         key: key, 
                         name: data.name 
                     });
-                });
+                };
+
+                // Auf BEIDE anwenden
+                marker.on('click', clickHandler);
+                line.on('click', clickHandler);
                 
                 layers[key] = { line, marker, hasStarted: false };
             });
             
-            // EREIGNISSE - USING CUSTOM PANE
+            // EREIGNISSE
             historicalEvents.forEach(ev => {
                 const color = (ev.type === 'battle' || ev.type === 'crisis' || ev.type === 'plague') ? '#dc2626' : (ev.type === 'climate' ? '#06b6d4' : '#4b5563');
                 let iconType = ev.icon || (ev.type === 'battle' ? 'ph-swords' : (ev.type === 'plague' ? 'ph-skull' : (ev.type === 'crisis' ? 'ph-fire' : (ev.type === 'diplomacy' ? 'ph-handshake' : 'ph-snowflake'))));
@@ -446,7 +457,7 @@
                 const html = `<div class="battle-marker flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-md border border-stone-200 text-[${color}] ${pulseClass}"><i class="ph-fill ${iconType} text-lg" style="color:${color}"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
                 
-                const marker = L.marker([ev.lat, ev.lng], { icon: icon, pane: 'clickPane' }).addTo(map);
+                const marker = L.marker([ev.lat, ev.lng], { icon: icon, pane: 'clickPane', interactive: true }).addTo(map);
                 
                 marker.on('click', function() {
                     showInfo(ev.title, ev.desc, ev.quote, color, null, { 
@@ -460,12 +471,12 @@
                 eventMarkers[ev.year] = marker;
             });
 
-            // KULTUR - USING CUSTOM PANE
+            // KULTUR
             culturalEvents.forEach(ev => {
                 const html = `<div class="culture-marker flex items-center justify-center w-8 h-8 rounded-full text-amber-700 bg-amber-50"><i class="ph-fill ${ev.icon} text-lg"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
                 
-                const marker = L.marker([ev.lat, ev.lng], { icon: icon, pane: 'clickPane' }).addTo(map);
+                const marker = L.marker([ev.lat, ev.lng], { icon: icon, pane: 'clickPane', interactive: true }).addTo(map);
                 
                 marker.on('click', function() {
                     showInfo(ev.title, ev.desc, null, '#d97706', null, { 
@@ -689,6 +700,8 @@
             const result = await callGeminiWithHistory(chatContext);
             document.getElementById('loading-spinner').remove();
             appendMessage(result, 'ai');
+            
+            // WICHTIG: HIER WIRD DAS EINGABEFELD AKTIVIERT
             chatContext.push({ role: 'model', parts: [{ text: result }] });
             document.getElementById('ai-input-area').classList.remove('hidden');
             document.getElementById('follow-up-input').focus();

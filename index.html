@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Recht, Kultur & Zerfall</title>
+    <title>Völkerwanderung: Geografie & Strategie</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -12,7 +12,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <script>
-        /* API KEY TRESOR */
+        /* API KEY LOGIK */
         function getApiKey() {
             let key = localStorage.getItem('gemini_api_key');
             if (!key) {
@@ -39,7 +39,18 @@
             location.reload();
         }
 
-        /* ARTEFAKTE (SVG) */
+        /* BILDER & LOGIK HELPER */
+        const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300' fill='%23f5f5f4'%3E%3Crect width='400' height='300' fill='%23e5e5e5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' fill='%23999'%3EBild nicht verfügbar%3C/text%3E%3C/svg%3E";
+        
+        // Lokale Pfade (Platzhalter) - im echten Einsatz Pfade prüfen
+        const localImages = {
+            westgoten: './img/westgoten.jpg', vandalen: './img/vandalen.jpg',
+            hunnen: './img/hunnen.jpg', langobarden: './img/langobarden.jpg',
+            franken: './img/franken.jpg', ostgoten: './img/ostgoten.jpg',
+            rom: './img/rom_armee.jpg', pest: './img/pest.jpg'
+        };
+
+        // Fallback Artefakte (SVG Strings)
         const artifacts = {
             westgoten: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 50 C230 50 250 80 250 100 L280 150 L200 250 L120 150 L150 100 C150 80 170 50 200 50' fill='%23b91c1c' stroke='%23b45309' stroke-width='5'/%3E%3Ccircle cx='200' cy='90' r='15' fill='%2378350f' stroke='%23fcd34d' stroke-width='3'/%3E%3C/svg%3E`,
             vandalen: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Ccircle cx='200' cy='150' r='100' fill='%23cbd5e1' stroke='%2394a3b8' stroke-width='4'/%3E%3Ctext x='200' y='280' text-anchor='middle' font-family='serif' font-weight='bold' fill='%2364748b' font-size='18' letter-spacing='2'%3ED N REX GELIMER%3C/text%3E%3C/svg%3E`,
@@ -51,16 +62,6 @@
             pest: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M100 150 Q150 50 250 150 T350 150' fill='none' stroke='%2310b981' stroke-width='10'/%3E%3Ccircle cx='200' cy='120' r='40' fill='%23064e3b'/%3E%3Crect x='180' y='180' width='40' height='60' fill='%23064e3b'/%3E%3Cpath d='M180 240 L220 280 M220 240 L180 280' stroke='%2310b981' stroke-width='5'/%3E%3Ctext x='200' y='280' text-anchor='middle' fill='%2310b981' font-family='sans-serif' font-weight='bold' font-size='24' letter-spacing='2'%3EYERSINIA PESTIS%3C/text%3E%3C/svg%3E`
         };
 
-        const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300' fill='%23f5f5f4'%3E%3Crect width='400' height='300' fill='%23e5e5e5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' fill='%23999'%3EBild nicht verfügbar%3C/text%3E%3C/svg%3E";
-        function handleImageError(img) { img.onerror = null; img.src = fallbackImage; img.parentElement.classList.remove('hidden'); }
-
-        const localImages = {
-            westgoten: './img/westgoten.jpg', vandalen: './img/vandalen.jpg',
-            hunnen: './img/hunnen.jpg', langobarden: './img/langobarden.jpg',
-            franken: './img/franken.jpg', ostgoten: './img/ostgoten.jpg',
-            rom: './img/rom_armee.jpg', pest: './img/pest.jpg'
-        };
-
         function formatText(text) {
             if (!text) return '';
             return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
@@ -69,14 +70,14 @@
 
     <style>
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
-        #map { height: 100vh; width: 100vw; background: #e5e5e5; z-index: 1; }
+        #map { height: 100vh; width: 100vw; background: #d6d3d1; z-index: 1; }
         .ui-layer { position: absolute; z-index: 3000; pointer-events: none; }
         .ui-element { pointer-events: auto; }
         .pointer-events-auto { pointer-events: auto !important; }
         
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: #d97706; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); cursor: pointer; margin-top: -10px; }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #d6d3d1; border-radius: 2px; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #a8a29e; border-radius: 2px; }
 
         @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(2.0); opacity: 0; } }
         @keyframes alert-pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); } 70% { transform: scale(1.02); box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
@@ -87,9 +88,7 @@
         .climate-pulse:after { border: 2px solid #06b6d4; animation: pulse-ring 2.5s infinite; background: rgba(6,182,212,0.1); }
         .plague-pulse:after { border: 2px solid #10b981; animation: pulse-ring 1s infinite; background: rgba(16, 185, 129, 0.2); }
         
-        /* DYNAMISCHE ALERT-BUTTONS */
         .alert-base { animation: alert-pulse 2.5s infinite; color: white; border: 1px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); backdrop-filter: blur(4px); }
-        
         .alert-nature { background: linear-gradient(135deg, #0891b2, #3b82f6); border-color: #a5f3fc; }
         .alert-drought { background: linear-gradient(135deg, #ea580c, #b45309); border-color: #fdba74; }
         .alert-plague  { background: linear-gradient(135deg, #059669, #047857); border-color: #6ee7b7; }
@@ -101,36 +100,32 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .leaflet-tooltip.custom-label { background-color: rgba(255, 255, 255, 0.95); border: 1px solid #999; color: #333; font-family: serif; font-weight: bold; font-size: 12px; padding: 2px 6px; border-radius: 2px; }
-        .leaflet-tooltip.region-label { background: transparent; border: none; box-shadow: none; font-family: 'Times New Roman', serif; font-weight: bold; color: #78716c; text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px; opacity: 0.7; pointer-events: none; text-shadow: 1px 1px 0px rgba(255,255,255,0.5); }
-        .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { display: none; }
-        .leaflet-marker-icon, .leaflet-tooltip { transition: opacity 0.5s ease-in-out; }
-
-        /* --- NEU: ATMOSPHÄRE & VISUALS --- */
+        .leaflet-tooltip.region-label { background: transparent; border: none; box-shadow: none; font-family: 'Times New Roman', serif; font-weight: bold; color: #44403c; text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px; opacity: 0.8; pointer-events: none; text-shadow: 1px 1px 0px rgba(255,255,255,0.6); }
         
-        /* Sepia-Filter für Antik-Look */
-        .leaflet-layer { filter: sepia(0.5) contrast(0.9) saturate(0.6); }
-
-        /* Pergament-Overlay (Körnung und Vignette) */
-        .parchment-overlay {
-            position: absolute; inset: 0; pointer-events: none; z-index: 2000;
-            background: radial-gradient(circle, transparent 40%, rgba(68, 52, 34, 0.2) 100%),
-                        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
-            mix-blend-mode: multiply;
-        }
-
-        /* Marker für Recht & Religion */
-        .culture-marker { 
-            background: #fff; border: 2px solid #d97706; color: #d97706; 
-            box-shadow: 0 0 10px rgba(217, 119, 6, 0.4);
-            animation: pulse-culture 3s infinite;
-        }
+        .culture-marker { background: #fff; border: 2px solid #d97706; color: #d97706; box-shadow: 0 0 10px rgba(217, 119, 6, 0.4); animation: pulse-culture 3s infinite; }
         @keyframes pulse-culture { 0% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(217, 119, 6, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); } }
 
-        /* Straßen-Stile (Verfall) */
-        .road-roman { transition: opacity 2s ease, stroke-dasharray 2s ease; }
+        /* --- VERBESSERTE OPTIK: STRATEGIE STATT SEPIA --- */
+        
+        /* Kein aggressiver Filter auf der Karte selbst, damit Berge sichtbar bleiben */
+        .leaflet-layer { 
+            /* Leicht entsättigt für historischen Look, aber Kontrast behalten */
+            filter: saturate(0.7) contrast(1.1); 
+        }
+
+        /* Subtileres Overlay: Nur Textur, keine Farbüberlagerung, die Details schluckt */
+        .parchment-overlay {
+            position: absolute; inset: 0; pointer-events: none; z-index: 2000;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+            /* Leichte Vignette an den Rändern */
+            box-shadow: inset 0 0 150px rgba(60, 50, 40, 0.3);
+        }
+
+        /* Stil für die Römerstraßen */
+        .road-roman { transition: opacity 2s ease, stroke-dasharray 2s ease; stroke-linejoin: round; }
     </style>
 </head>
-<body class="bg-stone-100">
+<body class="bg-stone-200">
     <div class="parchment-overlay"></div>
 
     <div id="map"></div>
@@ -219,18 +214,12 @@
                 <button onclick="closeAiModal()" class="hover:bg-white/20 rounded-full p-1"><i class="ph ph-x text-xl"></i></button>
             </div>
             
-            <div id="ai-chat-container" class="flex-1 p-6 overflow-y-auto bg-stone-50 text-stone-800 text-base leading-relaxed space-y-4">
-                </div>
+            <div id="ai-chat-container" class="flex-1 p-6 overflow-y-auto bg-stone-50 text-stone-800 text-base leading-relaxed space-y-4"></div>
 
             <div id="ai-input-area" class="hidden p-4 bg-white border-t border-stone-200 shrink-0">
                 <div class="flex gap-2">
-                    <input type="text" id="follow-up-input" 
-                           placeholder="Stellen Sie eine Nachfrage an den Historiker..." 
-                           class="flex-1 border border-stone-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 outline-none font-serif"
-                           onkeypress="if(event.key === 'Enter') sendFollowUp()">
-                    <button onclick="sendFollowUp()" class="bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded-lg font-bold transition-colors">
-                        <i class="ph-fill ph-paper-plane-right"></i>
-                    </button>
+                    <input type="text" id="follow-up-input" placeholder="Stellen Sie eine Nachfrage..." class="flex-1 border border-stone-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-purple-500 outline-none font-serif" onkeypress="if(event.key === 'Enter') sendFollowUp()">
+                    <button onclick="sendFollowUp()" class="bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded-lg font-bold transition-colors"><i class="ph-fill ph-paper-plane-right"></i></button>
                 </div>
             </div>
         </div>
@@ -271,10 +260,8 @@
                     <div class="flex items-center gap-1"><div class="w-2 h-2 bg-orange-600 rounded-full"></div>Langobarden</div>
                     <div class="flex items-center gap-1"><div class="w-2 h-2 bg-purple-600 rounded-full"></div>Franken</div>
                     <div class="flex items-center gap-1"><div class="w-2 h-2 bg-rose-800 rounded-full"></div>Ostgoten</div>
-                    <div class="flex items-center gap-1 border-l pl-2 border-stone-300"><div class="w-2 h-2 bg-purple-700 rounded-full"></div>Rom. Armee</div>
-                    <div class="flex items-center gap-1"><div class="w-2 h-2 bg-emerald-500 rounded-full"></div>Pest</div>
-                    <div class="flex items-center gap-1"><div class="w-2 h-2 bg-cyan-500 rounded-full"></div>Klima</div>
-                    <div class="flex items-center gap-1 border-l pl-2 border-stone-300 text-amber-700"><i class="ph-fill ph-scales"></i> Recht/Kultur</div>
+                    <div class="flex items-center gap-1 border-l pl-2 border-stone-300 text-amber-700"><i class="ph-fill ph-scales"></i> Recht</div>
+                    <div class="flex items-center gap-1 border-l pl-2 border-stone-300 text-amber-900 font-bold"><i class="ph-bold ph-road-horizon"></i> Römerstraßen</div>
                 </div>
 
                 <div class="relative px-2">
@@ -287,7 +274,6 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
-        // --- CONFIG & SETUP ---
         const apiKey = ""; 
         let currentTribeForAI = null;
         let map;
@@ -295,45 +281,47 @@
         const eventMarkers = {};
         const cityMarkers = {};
         let climateLayer = null, plagueLayer = null, droughtLayer = null;
-        
         let isPlaying = false;
         let animationInterval;
         let currentYear = 375;
         let activeAlertEvent = null;
-
-        // CHAT STATE
         let chatContext = []; 
-        
-        // GESCHWINDIGKEITS-KONFIGURATION
-        const speedConfig = { 
-            slow: 0.15,    
-            medium: 0.5,   
-            fast: 1.2      
-        };
+        const speedConfig = { slow: 0.15, medium: 0.5, fast: 1.2 };
         let yearStep = speedConfig.slow; 
 
         // --- GEO-DATEN ---
+        // Der Limes ist nun eine Grenzlinie, die Flüsse kommen extra
         const limesPath = [ [52.2, 4.4], [52.0, 5.1], [51.2, 6.8], [50.9, 7.0], [50.0, 8.2], [49.0, 8.4], [49.0, 10.9], [48.9, 12.0], [48.4, 13.4], [48.3, 14.3], [48.1, 16.4], [47.8, 17.6], [47.5, 19.0], [44.8, 20.4], [44.6, 22.6], [45.2, 29.6] ];
+        
+        // NEU: Strategische Flüsse (Rhein, Donau, Nil, etc.)
+        const strategicRivers = {
+            rhein: [[46.6, 9.3], [47.6, 9.4], [47.5, 7.6], [48.6, 7.9], [50.0, 8.2], [50.9, 7.0], [51.9, 4.5]],
+            donau: [[48.0, 8.1], [48.4, 10.0], [48.2, 16.4], [47.5, 19.0], [44.8, 20.4], [44.2, 22.7], [45.2, 29.6]],
+            rhone: [[46.5, 8.3], [46.2, 6.0], [45.7, 4.8], [43.3, 4.8]],
+            po: [[44.7, 7.0], [45.0, 10.0], [44.9, 12.5]],
+            nil: [[31.2, 30.0], [24.0, 32.8]]
+        };
+
         const historicalRegions = [ { c: [46.5, 2.0], t: "GALLIA", s: 16 }, { c: [40.0, -4.0], t: "HISPANIA", s: 16 }, { c: [42.5, 12.5], t: "ITALIA", s: 16 }, { c: [45.0, 17.0], t: "PANNONIA", s: 14 }, { c: [43.0, 22.0], t: "ILLYRICUM", s: 14 }, { c: [42.0, 25.0], t: "THRACIA", s: 14 }, { c: [35.0, 2.0], t: "AFRICA", s: 16 }, { c: [51.0, 10.0], t: "GERMANIA", s: 16, color: "#a8a29e" }, { c: [48.0, 30.0], t: "SCYTHIA", s: 14, color: "#a8a29e" } ];
         const dynamicCities = [ { c: [41.9, 12.5], t: "Rom", type: 'capital', start: 0, end: 600 }, { c: [41.0, 28.9], t: "Konstantinopel", type: 'capital', start: 330, end: 600 }, { c: [36.8, 10.1], t: "Karthago", type: 'city', start: 0, end: 600 }, { c: [44.4, 12.2], t: "Ravenna", type: 'capital', start: 402, end: 600 }, { c: [43.6, 1.4], t: "Tolosa", type: 'barbarian', start: 418, end: 507 }, { c: [39.8, -4.0], t: "Toledo", type: 'barbarian', start: 507, end: 600 }, { c: [41.5, 13.8], t: "Monte Cassino", type: 'monastery', start: 529, end: 600 } ];
         
-        // --- NEU: ZIVILISATION & KULTUR DATEN ---
+        // Römerstraßen (jetzt mit Namen für Tooltips)
         const romanRoads = {
-            viaAppia: { path: [[41.9, 12.5], [41.3, 13.2], [41.1, 14.2], [40.8, 14.8], [40.6, 17.9]], region: 'west' }, 
-            viaDomitia: { path: [[45.0, 6.7], [43.8, 4.4], [43.6, 3.9], [43.2, 3.0], [42.4, 2.9]], region: 'west' },   
-            viaEgnatia: { path: [[41.3, 19.4], [41.1, 20.6], [40.8, 22.3], [40.9, 24.4], [41.0, 28.9]], region: 'east' }, 
-            viaAgrippa: { path: [[43.6, 4.6], [45.7, 4.8], [47.3, 5.0], [49.8, 6.6], [50.9, 6.9]], region: 'west' }     
+            viaAppia: { name: "Via Appia", path: [[41.9, 12.5], [41.3, 13.2], [41.1, 14.2], [40.8, 14.8], [40.6, 17.9]], region: 'west' }, 
+            viaDomitia: { name: "Via Domitia", path: [[45.0, 6.7], [43.8, 4.4], [43.6, 3.9], [43.2, 3.0], [42.4, 2.9]], region: 'west' },   
+            viaEgnatia: { name: "Via Egnatia", path: [[41.3, 19.4], [41.1, 20.6], [40.8, 22.3], [40.9, 24.4], [41.0, 28.9]], region: 'east' }, 
+            viaAgrippa: { name: "Via Agrippa", path: [[43.6, 4.6], [45.7, 4.8], [47.3, 5.0], [49.8, 6.6], [50.9, 6.9]], region: 'west' }     
         };
 
         const culturalEvents = [
-            { year: 325, lat: 40.4, lng: 29.7, title: "Konzil von Nicäa", type: "religion", icon: "ph-cross", desc: "Definition des katholischen Glaubens. Der Arianismus wird Häresie.", prompt: "Erkläre den Konflikt Arianismus vs Katholizismus und die politische Wirkung." },
+            { year: 325, lat: 40.4, lng: 29.7, title: "Konzil von Nicäa", type: "religion", icon: "ph-cross", desc: "Definition des katholischen Glaubens.", prompt: "Erkläre den Konflikt Arianismus vs Katholizismus." },
             { year: 380, lat: 41.0, lng: 28.9, title: "Edikt Cunctos populos", type: "religion", icon: "ph-scroll", desc: "Theodosius I. macht das Christentum zur Staatsreligion.", prompt: "Analysiere das Edikt von Thessaloniki rechtshistorisch." },
-            { year: 438, lat: 41.0, lng: 28.9, title: "Codex Theodosianus", type: "law", icon: "ph-scales", desc: "Erste offizielle Gesetzessammlung seit den Zwölftafeln. Gilt in Ost und West.", prompt: "Welche Bedeutung hat der Codex Theodosianus für die Rechtseinheit im zerfallenden Reich?" },
-            { year: 475, lat: 43.6, lng: 1.4, title: "Codex Euricianus", type: "law", icon: "ph-book-bookmark", desc: "Westgotisches Volksrecht. Frühes Beispiel germanischer Schriftlichkeit.", prompt: "Analysiere den Codex Euricianus als Mischung aus römischem und germanischem Recht." },
-            { year: 506, lat: 43.6, lng: 1.4, title: "Breviarium Alaricianum", type: "law", icon: "ph-scales", desc: "Lex Romana Visigothorum. Römisches Recht für die romanische Bevölkerung im Gotenreich.", prompt: "Erkläre das Personalitätsprinzip des Rechts anhand des Breviarium Alaricianum." },
-            { year: 507, lat: 48.8, lng: 2.3, title: "Lex Salica", type: "law", icon: "ph-gavel", desc: "Das Recht der salischen Franken. Wergeld statt Blutrache.", prompt: "Was regelt die Lex Salica und wie spiegelt sie die fränkische Gesellschaft wider?" },
-            { year: 529, lat: 41.0, lng: 28.9, title: "Codex Justinianus", type: "law", icon: "ph-bank", desc: "Basis des Corpus Iuris Civilis. Fundament des modernen europäischen Rechts.", prompt: "Warum ist der Codex Justinianus für die heutige Zivilistik so wichtig?" },
-            { year: 529, lat: 41.5, lng: 13.8, title: "Regula Benedicti", type: "religion", icon: "ph-church", desc: "Gründung von Monte Cassino. Beginn des abendländischen Mönchtums.", prompt: "Wie bewahrten die Klöster die antike Bildung?" }
+            { year: 438, lat: 41.0, lng: 28.9, title: "Codex Theodosianus", type: "law", icon: "ph-scales", desc: "Erste offizielle Gesetzessammlung seit den Zwölftafeln.", prompt: "Welche Bedeutung hat der Codex Theodosianus für die Rechtseinheit?" },
+            { year: 475, lat: 43.6, lng: 1.4, title: "Codex Euricianus", type: "law", icon: "ph-book-bookmark", desc: "Westgotisches Volksrecht.", prompt: "Analysiere den Codex Euricianus." },
+            { year: 506, lat: 43.6, lng: 1.4, title: "Breviarium Alaricianum", type: "law", icon: "ph-scales", desc: "Lex Romana Visigothorum.", prompt: "Erkläre das Personalitätsprinzip." },
+            { year: 507, lat: 48.8, lng: 2.3, title: "Lex Salica", type: "law", icon: "ph-gavel", desc: "Das Recht der salischen Franken.", prompt: "Was regelt die Lex Salica?" },
+            { year: 529, lat: 41.0, lng: 28.9, title: "Codex Justinianus", type: "law", icon: "ph-bank", desc: "Basis des Corpus Iuris Civilis.", prompt: "Warum ist der Codex Justinianus für die heutige Zivilistik wichtig?" },
+            { year: 529, lat: 41.5, lng: 13.8, title: "Regula Benedicti", type: "religion", icon: "ph-church", desc: "Gründung von Monte Cassino.", prompt: "Wie bewahrten die Klöster die antike Bildung?" }
         ];
 
         const routes = {
@@ -350,27 +338,26 @@
         };
         
         const historicalEvents = [ 
-            { year: 375, lat: 48.0, lng: 45.0, title: "Megadürre", type: "climate", icon: "ph-sun-dim", duration: 25, desc: "Jahrzehntelange Trockenheit treibt die Hunnen nach Westen.", quote: "Die Steppe verdorrte." },
-            { year: 378, lat: 41.67, lng: 26.56, title: "Schlacht von Adrianopel", type: "battle", desc: "Goten besiegen Valens. Ein Schock für das Imperium.", quote: "Ein Gemetzel wie bei Cannae." }, 
-            { year: 401, lat: 45.4, lng: 9.2, title: "Alarichs Einfall", type: "move", desc: "Goten fallen in Italien ein. Stilicho zieht Truppen vom Rhein ab.", quote: "Die Mauern erzittern." },
-            { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Vandalen & Sueben brechen durch den unbewachten Limes.", quote: "Ganz Gallien rauchte." }, 
-            { year: 410, lat: 41.9, lng: 12.5, title: "Plünderung Roms", type: "battle", desc: "Alarich in Rom. Das psychologische Ende der Antike.", quote: "Die Stadt ist erobert." }, 
-            { year: 429, lat: 35.9, lng: -5.6, title: "Zug nach Afrika", type: "move", desc: "Vandalen setzen über. Rom verliert seine Kornkammer.", quote: "Das Brot geht aus." },
-            { year: 447, lat: 41.0, lng: 28.0, title: "Hunnen-Tribut", type: "diplomacy", desc: "Ostrom erkauft Frieden von Attila.", quote: "Gold statt Blut." },
-            { year: 451, lat: 49.0, lng: 4.0, title: "Katalaunische Felder", type: "battle", desc: "Die Völkerschlacht. Aetius stoppt Attila in Gallien.", quote: "Ein wilder Kampf." }, 
-            { year: 455, lat: 41.9, lng: 12.5, title: "Sack von Rom", type: "battle", desc: "Vandalen plündern Rom systematisch von See aus.", quote: null }, 
+            { year: 375, lat: 48.0, lng: 45.0, title: "Megadürre", type: "climate", icon: "ph-sun-dim", duration: 25, desc: "Jahrzehntelange Trockenheit.", quote: "Die Steppe verdorrte." },
+            { year: 378, lat: 41.67, lng: 26.56, title: "Schlacht von Adrianopel", type: "battle", desc: "Goten besiegen Valens.", quote: "Ein Gemetzel wie bei Cannae." }, 
+            { year: 401, lat: 45.4, lng: 9.2, title: "Alarichs Einfall", type: "move", desc: "Goten fallen in Italien ein.", quote: "Die Mauern erzittern." },
+            { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Vandalen & Sueben brechen durch.", quote: "Ganz Gallien rauchte." }, 
+            { year: 410, lat: 41.9, lng: 12.5, title: "Plünderung Roms", type: "battle", desc: "Alarich in Rom.", quote: "Die Stadt ist erobert." }, 
+            { year: 429, lat: 35.9, lng: -5.6, title: "Zug nach Afrika", type: "move", desc: "Vandalen setzen über.", quote: "Das Brot geht aus." },
+            { year: 447, lat: 41.0, lng: 28.0, title: "Hunnen-Tribut", type: "diplomacy", desc: "Ostrom erkauft Frieden.", quote: "Gold statt Blut." },
+            { year: 451, lat: 49.0, lng: 4.0, title: "Katalaunische Felder", type: "battle", desc: "Aetius stoppt Attila.", quote: "Ein wilder Kampf." }, 
+            { year: 455, lat: 41.9, lng: 12.5, title: "Sack von Rom", type: "battle", desc: "Vandalen plündern Rom.", quote: null }, 
             { year: 476, lat: 44.4, lng: 12.2, title: "Ende Westroms", type: "treaty", desc: "Odoaker setzt den letzten Kaiser ab.", quote: "Kein Kaiser mehr im Westen." }, 
-            { year: 486, lat: 49.3, lng: 3.3, title: "Schlacht von Soissons", type: "battle", desc: "Chlodwig besiegt Syagrius. Aufstieg der Franken.", quote: "Ende Roms in Gallien." }, 
-            { year: 493, lat: 44.4, lng: 12.2, title: "Rabenschlacht", type: "treaty", desc: "Theoderich tötet Odoaker. Ostgoten beherrschen Italien.", quote: "Der Verrat von Ravenna." },
-            { year: 507, lat: 46.5, lng: 0.5, title: "Schlacht von Vouillé", type: "battle", desc: "Franken besiegen Westgoten. Gallien wird fränkisch.", quote: "Die Goten weichen nach Spanien." },
-            { year: 533, lat: 36.8, lng: 10.1, title: "Vandalenkrieg", type: "battle", desc: "Belisar landet in Afrika. Schnelles Ende des Vandalenreichs.", quote: "Justinians Traum." },
-            { year: 536, lat: 42.0, lng: 12.5, title: "Vulkanischer Winter", type: "climate", icon: "ph-snowflake", duration: 10, desc: "Ein Jahr ohne Sommer. Missernten schwächen die Bevölkerung.", quote: "Die Sonne gab ihr Licht ohne Strahl." },
-            { year: 540, lat: 36.2, lng: 36.1, title: "Perserkrieg", type: "crisis", desc: "Sassaniden plündern Antiochia. Zweifrontenkrieg für Ostrom.", quote: "Die zweite Front." },
-            { year: 542, lat: 41.0, lng: 28.9, title: "Justinianische Pest", type: "plague", icon: "ph-skull", duration: 20, desc: "Pandemie tötet Millionen. Ende der Reconquista-Träume.", quote: "Gottes Zorn." },
-            { year: 552, lat: 43.2, lng: 12.8, title: "Busta Gallorum", type: "battle", desc: "Narses besiegt Totila. Endgültiges Ende der Ostgoten.", quote: "Ein blutiges Ende." }
+            { year: 486, lat: 49.3, lng: 3.3, title: "Schlacht von Soissons", type: "battle", desc: "Chlodwig besiegt Syagrius.", quote: "Ende Roms in Gallien." }, 
+            { year: 493, lat: 44.4, lng: 12.2, title: "Rabenschlacht", type: "treaty", desc: "Theoderich tötet Odoaker.", quote: "Der Verrat von Ravenna." },
+            { year: 507, lat: 46.5, lng: 0.5, title: "Schlacht von Vouillé", type: "battle", desc: "Franken besiegen Westgoten.", quote: "Die Goten weichen nach Spanien." },
+            { year: 533, lat: 36.8, lng: 10.1, title: "Vandalenkrieg", type: "battle", desc: "Belisar landet in Afrika.", quote: "Justinians Traum." },
+            { year: 536, lat: 42.0, lng: 12.5, title: "Vulkanischer Winter", type: "climate", icon: "ph-snowflake", duration: 10, desc: "Ein Jahr ohne Sommer.", quote: "Die Sonne gab ihr Licht ohne Strahl." },
+            { year: 540, lat: 36.2, lng: 36.1, title: "Perserkrieg", type: "crisis", desc: "Sassaniden plündern Antiochia.", quote: "Die zweite Front." },
+            { year: 542, lat: 41.0, lng: 28.9, title: "Justinianische Pest", type: "plague", icon: "ph-skull", duration: 20, desc: "Pandemie tötet Millionen.", quote: "Gottes Zorn." },
+            { year: 552, lat: 43.2, lng: 12.8, title: "Busta Gallorum", type: "battle", desc: "Ende der Ostgoten.", quote: "Ein blutiges Ende." }
         ];
 
-        // --- LOGIK ---
         window.onload = function() { getApiKey(); initMap(); updateVisualization(375); };
 
         function setSpeed(level) {
@@ -385,37 +372,44 @@
         }
 
         function initMap() {
-            map = L.map('map', { 
-                zoomControl: true, 
-                attributionControl: false,
-                zoomSnap: 0.25, 
-                zoomDelta: 0.25 
-            }).setView([46.5, 14.0], 5);
+            // NEUE KARTENBASIS: Relief Map für Geografie
+            map = L.map('map', { zoomControl: true, attributionControl: false, zoomSnap: 0.25, zoomDelta: 0.25 }).setView([46.5, 14.0], 5);
             map.zoomControl.setPosition('topright'); 
 
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap, ©CartoDB' }).addTo(map);
-            L.polyline(limesPath, { color: '#44403c', weight: 2, dashArray: '5, 10', opacity: 0.5 }).addTo(map);
+            // Esri World Shaded Relief für Gebirge/Täler
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}', { 
+                attribution: 'Esri', opacity: 0.8 
+            }).addTo(map);
+
+            // FLÜSSE ZEICHNEN
+            Object.values(strategicRivers).forEach(riverPath => {
+                L.polyline(riverPath, { color: '#3b82f6', weight: 2, opacity: 0.6 }).addTo(map);
+            });
+
+            // LIMES (Grenze)
+            L.polyline(limesPath, { color: '#44403c', weight: 2, dashArray: '5, 10', opacity: 0.8 }).addTo(map);
             
-            // RÖMERSTRASSEN INITIALISIEREN
+            // RÖMERSTRASSEN (Mit Tooltips)
             Object.keys(romanRoads).forEach(key => {
                 const road = romanRoads[key];
                 road.line = L.polyline(road.path, { 
-                    color: '#78350f', 
+                    color: '#574635', // Dunkles "Pflasterstein"-Braun
                     weight: 3, 
-                    opacity: 0.6,
+                    opacity: 0.7,
                     className: 'road-roman'
                 }).addTo(map);
+                road.line.bindTooltip(road.name, { sticky: true, className: 'leaflet-tooltip custom-label' });
             });
 
             historicalRegions.forEach(reg => {
-                const color = reg.color || '#78716c';
+                const color = reg.color || '#44403c';
                 L.tooltip({ permanent: true, direction: 'center', className: 'region-label', opacity: 0.8 }).setContent(`<span style="font-size:${reg.s}px; color:${color}">${reg.t}</span>`).setLatLng(reg.c).addTo(map);
             });
 
             dynamicCities.forEach((city, idx) => {
                 let color = '#666'; if (city.type === 'capital') color = '#7e22ce'; if (city.type === 'barbarian') color = '#d97706'; if (city.type === 'monastery') color = '#0ea5e9'; 
                 const marker = L.circleMarker(city.c, { radius: 4, color: color, fillColor: '#fff', fillOpacity: 1, weight: 2, opacity: 0 }).addTo(map);
-                const tooltip = L.tooltip({ permanent: true, direction: 'bottom', className: 'bg-transparent border-0 shadow-none text-stone-500 font-serif text-[10px] uppercase tracking-wider', offset: [0, 5], opacity: 0 }).setContent(city.t).setLatLng(city.c).addTo(map);
+                const tooltip = L.tooltip({ permanent: true, direction: 'bottom', className: 'bg-transparent border-0 shadow-none text-stone-700 font-serif text-[10px] uppercase tracking-wider font-bold', offset: [0, 5], opacity: 0 }).setContent(city.t).setLatLng(city.c).addTo(map);
                 cityMarkers[idx] = { marker, tooltip, start: city.start, end: city.end };
             });
 
@@ -426,7 +420,7 @@
             Object.keys(routes).forEach(key => {
                 const data = routes[key];
                 let dashStyle = '1, 6'; if (data.type === 'army') dashStyle = '10, 5'; if (data.type === 'plague') dashStyle = '1, 10'; 
-                const line = L.polyline([], { color: data.color, weight: 4, opacity: 0.7, dashArray: dashStyle }).addTo(map);
+                const line = L.polyline([], { color: data.color, weight: 4, opacity: 0.8, dashArray: dashStyle }).addTo(map);
                 let borderRadius = '50%'; if (data.type === 'army') borderRadius = '2px';
                 let iconClass = 'pulse-icon'; if (data.type === 'army') iconClass = 'pulse-icon roman-pulse'; if (data.type === 'plague') iconClass = 'pulse-icon plague-pulse';
                 const iconHtml = `<div style="background-color: ${data.color}; width: 14px; height: 14px; border-radius: ${borderRadius}; border: 2px solid white;"></div>`;
@@ -448,23 +442,14 @@
                 eventMarkers[ev.year] = marker;
             });
 
-            // KULTUR-MARKER INITIALISIEREN (Versteckt)
             culturalEvents.forEach(ev => {
                 const html = `<div class="culture-marker flex items-center justify-center w-8 h-8 rounded-full text-amber-700 bg-amber-50"><i class="ph-fill ${ev.icon} text-lg"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
                 const marker = L.marker([ev.lat, ev.lng], { icon: icon, opacity: 0 }).addTo(map);
-                
                 marker.on('click', () => {
-                    activeAlertEvent = { 
-                        title: ev.title, 
-                        year: ev.year, 
-                        desc: ev.desc, 
-                        aiPrompt: ev.prompt, 
-                        type: ev.type 
-                    };
+                    activeAlertEvent = { title: ev.title, year: ev.year, desc: ev.desc, aiPrompt: ev.prompt, type: ev.type };
                     askGeminiEvent(); 
                 });
-                
                 eventMarkers['cult_' + ev.year + ev.title] = { marker: marker, data: ev };
             });
         }
@@ -490,22 +475,19 @@
                 if (year >= cm.start && year <= cm.end) { cm.marker.setStyle({ opacity: 1, fillOpacity: 1 }); cm.tooltip.setOpacity(1); } else { cm.marker.setStyle({ opacity: 0, fillOpacity: 0 }); cm.tooltip.setOpacity(0); }
             });
 
-            // --- NEU: DYNAMISCHE INFRASTRUKTUR (Road Decay) ---
+            // Road Decay Logic
             Object.values(romanRoads).forEach(road => {
-                let opacity = 0.6;
+                let opacity = 0.7;
                 let dashArray = null;
-
                 if (road.region === 'west') {
-                    if (year > 410) { opacity = 0.4; }
+                    if (year > 410) { opacity = 0.5; }
                     if (year > 455) { opacity = 0.3; dashArray = '5, 10'; }
                     if (year > 500) { opacity = 0.2; }
-                } else {
-                    if (year > 550) opacity = 0.5; 
-                }
+                } else { if (year > 550) opacity = 0.6; }
                 road.line.setStyle({ opacity: opacity, dashArray: dashArray });
             });
 
-            // --- NARRATIVER ALERT ---
+            // Alerts
             const alertDiv = document.getElementById('narrative-alert');
             const alertBtn = document.getElementById('alert-btn');
             const alertIcon = document.getElementById('alert-icon');
@@ -521,7 +503,6 @@
                 currentEvents.sort((a, b) => { const p = { 'plague': 3, 'climate': 3, 'crisis': 3, 'battle': 2, 'move': 2, 'treaty': 1 }; return (p[b.type] || 0) - (p[a.type] || 0); });
                 let ev = currentEvents[0];
                 let btnClass = 'alert-base'; let icon = 'ph-info'; let typeText = 'Ereignis';
-
                 if (ev.type === 'battle') { btnClass += ' alert-battle'; icon = 'ph-swords'; typeText = 'Militärischer Konflikt'; }
                 else if (ev.type === 'treaty' || ev.type === 'diplomacy') { btnClass += ' alert-treaty'; icon = 'ph-scroll'; typeText = 'Politische Zäsur'; }
                 else if (ev.type === 'move') { btnClass += ' alert-move'; icon = 'ph-arrows-left-right'; typeText = 'Migration'; }
@@ -547,13 +528,13 @@
                 const res = getPosition(routes[key].path, year);
                 const layerData = layers[key]; 
                 if (res) {
-                    if (!layerData.hasStarted) { layerData.marker.setOpacity(1); layerData.line.setStyle({opacity: 0.7}); layerData.hasStarted = true; }
+                    if (!layerData.hasStarted) { layerData.marker.setOpacity(1); layerData.line.setStyle({opacity: 0.8}); layerData.hasStarted = true; }
                     layerData.marker.setLatLng([res.lat, res.lng]); layerData.line.setLatLngs(res.trail);
                     const isHunnenEnd = (key === 'hunnen' && year > 454);
                     const isStilichoEnd = (key === 'stilicho' && year > 408);
                     const isAetiusEnd = (key === 'aetius' && year > 454);
                     if (isHunnenEnd || isStilichoEnd || isAetiusEnd) { layerData.marker.setOpacity(0); layerData.marker.closeTooltip(); layerData.line.setStyle({opacity: 0.15}); } 
-                    else { layerData.marker.setOpacity(1); if(!layerData.marker.isTooltipOpen()) layerData.marker.openTooltip(); layerData.line.setStyle({opacity: 0.7}); }
+                    else { layerData.marker.setOpacity(1); if(!layerData.marker.isTooltipOpen()) layerData.marker.openTooltip(); layerData.line.setStyle({opacity: 0.8}); }
                 } else { layerData.marker.setOpacity(0); layerData.marker.closeTooltip(); layerData.line.setLatLngs([]); layerData.hasStarted = false; }
             });
             
@@ -566,22 +547,13 @@
                 } else { marker.setOpacity(0); }
             });
 
-            // --- NEU: KULTUR & RECHT VISUALISIERUNG ---
             Object.keys(eventMarkers).forEach(key => {
                 if (!key.startsWith('cult_')) return; 
-                
                 const obj = eventMarkers[key];
                 const ev = obj.data;
                 const marker = obj.marker;
-                
-                // Kultur-Events 25 Jahre sichtbar
                 const isActive = year >= ev.year && year <= (ev.year + 25); 
-                
-                if (isActive) {
-                    marker.setOpacity(1);
-                } else {
-                    marker.setOpacity(0);
-                }
+                marker.setOpacity(isActive ? 1 : 0);
             });
         }
 
@@ -590,9 +562,7 @@
         function startAnimation() {
             animationInterval = setInterval(() => {
                 let currentStep = yearStep;
-                if (activeAlertEvent) {
-                    currentStep = yearStep * 0.15; 
-                }
+                if (activeAlertEvent) { currentStep = yearStep * 0.15; }
                 let preciseVal = currentYear; 
                 if (preciseVal >= 568) preciseVal = 375; 
                 else preciseVal += currentStep;
@@ -643,19 +613,11 @@
         }
 
         function closeInfo() { document.getElementById('info-box').classList.add('hidden'); }
-        
-        // --- CHAT & AI LOGIK ---
-
-        function closeAiModal() { 
-            document.getElementById('ai-modal').classList.add('hidden'); 
-            chatContext = []; // Reset History
-            document.getElementById('ai-input-area').classList.add('hidden');
-        }
+        function closeAiModal() { document.getElementById('ai-modal').classList.add('hidden'); chatContext = []; document.getElementById('ai-input-area').classList.add('hidden'); }
 
         function appendMessage(text, sender) {
             const container = document.getElementById('ai-chat-container');
             const div = document.createElement('div');
-            
             if (sender === 'ai') {
                 div.className = "bg-white p-4 rounded-lg border border-stone-200 shadow-sm text-stone-800";
                 div.innerHTML = `<div class="font-bold text-xs text-purple-600 mb-1 uppercase tracking-wider">Historiker</div>${formatText(text)}`;
@@ -663,8 +625,7 @@
                 div.className = "bg-stone-200 p-3 rounded-lg border border-stone-300 text-stone-700 ml-12 text-right self-end"; 
                 div.innerHTML = `<div class="font-bold text-xs text-stone-500 mb-1 uppercase tracking-wider">Ihre Nachfrage</div>${formatText(text)}`;
             }
-            container.appendChild(div);
-            container.scrollTop = container.scrollHeight; 
+            container.appendChild(div); container.scrollTop = container.scrollHeight; 
         }
 
         async function askGeminiTribe() {
@@ -672,8 +633,6 @@
             const respDiv = document.getElementById('tribe-ai-response'); respDiv.classList.remove('hidden');
             respDiv.innerHTML = `<div class="flex items-center gap-3 py-2"><div class="ai-spinner"></div><span class="italic text-stone-500 text-xs">Recherchiere ${currentTribeForAI.name}...</span></div>`;
             const prompt = `Du bist ein Experte für Spätantike. Thema: Die Gruppe '${currentTribeForAI.name}' im Jahr ${Math.floor(currentYear)} n. Chr. Erkläre präzise ihre Situation (Ort, Rechtsstatus, Anführer, militärische Ziele). 2-3 Sätze, Deutsch.`;
-            
-            // Single shot call
             const result = await callGeminiWithHistory([{ role: 'user', parts: [{ text: prompt }] }]);
             respDiv.innerHTML = formatText(result);
         }
@@ -681,96 +640,55 @@
         async function askGeminiContext() {
             const modal = document.getElementById('ai-modal'); 
             const container = document.getElementById('ai-chat-container');
-            
             document.getElementById('ai-modal-year').innerText = Math.floor(currentYear); 
-            modal.classList.remove('hidden');
-            container.innerHTML = ''; 
-            
+            modal.classList.remove('hidden'); container.innerHTML = ''; 
             container.innerHTML = `<div id="loading-spinner" class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 border-t-amber-500"></div><p class="text-stone-500 italic">Analysiere Quellen...</p></div>`;
-
-            const prompt = `Du bist ein Althistoriker. Analysiere das Jahr ${Math.floor(currentYear)} n. Chr. in Europa. Fokus: Militärische Lage (Westrom/Ostrom), Völkerwanderung, diplomatische Zäsuren. Antworte anspruchsvoll auf Deutsch.`;
-            
+            const prompt = `Du bist ein Althistoriker. Analysiere das Jahr ${Math.floor(currentYear)} n. Chr. in Europa. Fokus: Militärische Lage, Völkerwanderung, Diplomatie. Anspruchsvoll, Deutsch.`;
             chatContext = [{ role: 'user', parts: [{ text: prompt }] }];
-
             const result = await callGeminiWithHistory(chatContext);
-            
             document.getElementById('loading-spinner').remove();
             appendMessage(result, 'ai');
-            
             chatContext.push({ role: 'model', parts: [{ text: result }] });
             document.getElementById('ai-input-area').classList.remove('hidden');
-            document.getElementById('follow-up-input').focus();
         }
 
         async function askGeminiEvent() {
             if (!activeAlertEvent) return;
             const modal = document.getElementById('ai-modal'); 
             const container = document.getElementById('ai-chat-container');
-            
             document.getElementById('ai-modal-year').innerText = activeAlertEvent.title; 
-            modal.classList.remove('hidden');
-            container.innerHTML = ''; 
-            
+            modal.classList.remove('hidden'); container.innerHTML = ''; 
             container.innerHTML = `<div id="loading-spinner" class="flex flex-col items-center justify-center py-12"><div class="ai-spinner mb-4 w-8 h-8 border-t-red-600"></div><p class="text-stone-500 italic">Analysiere Ereignis...</p></div>`;
-
             const promptText = activeAlertEvent.aiPrompt || `Analysiere das Ereignis '${activeAlertEvent.title}' im Jahr ${activeAlertEvent.year}.`;
             const prompt = `Du bist Historiker. ${promptText} Antworte präzise, analytisch und auf Deutsch.`;
-
             chatContext = [{ role: 'user', parts: [{ text: prompt }] }];
-            
             const result = await callGeminiWithHistory(chatContext);
-            
             document.getElementById('loading-spinner').remove();
             appendMessage(result, 'ai');
-            
             chatContext.push({ role: 'model', parts: [{ text: result }] });
             document.getElementById('ai-input-area').classList.remove('hidden');
         }
 
         async function sendFollowUp() {
-            const input = document.getElementById('follow-up-input');
-            const text = input.value.trim();
-            if (!text) return;
-
-            appendMessage(text, 'user');
-            input.value = ''; 
-            
+            const input = document.getElementById('follow-up-input'); const text = input.value.trim(); if (!text) return;
+            appendMessage(text, 'user'); input.value = ''; 
             const container = document.getElementById('ai-chat-container');
-            const loaderDiv = document.createElement('div');
-            loaderDiv.id = "temp-loader";
+            const loaderDiv = document.createElement('div'); loaderDiv.id = "temp-loader";
             loaderDiv.innerHTML = `<div class="flex items-center gap-2 p-4 text-stone-400 italic text-sm"><div class="ai-spinner w-4 h-4"></div> Der Historiker denkt nach...</div>`;
-            container.appendChild(loaderDiv);
-            container.scrollTop = container.scrollHeight;
-
+            container.appendChild(loaderDiv); container.scrollTop = container.scrollHeight;
             chatContext.push({ role: 'user', parts: [{ text: text }] });
-
             const result = await callGeminiWithHistory(chatContext);
-            
-            document.getElementById('temp-loader').remove();
-            appendMessage(result, 'ai');
-            
+            document.getElementById('temp-loader').remove(); appendMessage(result, 'ai');
             chatContext.push({ role: 'model', parts: [{ text: result }] });
         }
 
         async function callGeminiWithHistory(contentsArray) {
-            const key = getApiKey();
-            if (!key) return "FEHLER: Kein API-Key.";
+            const key = getApiKey(); if (!key) return "FEHLER: Kein API-Key.";
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${key}`;
-            
             try {
-                const response = await fetch(url, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify({ contents: contentsArray })
-                });
-                
-                if (!response.ok) {
-                    const err = await response.json();
-                    if(response.status === 403) return `<b>API Fehler (403):</b> Key abgelehnt.`;
-                    return `<b>API Fehler:</b> ${err.error?.message}`;
-                }
-                const data = await response.json(); 
-                return data.candidates[0].content.parts[0].text;
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: contentsArray }) });
+                if (!response.ok) { const err = await response.json(); return `<b>API Fehler:</b> ${err.error?.message}`; }
+                const data = await response.json(); return data.candidates[0].content.parts[0].text;
             } catch (error) { return `<b>Netzwerkfehler:</b> ${error.message}`; }
         }
     </script>

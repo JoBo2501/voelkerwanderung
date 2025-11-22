@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Interaktivität Priorisiert</title>
+    <title>Völkerwanderung: Stabil & Lesbar</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -71,6 +71,7 @@
         
         #map { height: 100vh; width: 100vw; background: #e5e5e5; z-index: 1; }
         
+        /* UI Layer: Pointer Events nur auf Elemente erlauben */
         .ui-layer { position: absolute; z-index: 5000; pointer-events: none; }
         .ui-element { pointer-events: auto; }
         
@@ -83,19 +84,21 @@
 
         .pulse-icon { position: relative; }
         .pulse-icon:after { content: ''; position: absolute; width: 100%; height: 100%; top: 0; left: 0; border-radius: 50%; background: inherit; animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; z-index: -1; }
-        .roman-pulse:after { border: 2px solid #7e22ce; animation: pulse-ring 2s infinite; }
-        .climate-pulse:after { border: 2px solid #06b6d4; animation: pulse-ring 2.5s infinite; background: rgba(6,182,212,0.1); }
-        .plague-pulse:after { border: 2px solid #10b981; animation: pulse-ring 1s infinite; background: rgba(16, 185, 129, 0.2); }
         
-        .alert-base { animation: alert-pulse 2.5s infinite; color: white; border: 1px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); backdrop-filter: blur(4px); }
-        
+        /* FIX: Harte Hintergrundfarben statt Transparenz für Lesbarkeit */
+        .alert-base { animation: alert-pulse 2.5s infinite; color: white; border: 1px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background: #333; }
+        .alert-nature { background: #0891b2; }
+        .alert-battle { background: #dc2626; }
+        .alert-treaty { background: #7e22ce; }
+        .alert-move { background: #4f46e5; }
+
         .ai-spinner { border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top: 3px solid #9333ea; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         .leaflet-tooltip.custom-label { background-color: rgba(255, 255, 255, 0.95); border: 1px solid #999; color: #333; font-family: serif; font-weight: bold; font-size: 12px; padding: 2px 6px; border-radius: 2px; }
         .leaflet-tooltip.region-label { background: transparent; border: none; box-shadow: none; font-family: 'Times New Roman', serif; font-weight: bold; color: #333; text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px; opacity: 0.9; pointer-events: none; text-shadow: 1px 1px 0px rgba(255,255,255,0.8); }
         
-        /* MARKER STYLING: Cursor Pointer erzwingen */
+        /* WICHTIG: Pointer Cursor für alle interaktiven Elemente */
         .leaflet-interactive { cursor: pointer !important; }
         
         .culture-marker { background: #fff; border: 2px solid #d97706; color: #d97706; box-shadow: 0 0 10px rgba(217, 119, 6, 0.4); animation: pulse-culture 3s infinite; }
@@ -105,7 +108,7 @@
         .leaflet-layer { filter: saturate(1.4) contrast(1.2); }
 
         .road-relief { mix-blend-mode: multiply; opacity: 0.7; stroke-linecap: round; stroke-linejoin: round; }
-        .river-style { stroke: #3b82f6; opacity: 0.8; stroke-linecap: round; stroke-linejoin: round; mix-blend-mode: normal; }
+        .river-style { stroke: #3b82f6; opacity: 0.75; stroke-linecap: round; stroke-linejoin: round; mix-blend-mode: normal; }
         .limes-style { stroke: #3f3f46; opacity: 0.8; stroke-linecap: square; }
         .division-style { stroke: #7e22ce; opacity: 0.6; dash-array: 5, 10; }
 
@@ -116,7 +119,7 @@
     <div id="map"></div>
 
     <div class="ui-layer top-0 left-0 right-0 p-4 flex flex-col md:flex-row justify-between items-start gap-3 pointer-events-none">
-        <div class="ui-element inline-block bg-white/95 backdrop-blur shadow-lg rounded-lg px-4 py-3 border-l-4 border-amber-600 pointer-events-auto">
+        <div class="ui-element inline-block bg-white shadow-lg rounded-lg px-4 py-3 border-l-4 border-amber-600 pointer-events-auto">
             <h1 class="text-lg font-serif font-bold text-stone-800 leading-none flex items-center gap-2">
                 <i class="ph-fill ph-globe-hemisphere-east text-amber-600"></i> Völkerwanderung
             </h1>
@@ -137,7 +140,7 @@
         </div>
 
         <div class="ui-element flex gap-2 pointer-events-auto self-end md:self-auto">
-            <button onclick="clearApiKey()" class="bg-white/90 hover:bg-white text-stone-500 border border-stone-200 px-2 py-2 rounded-lg shadow-sm flex items-center gap-2 text-xs" title="API Key löschen">
+            <button onclick="clearApiKey()" class="bg-white hover:bg-stone-50 text-stone-500 border border-stone-200 px-2 py-2 rounded-lg shadow-sm flex items-center gap-2 text-xs" title="API Key löschen">
                 <i class="ph-bold ph-key"></i>
             </button>
             <button onclick="askGeminiContext()" class="md:hidden bg-white text-purple-700 border border-purple-200 px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 text-sm font-bold">
@@ -146,21 +149,21 @@
         </div>
     </div>
 
-    <div id="key-modal" class="hidden fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 ui-element">
+    <div id="key-modal" class="hidden fixed inset-0 z-[9999] bg-black/80 flex items-center justify-center p-4 ui-element">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 border border-stone-200">
             <div class="text-center mb-4">
                 <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
                     <i class="ph-fill ph-key text-purple-600 text-2xl"></i>
                 </div>
                 <h2 class="font-serif font-bold text-xl text-stone-800">Setup: KI-Verbindung</h2>
-                <p class="text-sm text-stone-500 mt-2">Geben Sie Ihren neuen API-Key ein. Er wird nur lokal gespeichert.</p>
+                <p class="text-sm text-stone-500 mt-2">Geben Sie Ihren neuen API-Key ein.</p>
             </div>
             <input type="password" id="api-key-input" placeholder="Key einfügen (AIzaSy...)" class="w-full p-3 border border-stone-300 rounded-lg mb-4 focus:ring-2 focus:ring-purple-500 focus:outline-none font-mono text-sm">
             <button onclick="saveApiKey()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-lg transition-colors">Speichern & Starten</button>
         </div>
     </div>
 
-    <div id="info-box" class="hidden ui-layer top-20 left-4 right-4 md:left-auto md:right-4 md:w-[400px] max-h-[75vh] flex flex-col rounded-xl shadow-2xl z-[4000] bg-white border border-stone-300 pointer-events-auto">
+    <div id="info-box" class="hidden ui-layer top-20 left-4 right-4 md:left-auto md:right-4 md:w-[400px] max-h-[75vh] flex flex-col rounded-xl shadow-2xl z-[4000] bg-white border border-stone-300 pointer-events-auto" style="background-color: white;">
         <div id="info-artifact-container" class="relative w-full h-48 bg-stone-100 shrink-0 border-b border-stone-200">
             <img id="artifact-img" src="" alt="Artefakt" class="w-full h-full object-contain p-4">
             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/80 to-transparent p-2 pt-8">
@@ -170,7 +173,7 @@
                 </div>
             </div>
         </div>
-        <div class="p-5 overflow-y-auto">
+        <div class="p-5 overflow-y-auto bg-white">
             <div class="flex justify-between items-start mb-2">
                 <h2 id="info-title" class="font-serif font-bold text-2xl text-stone-800"></h2>
                 <button onclick="closeInfo()" class="p-1 hover:bg-stone-100 rounded-full text-stone-500 hover:text-red-600"><i class="ph-bold ph-x text-xl"></i></button>
@@ -188,8 +191,8 @@
         </div>
     </div>
 
-    <div id="ai-modal" class="hidden fixed inset-0 z-[5000] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 ui-element">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[85vh] overflow-hidden">
+    <div id="ai-modal" class="hidden fixed inset-0 z-[5000] bg-black/40 flex items-center justify-center p-4 ui-element">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[85vh] overflow-hidden" style="background-color: white;">
             <div class="bg-stone-900 p-4 text-white flex justify-between items-center shrink-0">
                 <h3 class="font-serif font-bold flex items-center gap-2 text-lg">
                     <i class="ph-fill ph-chat-centered-text text-purple-400"></i> 
@@ -210,7 +213,7 @@
     </div>
 
     <div class="ui-layer bottom-0 left-0 right-0">
-        <div class="ui-element bg-white border-t border-stone-200 shadow-lg p-4 pb-8 md:pb-6">
+        <div class="ui-element bg-white border-t border-stone-200 shadow-lg p-4 pb-8 md:pb-6" style="background-color: white;">
             <div class="max-w-5xl mx-auto w-full">
                 
                 <div class="flex items-center justify-between mb-4">
@@ -258,6 +261,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
     <script>
+        const apiKey = ""; 
         let currentTribeForAI = null;
         let map;
         const layers = {};
@@ -300,7 +304,7 @@
         const culturalEvents = [
             { year: 325, lat: 40.4, lng: 29.7, title: "Konzil von Nicäa", type: "religion", icon: "ph-cross", desc: "Definition des katholischen Glaubens.", prompt: "Erkläre den Konflikt Arianismus vs Katholizismus." },
             { year: 380, lat: 41.0, lng: 28.9, title: "Edikt Cunctos populos", type: "religion", icon: "ph-scroll", desc: "Theodosius I. macht das Christentum zur Staatsreligion.", prompt: "Analysiere das Edikt von Thessaloniki rechtshistorisch." },
-            { year: 395, lat: 42.5, lng: 19.5, title: "Reichsteilung", type: "treaty", icon: "ph-arrows-split", desc: "Tod Theodosius I. Endgültige Trennung in West- und Ostrom.", prompt: "Welche staatsrechtlichen und administrativen Folgen hatte die Teilung 395?" },
+            { year: 395, lat: 42.5, lng: 19.5, title: "Reichsteilung", type: "treaty", icon: "ph-arrows-split", desc: "Tod Theodosius I. Endgültige Trennung in West- und Ostrom.", prompt: "Welche staatsrechtlichen Folgen hatte die Teilung 395?" },
             { year: 438, lat: 41.0, lng: 28.9, title: "Codex Theodosianus", type: "law", icon: "ph-scales", desc: "Erste offizielle Gesetzessammlung seit den Zwölftafeln.", prompt: "Welche Bedeutung hat der Codex Theodosianus für die Rechtseinheit?" },
             { year: 475, lat: 43.6, lng: 1.4, title: "Codex Euricianus", type: "law", icon: "ph-book-bookmark", desc: "Westgotisches Volksrecht.", prompt: "Analysiere den Codex Euricianus." },
             { year: 506, lat: 43.6, lng: 1.4, title: "Breviarium Alaricianum", type: "law", icon: "ph-scales", desc: "Lex Romana Visigothorum.", prompt: "Erkläre das Personalitätsprinzip." },
@@ -357,7 +361,7 @@
         }
 
         function initMap() {
-            // ZURÜCK ZUR ESRI KARTE (KEINE MODERNEN NAMEN, REINE PHYSIS)
+            // ESRI KARTE
             map = L.map('map', { zoomControl: true, attributionControl: false, zoomSnap: 0.25, zoomDelta: 0.25 }).setView([46.5, 14.0], 5);
             map.zoomControl.setPosition('topright'); 
 
@@ -365,64 +369,62 @@
                 attribution: 'Esri', opacity: 1.0 
             }).addTo(map);
 
-            // 1. UNTERE EBENE (Linien, Flüsse)
-            map.createPane('bottomPane'); map.getPane('bottomPane').style.zIndex = 400;
-            
-            // 2. OBERE EBENE (Marker, Punkte - ZWINGEND KLICKBAR)
-            map.createPane('topPane'); map.getPane('topPane').style.zIndex = 1000; 
+            // CUSTOM PANES: Klickbarkeit erzwingen
+            map.createPane('clickPane');
+            map.getPane('clickPane').style.zIndex = 2000; 
 
             // FLÜSSE
             Object.values(strategicRivers).forEach(riverPath => {
-                L.polyline(riverPath, { className: 'river-style', weight: 2, opacity: 0.7, smoothFactor: 1, pane: 'bottomPane' }).addTo(map);
+                L.polyline(riverPath, { className: 'river-style', weight: 2, opacity: 0.7, smoothFactor: 1 }).addTo(map);
             });
 
             // LIMES
-            const limes = L.polyline(limesPath, { className: 'limes-style', weight: 2, dashArray: '4, 4', opacity: 0.7, smoothFactor: 1, pane: 'bottomPane' }).addTo(map);
+            const limes = L.polyline(limesPath, { className: 'limes-style', weight: 2, dashArray: '4, 4', opacity: 0.7, smoothFactor: 1 }).addTo(map);
             limes.bindTooltip("Limes Germanicus", { sticky: true, className: 'leaflet-tooltip custom-label', direction: 'top' });
             
             // REICHSTEILUNG
-            empireDivisionLine = L.polyline(divisionPath, { color: '#7e22ce', weight: 2, dashArray: '10, 5', opacity: 0, pane: 'bottomPane' }).addTo(map);
+            empireDivisionLine = L.polyline(divisionPath, { color: '#7e22ce', weight: 2, dashArray: '10, 5', opacity: 0 }).addTo(map);
             empireDivisionLine.bindTooltip("Teilungslinie (395 n. Chr.)", { sticky: true, className: 'leaflet-tooltip custom-label', direction: 'top' });
 
             // RÖMERSTRASSEN
             Object.keys(romanRoads).forEach(key => {
                 const road = romanRoads[key];
-                road.line = L.polyline(road.path, { color: '#5c4d3c', weight: 3, opacity: 0.6, smoothFactor: 1, className: 'road-relief', pane: 'bottomPane' }).addTo(map);
+                road.line = L.polyline(road.path, { color: '#5c4d3c', weight: 3, opacity: 0.6, smoothFactor: 1, className: 'road-relief' }).addTo(map);
                 road.line.bindTooltip(road.name, { sticky: true, className: 'leaflet-tooltip custom-label' });
             });
 
             historicalRegions.forEach(reg => {
                 const color = reg.color || '#44403c';
-                L.tooltip({ permanent: true, direction: 'center', className: 'region-label', opacity: 0.8, pane: 'bottomPane' }).setContent(`<span style="font-size:${reg.s}px; color:${color}">${reg.t}</span>`).setLatLng(reg.c).addTo(map);
+                L.tooltip({ permanent: true, direction: 'center', className: 'region-label', opacity: 0.8 }).setContent(`<span style="font-size:${reg.s}px; color:${color}">${reg.t}</span>`).setLatLng(reg.c).addTo(map);
             });
 
-            // STÄDTE (Marker in topPane)
             dynamicCities.forEach((city, idx) => {
                 let color = '#666'; if (city.type === 'capital') color = '#7e22ce'; if (city.type === 'barbarian') color = '#d97706'; if (city.type === 'monastery') color = '#0ea5e9'; 
-                const marker = L.circleMarker(city.c, { radius: 4, color: color, fillColor: '#fff', fillOpacity: 1, weight: 2, opacity: 0, pane: 'topPane', interactive: true }).addTo(map);
+                const marker = L.circleMarker(city.c, { radius: 4, color: color, fillColor: '#fff', fillOpacity: 1, weight: 2, opacity: 0, pane: 'clickPane', interactive: true }).addTo(map);
                 const tooltip = L.tooltip({ permanent: true, direction: 'bottom', className: 'bg-transparent border-0 shadow-none text-stone-700 font-serif text-[10px] uppercase tracking-wider font-bold', offset: [0, 5], opacity: 0 }).setContent(city.t).setLatLng(city.c).addTo(map);
                 cityMarkers[idx] = { marker, tooltip, start: city.start, end: city.end };
             });
 
-            climateLayer = L.circle([46.0, 15.0], { radius: 1500000, color: '#64748b', fillColor: '#94a3b8', fillOpacity: 0, opacity: 0, weight: 0, pane: 'bottomPane' }).addTo(map);
-            plagueLayer = L.circle([38.0, 18.0], { radius: 1500000, color: '#10b981', fillColor: '#10b981', fillOpacity: 0, opacity: 0, weight: 0, pane: 'bottomPane' }).addTo(map);
-            droughtLayer = L.circle([48.0, 40.0], { radius: 800000, color: '#d97706', fillColor: '#d97706', fillOpacity: 0, opacity: 0, weight: 0, pane: 'bottomPane' }).addTo(map);
+            climateLayer = L.circle([46.0, 15.0], { radius: 1500000, color: '#64748b', fillColor: '#94a3b8', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
+            plagueLayer = L.circle([38.0, 18.0], { radius: 1500000, color: '#10b981', fillColor: '#10b981', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
+            droughtLayer = L.circle([48.0, 40.0], { radius: 800000, color: '#d97706', fillColor: '#d97706', fillOpacity: 0, opacity: 0, weight: 0 }).addTo(map);
 
-            // STÄMME (ROUTES)
+            // STÄMME (ROUTES) - KLICK FIX: HIT-BOX & Z-INDEX
             Object.keys(routes).forEach(key => {
                 const data = routes[key];
                 let dashStyle = '1, 6'; if (data.type === 'army') dashStyle = '10, 5'; if (data.type === 'plague') dashStyle = '1, 10'; 
                 
-                // Linie in bottomPane
-                const line = L.polyline([], { color: data.color, weight: 4, opacity: 0.8, dashArray: dashStyle, pane: 'bottomPane', interactive: true }).addTo(map);
+                const line = L.polyline([], { color: data.color, weight: 4, opacity: 0.8, dashArray: dashStyle, interactive: false }).addTo(map);
                 
                 let borderRadius = '50%'; if (data.type === 'army') borderRadius = '2px';
                 let iconClass = 'pulse-icon'; if (data.type === 'army') iconClass = 'pulse-icon roman-pulse'; if (data.type === 'plague') iconClass = 'pulse-icon plague-pulse';
-                const iconHtml = `<div style="background-color: ${data.color}; width: 14px; height: 14px; border-radius: ${borderRadius}; border: 2px solid white;"></div>`;
-                const icon = L.divIcon({ className: iconClass, html: iconHtml, iconSize: [14, 14], iconAnchor: [7, 7] });
                 
-                // Marker in topPane (KLICKBAR!)
-                const marker = L.marker([0,0], { icon: icon, pane: 'topPane', interactive: true }).addTo(map);
+                // GRÖSSERE HIT-BOX DURCH ICONSIZE (30px statt 14px)
+                const iconHtml = `<div style="background-color: ${data.color}; width: 14px; height: 14px; border-radius: ${borderRadius}; border: 2px solid white; margin: 8px;"></div>`;
+                const icon = L.divIcon({ className: iconClass, html: iconHtml, iconSize: [30, 30], iconAnchor: [15, 15] });
+                
+                // MARKER IN CUSTOM PANE
+                const marker = L.marker([0,0], { icon: icon, pane: 'clickPane', interactive: true }).addTo(map);
                 marker.bindTooltip(data.name, { permanent: true, direction: 'right', className: 'custom-label', offset: [10, 0] });
                 
                 const clickHandler = () => {
@@ -434,12 +436,11 @@
                 };
 
                 marker.on('click', clickHandler);
-                line.on('click', clickHandler);
                 
                 layers[key] = { line, marker, hasStarted: false };
             });
             
-            // EREIGNISSE (Marker in topPane)
+            // EREIGNISSE
             historicalEvents.forEach(ev => {
                 const color = (ev.type === 'battle' || ev.type === 'crisis' || ev.type === 'plague') ? '#dc2626' : (ev.type === 'climate' ? '#06b6d4' : '#4b5563');
                 let iconType = ev.icon || (ev.type === 'battle' ? 'ph-swords' : (ev.type === 'plague' ? 'ph-skull' : (ev.type === 'crisis' ? 'ph-fire' : (ev.type === 'diplomacy' ? 'ph-handshake' : 'ph-snowflake'))));
@@ -447,7 +448,7 @@
                 const html = `<div class="battle-marker flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-md border border-stone-200 text-[${color}] ${pulseClass}"><i class="ph-fill ${iconType} text-lg" style="color:${color}"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
                 
-                const marker = L.marker([ev.lat, ev.lng], { icon: icon, pane: 'topPane', interactive: true }).addTo(map);
+                const marker = L.marker([ev.lat, ev.lng], { icon: icon, pane: 'clickPane', interactive: true }).addTo(map);
                 
                 marker.on('click', function() {
                     showInfo(ev.title, ev.desc, ev.quote, color, null, { 
@@ -461,12 +462,12 @@
                 eventMarkers[ev.year] = marker;
             });
 
-            // KULTUR (Marker in topPane)
+            // KULTUR
             culturalEvents.forEach(ev => {
                 const html = `<div class="culture-marker flex items-center justify-center w-8 h-8 rounded-full text-amber-700 bg-amber-50"><i class="ph-fill ${ev.icon} text-lg"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
                 
-                const marker = L.marker([ev.lat, ev.lng], { icon: icon, pane: 'topPane', interactive: true }).addTo(map);
+                const marker = L.marker([ev.lat, ev.lng], { icon: icon, pane: 'clickPane', interactive: true }).addTo(map);
                 
                 marker.on('click', function() {
                     showInfo(ev.title, ev.desc, null, '#d97706', null, { 
@@ -691,7 +692,7 @@
             document.getElementById('loading-spinner').remove();
             appendMessage(result, 'ai');
             
-            // HIER WIRD DAS FELD AKTIVIERT
+            // FIX: INPUT FELD SOFORT ANZEIGEN
             chatContext.push({ role: 'model', parts: [{ text: result }] });
             document.getElementById('ai-input-area').classList.remove('hidden');
             document.getElementById('follow-up-input').focus();
@@ -708,6 +709,8 @@
             const result = await callGeminiWithHistory(chatContext);
             document.getElementById('loading-spinner').remove();
             appendMessage(result, 'ai');
+            
+            // FIX: INPUT FELD SOFORT ANZEIGEN
             chatContext.push({ role: 'model', parts: [{ text: result }] });
             document.getElementById('ai-input-area').classList.remove('hidden');
             document.getElementById('follow-up-input').focus();
@@ -726,8 +729,11 @@
             const result = await callGeminiWithHistory(chatContext);
             document.getElementById('loading-spinner').remove();
             appendMessage(result, 'ai');
+            
+            // FIX: INPUT FELD SOFORT ANZEIGEN
             chatContext.push({ role: 'model', parts: [{ text: result }] });
             document.getElementById('ai-input-area').classList.remove('hidden');
+            document.getElementById('follow-up-input').focus();
         }
 
         async function sendFollowUp() {

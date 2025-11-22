@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Der Historische Diskurs</title>
+    <title>Völkerwanderung: Recht, Kultur & Zerfall</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -104,9 +104,34 @@
         .leaflet-tooltip.region-label { background: transparent; border: none; box-shadow: none; font-family: 'Times New Roman', serif; font-weight: bold; color: #78716c; text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px; opacity: 0.7; pointer-events: none; text-shadow: 1px 1px 0px rgba(255,255,255,0.5); }
         .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { display: none; }
         .leaflet-marker-icon, .leaflet-tooltip { transition: opacity 0.5s ease-in-out; }
+
+        /* --- NEU: ATMOSPHÄRE & VISUALS --- */
+        
+        /* Sepia-Filter für Antik-Look */
+        .leaflet-layer { filter: sepia(0.5) contrast(0.9) saturate(0.6); }
+
+        /* Pergament-Overlay (Körnung und Vignette) */
+        .parchment-overlay {
+            position: absolute; inset: 0; pointer-events: none; z-index: 2000;
+            background: radial-gradient(circle, transparent 40%, rgba(68, 52, 34, 0.2) 100%),
+                        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+            mix-blend-mode: multiply;
+        }
+
+        /* Marker für Recht & Religion */
+        .culture-marker { 
+            background: #fff; border: 2px solid #d97706; color: #d97706; 
+            box-shadow: 0 0 10px rgba(217, 119, 6, 0.4);
+            animation: pulse-culture 3s infinite;
+        }
+        @keyframes pulse-culture { 0% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(217, 119, 6, 0); } 100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); } }
+
+        /* Straßen-Stile (Verfall) */
+        .road-roman { transition: opacity 2s ease, stroke-dasharray 2s ease; }
     </style>
 </head>
 <body class="bg-stone-100">
+    <div class="parchment-overlay"></div>
 
     <div id="map"></div>
 
@@ -249,6 +274,7 @@
                     <div class="flex items-center gap-1 border-l pl-2 border-stone-300"><div class="w-2 h-2 bg-purple-700 rounded-full"></div>Rom. Armee</div>
                     <div class="flex items-center gap-1"><div class="w-2 h-2 bg-emerald-500 rounded-full"></div>Pest</div>
                     <div class="flex items-center gap-1"><div class="w-2 h-2 bg-cyan-500 rounded-full"></div>Klima</div>
+                    <div class="flex items-center gap-1 border-l pl-2 border-stone-300 text-amber-700"><i class="ph-fill ph-scales"></i> Recht/Kultur</div>
                 </div>
 
                 <div class="relative px-2">
@@ -291,6 +317,25 @@
         const historicalRegions = [ { c: [46.5, 2.0], t: "GALLIA", s: 16 }, { c: [40.0, -4.0], t: "HISPANIA", s: 16 }, { c: [42.5, 12.5], t: "ITALIA", s: 16 }, { c: [45.0, 17.0], t: "PANNONIA", s: 14 }, { c: [43.0, 22.0], t: "ILLYRICUM", s: 14 }, { c: [42.0, 25.0], t: "THRACIA", s: 14 }, { c: [35.0, 2.0], t: "AFRICA", s: 16 }, { c: [51.0, 10.0], t: "GERMANIA", s: 16, color: "#a8a29e" }, { c: [48.0, 30.0], t: "SCYTHIA", s: 14, color: "#a8a29e" } ];
         const dynamicCities = [ { c: [41.9, 12.5], t: "Rom", type: 'capital', start: 0, end: 600 }, { c: [41.0, 28.9], t: "Konstantinopel", type: 'capital', start: 330, end: 600 }, { c: [36.8, 10.1], t: "Karthago", type: 'city', start: 0, end: 600 }, { c: [44.4, 12.2], t: "Ravenna", type: 'capital', start: 402, end: 600 }, { c: [43.6, 1.4], t: "Tolosa", type: 'barbarian', start: 418, end: 507 }, { c: [39.8, -4.0], t: "Toledo", type: 'barbarian', start: 507, end: 600 }, { c: [41.5, 13.8], t: "Monte Cassino", type: 'monastery', start: 529, end: 600 } ];
         
+        // --- NEU: ZIVILISATION & KULTUR DATEN ---
+        const romanRoads = {
+            viaAppia: { path: [[41.9, 12.5], [41.3, 13.2], [41.1, 14.2], [40.8, 14.8], [40.6, 17.9]], region: 'west' }, 
+            viaDomitia: { path: [[45.0, 6.7], [43.8, 4.4], [43.6, 3.9], [43.2, 3.0], [42.4, 2.9]], region: 'west' },   
+            viaEgnatia: { path: [[41.3, 19.4], [41.1, 20.6], [40.8, 22.3], [40.9, 24.4], [41.0, 28.9]], region: 'east' }, 
+            viaAgrippa: { path: [[43.6, 4.6], [45.7, 4.8], [47.3, 5.0], [49.8, 6.6], [50.9, 6.9]], region: 'west' }     
+        };
+
+        const culturalEvents = [
+            { year: 325, lat: 40.4, lng: 29.7, title: "Konzil von Nicäa", type: "religion", icon: "ph-cross", desc: "Definition des katholischen Glaubens. Der Arianismus wird Häresie.", prompt: "Erkläre den Konflikt Arianismus vs Katholizismus und die politische Wirkung." },
+            { year: 380, lat: 41.0, lng: 28.9, title: "Edikt Cunctos populos", type: "religion", icon: "ph-scroll", desc: "Theodosius I. macht das Christentum zur Staatsreligion.", prompt: "Analysiere das Edikt von Thessaloniki rechtshistorisch." },
+            { year: 438, lat: 41.0, lng: 28.9, title: "Codex Theodosianus", type: "law", icon: "ph-scales", desc: "Erste offizielle Gesetzessammlung seit den Zwölftafeln. Gilt in Ost und West.", prompt: "Welche Bedeutung hat der Codex Theodosianus für die Rechtseinheit im zerfallenden Reich?" },
+            { year: 475, lat: 43.6, lng: 1.4, title: "Codex Euricianus", type: "law", icon: "ph-book-bookmark", desc: "Westgotisches Volksrecht. Frühes Beispiel germanischer Schriftlichkeit.", prompt: "Analysiere den Codex Euricianus als Mischung aus römischem und germanischem Recht." },
+            { year: 506, lat: 43.6, lng: 1.4, title: "Breviarium Alaricianum", type: "law", icon: "ph-scales", desc: "Lex Romana Visigothorum. Römisches Recht für die romanische Bevölkerung im Gotenreich.", prompt: "Erkläre das Personalitätsprinzip des Rechts anhand des Breviarium Alaricianum." },
+            { year: 507, lat: 48.8, lng: 2.3, title: "Lex Salica", type: "law", icon: "ph-gavel", desc: "Das Recht der salischen Franken. Wergeld statt Blutrache.", prompt: "Was regelt die Lex Salica und wie spiegelt sie die fränkische Gesellschaft wider?" },
+            { year: 529, lat: 41.0, lng: 28.9, title: "Codex Justinianus", type: "law", icon: "ph-bank", desc: "Basis des Corpus Iuris Civilis. Fundament des modernen europäischen Rechts.", prompt: "Warum ist der Codex Justinianus für die heutige Zivilistik so wichtig?" },
+            { year: 529, lat: 41.5, lng: 13.8, title: "Regula Benedicti", type: "religion", icon: "ph-church", desc: "Gründung von Monte Cassino. Beginn des abendländischen Mönchtums.", prompt: "Wie bewahrten die Klöster die antike Bildung?" }
+        ];
+
         const routes = {
             westgoten: { name: "Westgoten", color: "#dc2626", desc: "Foederati, dann Tolosanisches Reich.", path: [[45.5, 25.0, 375], [41.6, 26.5, 378], [40.6, 22.9, 395], [41.9, 12.5, 410], [43.6, 1.4, 418], [41.6, -4.7, 470], [39.8, -4.0, 507]], artifact: { img: localImages.westgoten, fallback: artifacts.westgoten, title: "Adlerfibel", text: "Meisterwerk der Cloisonné-Technik." } },
             vandalen: { name: "Vandalen", color: "#2563eb", desc: "Zug nach Karthago, Seemacht.", path: [[51.0, 17.0, 375], [50.0, 8.2, 405], [49.9, 8.2, 406], [44.8, -0.5, 409], [37.3, -5.9, 415], [35.9, -5.6, 429], [36.8, 10.1, 439], [41.9, 12.5, 455], [36.8, 10.1, 460]], artifact: { img: localImages.vandalen, fallback: artifacts.vandalen, title: "Siliqua des Gelimer", text: "Vandalische Silbermünze." } },
@@ -351,6 +396,17 @@
             L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { attribution: '©OpenStreetMap, ©CartoDB' }).addTo(map);
             L.polyline(limesPath, { color: '#44403c', weight: 2, dashArray: '5, 10', opacity: 0.5 }).addTo(map);
             
+            // RÖMERSTRASSEN INITIALISIEREN
+            Object.keys(romanRoads).forEach(key => {
+                const road = romanRoads[key];
+                road.line = L.polyline(road.path, { 
+                    color: '#78350f', 
+                    weight: 3, 
+                    opacity: 0.6,
+                    className: 'road-roman'
+                }).addTo(map);
+            });
+
             historicalRegions.forEach(reg => {
                 const color = reg.color || '#78716c';
                 L.tooltip({ permanent: true, direction: 'center', className: 'region-label', opacity: 0.8 }).setContent(`<span style="font-size:${reg.s}px; color:${color}">${reg.t}</span>`).setLatLng(reg.c).addTo(map);
@@ -391,6 +447,26 @@
                 marker.on('click', () => showInfo(ev.title, ev.desc, ev.quote, color, null, null));
                 eventMarkers[ev.year] = marker;
             });
+
+            // KULTUR-MARKER INITIALISIEREN (Versteckt)
+            culturalEvents.forEach(ev => {
+                const html = `<div class="culture-marker flex items-center justify-center w-8 h-8 rounded-full text-amber-700 bg-amber-50"><i class="ph-fill ${ev.icon} text-lg"></i></div>`;
+                const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
+                const marker = L.marker([ev.lat, ev.lng], { icon: icon, opacity: 0 }).addTo(map);
+                
+                marker.on('click', () => {
+                    activeAlertEvent = { 
+                        title: ev.title, 
+                        year: ev.year, 
+                        desc: ev.desc, 
+                        aiPrompt: ev.prompt, 
+                        type: ev.type 
+                    };
+                    askGeminiEvent(); 
+                });
+                
+                eventMarkers['cult_' + ev.year + ev.title] = { marker: marker, data: ev };
+            });
         }
 
         function getPosition(path, year) {
@@ -412,6 +488,21 @@
             
             Object.values(cityMarkers).forEach(cm => {
                 if (year >= cm.start && year <= cm.end) { cm.marker.setStyle({ opacity: 1, fillOpacity: 1 }); cm.tooltip.setOpacity(1); } else { cm.marker.setStyle({ opacity: 0, fillOpacity: 0 }); cm.tooltip.setOpacity(0); }
+            });
+
+            // --- NEU: DYNAMISCHE INFRASTRUKTUR (Road Decay) ---
+            Object.values(romanRoads).forEach(road => {
+                let opacity = 0.6;
+                let dashArray = null;
+
+                if (road.region === 'west') {
+                    if (year > 410) { opacity = 0.4; }
+                    if (year > 455) { opacity = 0.3; dashArray = '5, 10'; }
+                    if (year > 500) { opacity = 0.2; }
+                } else {
+                    if (year > 550) opacity = 0.5; 
+                }
+                road.line.setStyle({ opacity: opacity, dashArray: dashArray });
             });
 
             // --- NARRATIVER ALERT ---
@@ -473,6 +564,24 @@
                     let opacity = 1; if (duration > 5) { opacity = 1 - ((year - ev.year) / duration * 0.8); }
                     marker.setOpacity(opacity);
                 } else { marker.setOpacity(0); }
+            });
+
+            // --- NEU: KULTUR & RECHT VISUALISIERUNG ---
+            Object.keys(eventMarkers).forEach(key => {
+                if (!key.startsWith('cult_')) return; 
+                
+                const obj = eventMarkers[key];
+                const ev = obj.data;
+                const marker = obj.marker;
+                
+                // Kultur-Events 25 Jahre sichtbar
+                const isActive = year >= ev.year && year <= (ev.year + 25); 
+                
+                if (isActive) {
+                    marker.setOpacity(1);
+                } else {
+                    marker.setOpacity(0);
+                }
             });
         }
 

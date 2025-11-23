@@ -49,10 +49,11 @@
             ostgoten: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 40 L240 80 L220 180 L200 260 L180 180 L160 80 Z' fill='%23be123c' stroke='%23fbbf24' stroke-width='4'/%3E%3C/svg%3E`,
             rom: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3CradialGradient id='shield' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' style='stop-color:%237e22ce;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23581c87;stop-opacity:1' /%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='200' cy='150' r='110' fill='url(%23shield)' stroke='%23fbbf24' stroke-width='8'/%3E%3Cpath d='M200 60 L200 240 M150 100 L250 200 M250 100 L150 200' stroke='%23fbbf24' stroke-width='12' stroke-linecap='round'/%3E%3Cpath d='M200 60 C220 40 240 60 230 80' stroke='%23fbbf24' stroke-width='8' fill='none'/%3E%3C/svg%3E`,
             pest: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M100 150 Q150 50 250 150 T350 150' fill='none' stroke='%2310b981' stroke-width='10'/%3E%3Ccircle cx='200' cy='120' r='40' fill='%23064e3b'/%3E%3Crect x='180' y='180' width='40' height='60' fill='%23064e3b'/%3E%3Cpath d='M180 240 L220 280 M220 240 L180 280' stroke='%2310b981' stroke-width='5'/%3E%3Ctext x='200' y='280' text-anchor='middle' fill='%2310b981' font-family='sans-serif' font-weight='bold' font-size='24' letter-spacing='2'%3EYERSINIA PESTIS%3C/text%3E%3C/svg%3E`,
-            fabrica: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Crect x='50' y='50' width='300' height='200' fill='%23e5e5e5' stroke='%23333' stroke-width='10'/%3E%3Cpath d='M100 200 L300 200 L280 150 L120 150 Z' fill='%23333'/%3E%3Ccircle cx='200' cy='120' r='30' fill='%23b91c1c'/%3E%3C/svg%3E` 
+            fabrica: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Crect x='50' y='50' width='300' height='200' fill='%23e5e5e5' stroke='%23333' stroke-width='10'/%3E%3Cpath d='M100 200 L300 200 L280 150 L120 150 Z' fill='%23333'/%3E%3Ccircle cx='200' cy='120' r='30' fill='%23b91c1c'/%3E%3C/svg%3E`,
+            coin: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Ccircle cx='200' cy='150' r='100' fill='%23fbbf24' stroke='%23b45309' stroke-width='5'/%3E%3Ctext x='200' y='160' text-anchor='middle' font-family='serif' font-weight='bold' fill='%2392400e' font-size='40'%3ESOLIDUS%3C/text%3E%3C/svg%3E`,
+            grain: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 50 Q230 150 200 250 Q170 150 200 50' fill='%23fbbf24' stroke='%23d97706' stroke-width='5'/%3E%3Cpath d='M200 50 L180 100 M200 80 L220 130 M200 120 L180 170 M200 160 L220 210' stroke='%23d97706' stroke-width='3'/%3E%3C/svg%3E`
         };
 
-        // Robuste SVG-Pfeile für die Schlacht-Animation
         const battleArrowSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M238.63,114.34l-80-80a8,8,0,0,0-11.32,0L128,53.66V24A16,16,0,0,0,112,8H32A16,16,0,0,0,16,24V168a16,16,0,0,0,16,16h80a16,16,0,0,0,16-16V138.34l19.31,19.32a8,8,0,0,0,11.32,0l80-80A8,8,0,0,0,238.63,114.34ZM112,168H32V24h80V80a8,8,0,0,0,8,8h56V64.94l47.06,47L176,159.06V112a8,8,0,0,0-8-8H120A8,8,0,0,0,112,112Z"/></svg>`;
 
         const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300' fill='%23f5f5f4'%3E%3Crect width='400' height='300' fill='%23e5e5e5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' fill='%23999'%3EBild nicht verfügbar%3C/text%3E%3C/svg%3E";
@@ -90,22 +91,27 @@
         .climate-pulse:after { border: 2px solid #06b6d4; animation: pulse-ring 2.5s infinite; background: rgba(6,182,212,0.1); }
         .plague-pulse:after { border: 2px solid #10b981; animation: pulse-ring 1s infinite; background: rgba(16, 185, 129, 0.2); }
         
-        /* DYNAMISCHE ALERT-BUTTONS */
-        .alert-base { animation: alert-pulse 2.5s infinite; color: white; border: 1px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.3); backdrop-filter: blur(4px); }
+        /* DYNAMISCHE ALERT-BUTTONS (HIGH READABILITY) */
+        @keyframes slide-in-down { 0% { transform: translate(-50%, -20px); opacity: 0; } 100% { transform: translate(-50%, 0); opacity: 1; } }
         
-        .alert-nature { background: linear-gradient(135deg, #0891b2, #3b82f6); border-color: #a5f3fc; }
-        .alert-drought { background: linear-gradient(135deg, #ea580c, #b45309); border-color: #fdba74; }
-        .alert-plague  { background: linear-gradient(135deg, #059669, #047857); border-color: #6ee7b7; }
-        .alert-battle { background: linear-gradient(135deg, #dc2626, #991b1b); border-color: #fca5a5; }
-        .alert-treaty { background: linear-gradient(135deg, #7e22ce, #581c87); border-color: #d8b4fe; }
-        .alert-move { background: linear-gradient(135deg, #4f46e5, #312e81); border-color: #a5b4fc; }
-        .alert-law { background: linear-gradient(135deg, #4c1d95, #ca8a04); border-color: #fde047; }
-        .alert-philosophy { background: linear-gradient(135deg, #1c1917, #57534e); border-color: #a8a29e; }
-
-        .ai-spinner { border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top: 3px solid #9333ea; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .alert-card {
+            background: rgba(255, 255, 255, 0.98); /* High opacity */
+            backdrop-filter: blur(10px);
+            border: 1px solid #e5e5e5;
+            border-left-width: 5px;
+            box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.15), 0 8px 12px -4px rgba(0, 0, 0, 0.1);
+            animation: slide-in-down 0.6s ease-out;
+            color: #1c1917;
+        }
         
-        .leaflet-tooltip.custom-label { background-color: rgba(255, 255, 255, 0.95); border: 1px solid #999; color: #333; font-family: serif; font-weight: bold; font-size: 12px; padding: 2px 6px; border-radius: 2px; }
+        .border-battle { border-left-color: #dc2626; }
+        .border-treaty { border-left-color: #7e22ce; }
+        .border-move { border-left-color: #4f46e5; }
+        .border-nature { border-left-color: #0891b2; }
+        .border-plague { border-left-color: #059669; }
+        .border-law { border-left-color: #ca8a04; }
+        
+        .leaflet-tooltip.custom-label { background-color: rgba(255, 255, 255, 0.98); border: 1px solid #777; color: #111; font-family: serif; font-weight: bold; font-size: 12px; padding: 3px 8px; border-radius: 2px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .leaflet-tooltip.region-label { background: transparent; border: none; box-shadow: none; font-family: 'Times New Roman', serif; font-weight: bold; color: #78716c; text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px; opacity: 0.7; pointer-events: none; text-shadow: 1px 1px 0px rgba(255,255,255,0.5); }
         .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { display: none; }
         .leaflet-marker-icon, .leaflet-tooltip { transition: opacity 0.5s ease-in-out; }
@@ -182,16 +188,18 @@
             <p class="text-xs text-stone-500 font-mono mt-1">ca. 375 – 568 n. Chr.</p>
         </div>
 
-        <div id="narrative-alert" class="hidden ui-element mx-auto md:absolute md:left-1/2 md:-translate-x-1/2 md:top-4 transition-all duration-500 z-[5000]">
-            <button id="alert-btn" onclick="askGeminiEvent()" class="alert-base px-6 py-3 rounded-full flex items-center gap-3 text-sm font-bold cursor-pointer hover:scale-105 transition-transform min-w-[280px] justify-between">
-                <div class="flex items-center gap-3">
-                    <i id="alert-icon" class="ph-fill text-xl"></i>
-                    <div class="text-left leading-tight">
-                        <span id="alert-type" class="block text-[10px] opacity-90 uppercase tracking-widest font-sans"></span>
-                        <span id="alert-title" class="block text-base font-serif tracking-wide"></span>
+        <div id="narrative-alert" class="hidden ui-element mx-auto md:absolute md:left-1/2 md:-translate-x-1/2 md:top-6 z-[5000]">
+            <button id="alert-btn" onclick="askGeminiEvent()" class="alert-card px-6 py-4 rounded-r-lg flex items-center gap-4 cursor-pointer hover:scale-105 transition-transform min-w-[340px] max-w-lg justify-between group">
+                <div class="flex items-center gap-4">
+                    <div class="p-2 bg-stone-100/80 rounded-full shrink-0">
+                        <i id="alert-icon" class="ph-fill text-3xl text-stone-700"></i>
+                    </div>
+                    <div class="text-left leading-snug">
+                        <span id="alert-type" class="block text-xs font-bold text-stone-500 uppercase tracking-widest font-sans mb-1"></span>
+                        <span id="alert-title" class="block text-xl font-serif font-bold text-stone-900 tracking-wide"></span>
                     </div>
                 </div>
-                <div class="bg-white/20 rounded-full p-1"><i class="ph-bold ph-caret-right"></i></div>
+                <div class="text-stone-400 group-hover:text-purple-600 transition-colors ml-4"><i class="ph-bold ph-caret-right text-2xl"></i></div>
             </button>
         </div>
 
@@ -231,13 +239,13 @@
         </div>
         <div class="p-5 overflow-y-auto">
             <div class="flex justify-between items-start mb-2">
-                <h2 id="info-title" class="font-serif font-bold text-2xl text-stone-800"></h2>
+                <h2 id="info-title" class="font-serif font-bold text-2xl text-stone-900"></h2>
                 <button onclick="closeInfo()" class="p-1 hover:bg-stone-100 rounded-full text-stone-500 hover:text-red-600"><i class="ph-bold ph-x text-xl"></i></button>
             </div>
-            <h3 id="artifact-title" class="text-sm font-bold text-stone-800 mb-1"></h3>
+            <h3 id="artifact-title" class="text-sm font-bold text-stone-800 mb-2"></h3>
             <p id="artifact-desc" class="text-xs text-stone-500 italic border-b border-stone-200 pb-3 mb-3 leading-relaxed"></p>
-            <div id="info-quote" class="hidden mb-4 pl-3 border-l-4 border-stone-300 italic text-stone-700 font-serif text-sm bg-stone-50 p-3 rounded-r"></div>
-            <div id="info-content" class="text-sm text-stone-700 leading-relaxed mb-2"></div>
+            <div id="info-quote" class="hidden mb-4 pl-3 border-l-4 border-stone-300 italic text-stone-800 font-serif text-sm bg-stone-50 p-3 rounded-r shadow-sm"></div>
+            <div id="info-content" class="text-base text-stone-800 leading-relaxed mb-2"></div>
             <div id="tribe-ai-response" class="hidden mt-4 p-3 bg-purple-50 rounded-lg border border-purple-100 text-sm text-stone-800 leading-relaxed"></div>
         </div>
         <div id="tribe-ai-section" class="p-3 border-t border-stone-100 bg-stone-50 rounded-b-xl">
@@ -544,11 +552,16 @@
                 opacity: 0.8
             }).addTo(map);
 
-            const iconHtml = `<div id="rome-icon-inner" class="flex items-center justify-center w-8 h-8 bg-white rounded-full border-2 border-amber-500 shadow-md transition-all duration-500"><i class="ph-fill ph-grains text-amber-600 text-lg"></i></div>`;
+            const iconHtml = `<div id="rome-icon-inner" class="flex items-center justify-center w-8 h-8 bg-white rounded-full border-2 border-amber-500 shadow-md transition-all duration-500 cursor-pointer hover:scale-110 transition-transform"><i class="ph-fill ph-grains text-amber-600 text-lg"></i></div>`;
             const divIcon = L.divIcon({ className: 'bg-transparent', html: iconHtml, iconSize: [32, 32], iconAnchor: [16, 36] });
+
+            const infoTitle = "Die Cura Annonae (Getreideversorgung)";
+            const infoText = "Rom und Konstantinopel hingen am Tropf der nordafrikanischen und ägyptischen Kornkammern. Die 'Cura Annonae' verteilte kostenloses Brot an bis zu 200.000 Bürger. Als die Vandalen 439 Karthago nahmen, brach diese Lebensader. Die Bevölkerung Roms schrumpfte innerhalb weniger Jahrzehnte von 800.000 auf unter 50.000.";
+            const infoArtifact = { img: artifacts.grain, title: "Annona-Schiff", text: "Getreidefrachter auf einem Mosaik." };
 
             romeStatusIcon = L.marker([41.9, 12.5], { icon: divIcon, zIndexOffset: 1000 }).addTo(map);
             romeStatusIcon.bindTooltip("Annona: Aktiv", { direction: 'top', className: 'custom-label' });
+            romeStatusIcon.on('click', () => showInfo(infoTitle, infoText, "Panem et circenses.", "#d97706", null, infoArtifact));
         }
 
         function initGoldLogistics() {
@@ -560,11 +573,16 @@
                 opacity: 0.9
             }).addTo(map);
 
-            const iconHtml = `<div id="ravenna-icon-inner" class="flex items-center justify-center w-8 h-8 bg-white rounded-full border-2 border-yellow-500 shadow-md transition-all duration-500"><i class="ph-fill ph-coins text-yellow-600 text-lg"></i></div>`;
+            const iconHtml = `<div id="ravenna-icon-inner" class="flex items-center justify-center w-8 h-8 bg-white rounded-full border-2 border-yellow-500 shadow-md transition-all duration-500 cursor-pointer hover:scale-110 transition-transform"><i class="ph-fill ph-coins text-yellow-600 text-lg"></i></div>`;
             const divIcon = L.divIcon({ className: 'bg-transparent', html: iconHtml, iconSize: [32, 32], iconAnchor: [16, 36] });
+
+            const infoTitle = "Der Solidus: Das Rückgrat der Wirtschaft";
+            const infoText = "Der Solidus war die 'Leitwährung' der Spätantike, berühmt für seinen hohen Goldgehalt. Er finanzierte die endlosen Kriege und Tribute an die Barbaren ('Scheckbuch-Diplomatie'). Als die Sueben 409 die Goldminen von Gallaecia (Spanien) besetzten, verlor Westrom seine wichtigste Einnahmequelle für Hartwährung. Ohne Gold keine Söldner.";
+            const infoArtifact = { img: artifacts.coin, title: "Solidus", text: "Goldmünze mit Kaiserportrait." };
 
             goldStatusIcon = L.marker([44.4, 12.2], { icon: divIcon, zIndexOffset: 1000 }).addTo(map);
             goldStatusIcon.bindTooltip("Aurum: Gesichert", { direction: 'top', className: 'custom-label' });
+            goldStatusIcon.on('click', () => showInfo(infoTitle, infoText, "Pecunia nervus belli.", "#ca8a04", null, infoArtifact));
 
             const mineHtml = `<div id="mine-icon-inner" class="text-yellow-500 drop-shadow-md"><i class="ph-fill ph-mountains text-2xl"></i></div>`;
             const mineIcon = L.divIcon({ className: 'bg-transparent', html: mineHtml, iconSize: [24, 24], iconAnchor: [12, 24] });
@@ -579,7 +597,7 @@
             
             const infoTitle = "Römische Rüstungsindustrie (Fabricae)";
             const infoText = "Seit der Reform Diokletians war die Waffenproduktion staatlich zentralisiert. Riesige Manufakturen (Fabricae) produzierten am Fließband: Trier lieferte Schilde und Geschütze für den Rhein, Sirmium Waffen für den Balkan. Die Arbeiter waren militärisch organisiert und 'gebrandmarkt', um Flucht zu verhindern. Der Verlust dieser Zentren bedeutete das technologische Ende der Legionen.";
-            const infoArtifact = { img: artifacts.fabrica, title: "Fabrica", text: "Stilisierte Darstellung einer Waffenfabrik." }; // Platzhalter
+            const infoArtifact = { img: artifacts.fabrica, title: "Fabrica", text: "Stilisierte Darstellung einer Waffenfabrik." };
 
             // Fabrica Trier
             let m1 = L.marker([49.75, 6.63], { icon: ironIcon, opacity: 1 }).addTo(map);
@@ -664,7 +682,7 @@
                 if (year >= cm.start && year <= cm.end) { cm.marker.setStyle({ opacity: 1, fillOpacity: 1 }); cm.tooltip.setOpacity(1); } else { cm.marker.setStyle({ opacity: 0, fillOpacity: 0 }); cm.tooltip.setOpacity(0); }
             });
 
-            // --- NARRATIVER ALERT ---
+            // --- NARRATIVER ALERT (Redesigned) ---
             const alertDiv = document.getElementById('narrative-alert');
             const alertBtn = document.getElementById('alert-btn');
             const alertIcon = document.getElementById('alert-icon');
@@ -675,7 +693,6 @@
             if (year >= 536 && year <= 545) { let op = 0.3; if(year > 538) op = 0.3 - ((year - 538) * 0.04); climateLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 }); } else { climateLayer.setStyle({ fillOpacity: 0 }); }
             if (year >= 541 && year <= 560) { let op = 0.3; if(year > 545) op = 0.3 - ((year - 545) * 0.02); plagueLayer.setStyle({ fillOpacity: Math.max(0, op), opacity: 0 }); } else { plagueLayer.setStyle({ fillOpacity: 0 }); }
 
-            // LOGISTIK: KORN (ROM)
             if (grainRouteLayer && romeStatusIcon) {
                 const vandalConquest = 439;
                 const byzantineReconquest = 533;
@@ -703,7 +720,6 @@
                 });
             }
 
-            // LOGISTIK: GOLD (RAVENNA/SPANIEN)
             if (goldRouteLayer && goldStatusIcon && mineMarker) {
                 const suebiConquest = 409; 
                 const routeActive = (year < suebiConquest);
@@ -731,11 +747,9 @@
                 }
             }
 
-            // LOGISTIK: EISEN (TRIER/SIRMIUM)
             fabricaeMarkers.forEach(f => {
                 if (year < f.end) {
                     f.m.setOpacity(1); 
-                    // Tooltip logic handled by Leaflet hover default
                 } else {
                     f.m.setOpacity(0.3);
                 }
@@ -744,14 +758,12 @@
                 if (year < r.end) { if(!map.hasLayer(r.l)) map.addLayer(r.l); } else { if(map.hasLayer(r.l)) map.removeLayer(r.l); }
             });
 
-            // UPDATE KINGDOM LAYERS (NEU)
             Object.keys(kingdoms).forEach(k => {
                 const kd = kingdoms[k];
                 if (year >= kd.start && year <= kd.end) {
                     if (!kingdomLayers[k]) {
-                        // Erstelle Kreis wenn noch nicht da
                         kingdomLayers[k] = L.circle(kd.center, {
-                            radius: 10, // Start klein
+                            radius: 10, 
                             color: kd.color,
                             fillColor: kd.color,
                             fillOpacity: 0.2,
@@ -759,7 +771,6 @@
                         }).addTo(map);
                         kingdomLayers[k].bindTooltip(kd.name, { permanent: true, direction: 'center', className: 'custom-label' });
                     }
-                    // Wachsen lassen (Animation)
                     let targetRadius = kd.radius;
                     let currentR = kingdomLayers[k].getRadius();
                     if (currentR < targetRadius) {
@@ -779,22 +790,24 @@
                 let ev = currentEvents[0];
                 
                 if (!activeAlertEvent || activeAlertEvent.title !== ev.title) {
-                    let btnClass = 'alert-base'; let icon = 'ph-info'; let typeText = 'Ereignis';
+                    let btnClass = 'alert-card'; let icon = 'ph-info'; let typeText = 'Ereignis';
+                    let borderClass = 'border-stone-400';
 
-                    if (ev.type === 'battle') { btnClass += ' alert-battle'; icon = 'ph-swords'; typeText = 'Militärischer Konflikt'; }
-                    else if (ev.type === 'treaty' || ev.type === 'diplomacy') { btnClass += ' alert-treaty'; icon = 'ph-scroll'; typeText = 'Politische Zäsur'; }
-                    else if (ev.type === 'move') { btnClass += ' alert-move'; icon = 'ph-arrows-left-right'; typeText = 'Migration'; }
+                    if (ev.type === 'battle') { borderClass = 'border-battle'; icon = 'ph-swords'; typeText = 'Militärischer Konflikt'; }
+                    else if (ev.type === 'treaty' || ev.type === 'diplomacy') { borderClass = 'border-treaty'; icon = 'ph-scroll'; typeText = 'Politische Zäsur'; }
+                    else if (ev.type === 'move') { borderClass = 'border-move'; icon = 'ph-arrows-left-right'; typeText = 'Migration'; }
                     else if (ev.type === 'climate' || ev.type === 'drought') { 
-                        if(ev.type === 'drought') { btnClass += ' alert-drought'; icon = 'ph-sun-dim'; typeText = 'Ökologische Krise'; }
-                        else { btnClass += ' alert-nature'; icon = 'ph-snowflake'; typeText = 'Klima-Anomalie'; }
+                        borderClass = 'border-nature';
+                        if(ev.type === 'drought') { icon = 'ph-sun-dim'; typeText = 'Ökologische Krise'; }
+                        else { icon = 'ph-snowflake'; typeText = 'Klima-Anomalie'; }
                     }
-                    else if (ev.type === 'plague') { btnClass += ' alert-plague'; icon = 'ph-skull'; typeText = 'Pandemie'; }
-                    else if (ev.type === 'crisis') { btnClass += ' alert-battle'; icon = 'ph-fire'; typeText = 'Reichskrise'; }
-                    else if (ev.type === 'law') { btnClass += ' alert-law'; icon = 'ph-scales'; typeText = 'Rechtsgeschichte'; }
-                    else if (ev.type === 'philosophy') { btnClass += ' alert-philosophy'; icon = 'ph-columns'; typeText = 'Philosophie & Geist'; }
+                    else if (ev.type === 'plague') { borderClass = 'border-plague'; icon = 'ph-skull'; typeText = 'Pandemie'; }
+                    else if (ev.type === 'crisis') { borderClass = 'border-battle'; icon = 'ph-fire'; typeText = 'Reichskrise'; }
+                    else if (ev.type === 'law') { borderClass = 'border-law'; icon = 'ph-scales'; typeText = 'Rechtsgeschichte'; }
+                    else if (ev.type === 'philosophy') { borderClass = 'border-law'; icon = 'ph-columns'; typeText = 'Philosophie & Geist'; }
 
-                    alertBtn.className = btnClass;
-                    alertIcon.className = `ph-fill text-xl ${icon}`;
+                    alertBtn.className = `alert-card px-6 py-4 rounded-r-lg flex items-center gap-4 cursor-pointer hover:scale-105 transition-transform min-w-[340px] max-w-lg justify-between group border-l-4 ${borderClass}`;
+                    alertIcon.className = `ph-fill text-3xl text-stone-700 ${icon}`;
                     alertType.innerText = typeText;
                     alertTitle.innerText = ev.title;
 

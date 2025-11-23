@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: The Eastern Dilemma</title>
+    <title>Völkerwanderung: The Eastern Dilemma & Threats</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -12,7 +12,7 @@
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <script>
-        /* API KEY TRESOR */
+        /* API KEY TRESOR & BASISFUNKTIONEN (Wie zuvor...) */
         function getApiKey() {
             let key = localStorage.getItem('gemini_api_key');
             if (!key) {
@@ -21,7 +21,6 @@
             }
             return key;
         }
-
         function saveApiKey() {
             const input = document.getElementById('api-key-input');
             const key = input.value.trim();
@@ -32,14 +31,17 @@
                 location.reload(); 
             }
         }
-
         function clearApiKey() {
             localStorage.removeItem('gemini_api_key');
             alert("Schlüssel entfernt.");
             location.reload();
         }
+        function formatText(text) {
+            if (!text) return '';
+            return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
+        }
 
-        /* ARTEFAKTE (SVG) */
+        /* ARTEFAKTE & BILDER (Wie zuvor...) */
         const artifacts = {
             westgoten: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 50 C230 50 250 80 250 100 L280 150 L200 250 L120 150 L150 100 C150 80 170 50 200 50' fill='%23b91c1c' stroke='%23b45309' stroke-width='5'/%3E%3Ccircle cx='200' cy='90' r='15' fill='%2378350f' stroke='%23fcd34d' stroke-width='3'/%3E%3C/svg%3E`,
             vandalen: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Ccircle cx='200' cy='150' r='100' fill='%23cbd5e1' stroke='%2394a3b8' stroke-width='4'/%3E%3Ctext x='200' y='280' text-anchor='middle' font-family='serif' font-weight='bold' fill='%2364748b' font-size='18' letter-spacing='2'%3ED N REX GELIMER%3C/text%3E%3C/svg%3E`,
@@ -51,142 +53,58 @@
             pest: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M100 150 Q150 50 250 150 T350 150' fill='none' stroke='%2310b981' stroke-width='10'/%3E%3Ccircle cx='200' cy='120' r='40' fill='%23064e3b'/%3E%3Crect x='180' y='180' width='40' height='60' fill='%23064e3b'/%3E%3Cpath d='M180 240 L220 280 M220 240 L180 280' stroke='%2310b981' stroke-width='5'/%3E%3Ctext x='200' y='280' text-anchor='middle' fill='%2310b981' font-family='sans-serif' font-weight='bold' font-size='24' letter-spacing='2'%3EYERSINIA PESTIS%3C/text%3E%3C/svg%3E`,
             fabrica: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Crect x='50' y='50' width='300' height='200' fill='%23e5e5e5' stroke='%23333' stroke-width='10'/%3E%3Cpath d='M100 200 L300 200 L280 150 L120 150 Z' fill='%23333'/%3E%3Ccircle cx='200' cy='120' r='30' fill='%23b91c1c'/%3E%3C/svg%3E`,
             coin: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Ccircle cx='200' cy='150' r='100' fill='%23fbbf24' stroke='%23b45309' stroke-width='5'/%3E%3Ctext x='200' y='160' text-anchor='middle' font-family='serif' font-weight='bold' fill='%2392400e' font-size='40'%3ESOLIDUS%3C/text%3E%3C/svg%3E`,
-            grain: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 50 Q230 150 200 250 Q170 150 200 50' fill='%23fbbf24' stroke='%23d97706' stroke-width='5'/%3E%3Cpath d='M200 50 L180 100 M200 80 L220 130 M200 120 L180 170 M200 160 L220 210' stroke='%23d97706' stroke-width='3'/%3E%3C/svg%3E`
+            grain: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 50 Q230 150 200 250 Q170 150 200 50' fill='%23fbbf24' stroke='%23d97706' stroke-width='5'/%3E%3Cpath d='M200 50 L180 100 M200 80 L220 130 M200 120 L180 170 M200 160 L220 210' stroke='%23d97706' stroke-width='3'/%3E%3C/svg%3E`,
+            sassanid: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Ccircle cx='200' cy='150' r='100' fill='%23b91c1c' stroke='%23fcd34d' stroke-width='5'/%3E%3Cpath d='M200 50 L230 100 L280 100 L250 150 L280 200 L230 200 L200 250 L170 200 L120 200 L150 150 L120 100 L170 100 Z' fill='%23fcd34d'/%3E%3C/svg%3E`,
+            balkan: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M50 150 C50 50 350 50 350 150 L300 250 L100 250 Z' fill='%237f1d1d' stroke='%23000' stroke-width='5'/%3E%3Cpath d='M150 100 L250 100 L200 180 Z' fill='%23fcd34d'/%3E%3C/svg%3E`
         };
-
-        // Robuste SVG-Pfeile für die Schlacht-Animation
         const battleArrowSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M238.63,114.34l-80-80a8,8,0,0,0-11.32,0L128,53.66V24A16,16,0,0,0,112,8H32A16,16,0,0,0,16,24V168a16,16,0,0,0,16,16h80a16,16,0,0,0,16-16V138.34l19.31,19.32a8,8,0,0,0,11.32,0l80-80A8,8,0,0,0,238.63,114.34ZM112,168H32V24h80V80a8,8,0,0,0,8,8h56V64.94l47.06,47L176,159.06V112a8,8,0,0,0-8-8H120A8,8,0,0,0,112,112Z"/></svg>`;
-
         const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300' fill='%23f5f5f4'%3E%3Crect width='400' height='300' fill='%23e5e5e5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' fill='%23999'%3EBild nicht verfügbar%3C/text%3E%3C/svg%3E";
-        function handleImageError(img) { img.onerror = null; img.src = fallbackImage; img.parentElement.classList.remove('hidden'); }
-
-        const localImages = {
-            westgoten: './img/westgoten.jpg', vandalen: './img/vandalen.jpg',
-            hunnen: './img/hunnen.jpg', langobarden: './img/langobarden.jpg',
-            franken: './img/franken.jpg', ostgoten: './img/ostgoten.jpg',
-            rom: './img/rom_armee.jpg', pest: './img/pest.jpg'
-        };
-
-        function formatText(text) {
-            if (!text) return '';
-            return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
-        }
+        const localImages = { westgoten: './img/westgoten.jpg', vandalen: './img/vandalen.jpg', hunnen: './img/hunnen.jpg', langobarden: './img/langobarden.jpg', franken: './img/franken.jpg', ostgoten: './img/ostgoten.jpg', rom: './img/rom_armee.jpg', pest: './img/pest.jpg' };
     </script>
 
     <style>
+        /* STYLES (Wie zuvor...) */
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
         #map { height: 100vh; width: 100vw; background: #e5e5e5; z-index: 1; }
         .ui-layer { position: absolute; z-index: 3000; pointer-events: none; }
         .ui-element { pointer-events: auto; }
-        
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%; background: #d97706; border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); cursor: pointer; margin-top: -10px; }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #d6d3d1; border-radius: 2px; }
-
         @keyframes pulse-ring { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(2.0); opacity: 0; } }
         @keyframes alert-pulse { 0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); } 70% { transform: scale(1.02); box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); } 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); } }
-
         .pulse-icon { position: relative; }
         .pulse-icon:after { content: ''; position: absolute; width: 100%; height: 100%; top: 0; left: 0; border-radius: 50%; background: inherit; animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; z-index: -1; }
         .roman-pulse:after { border: 2px solid #7e22ce; animation: pulse-ring 2s infinite; }
         .climate-pulse:after { border: 2px solid #06b6d4; animation: pulse-ring 2.5s infinite; background: rgba(6,182,212,0.1); }
         .plague-pulse:after { border: 2px solid #10b981; animation: pulse-ring 1s infinite; background: rgba(16, 185, 129, 0.2); }
-        
-        /* DYNAMISCHE ALERT-BUTTONS (HIGH READABILITY) */
         @keyframes slide-in-down { 0% { transform: translate(-50%, -20px); opacity: 0; } 100% { transform: translate(-50%, 0); opacity: 1; } }
-        
-        .alert-card {
-            background: rgba(255, 255, 255, 0.98); /* High opacity */
-            backdrop-filter: blur(10px);
-            border: 1px solid #e5e5e5;
-            border-left-width: 5px;
-            box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.15), 0 8px 12px -4px rgba(0, 0, 0, 0.1);
-            animation: slide-in-down 0.6s ease-out;
-            color: #1c1917;
-        }
-        
-        .border-battle { border-left-color: #dc2626; }
-        .border-treaty { border-left-color: #7e22ce; }
-        .border-move { border-left-color: #4f46e5; }
-        .border-nature { border-left-color: #0891b2; }
-        .border-plague { border-left-color: #059669; }
-        .border-law { border-left-color: #ca8a04; }
-        
+        .alert-card { background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(10px); border: 1px solid #e5e5e5; border-left-width: 5px; box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.15), 0 8px 12px -4px rgba(0, 0, 0, 0.1); animation: slide-in-down 0.6s ease-out; color: #1c1917; }
+        .border-battle { border-left-color: #dc2626; } .border-treaty { border-left-color: #7e22ce; } .border-move { border-left-color: #4f46e5; } .border-nature { border-left-color: #0891b2; } .border-plague { border-left-color: #059669; } .border-law { border-left-color: #ca8a04; }
         .leaflet-tooltip.custom-label { background-color: rgba(255, 255, 255, 0.95); border: 1px solid #999; color: #333; font-family: serif; font-weight: bold; font-size: 12px; padding: 2px 6px; border-radius: 2px; }
         .leaflet-tooltip.region-label { background: transparent; border: none; box-shadow: none; font-family: 'Times New Roman', serif; font-weight: bold; color: #78716c; text-transform: uppercase; letter-spacing: 0.15em; font-size: 14px; opacity: 0.7; pointer-events: none; text-shadow: 1px 1px 0px rgba(255,255,255,0.5); }
         .leaflet-tooltip-left:before, .leaflet-tooltip-right:before { display: none; }
         .leaflet-marker-icon, .leaflet-tooltip { transition: opacity 0.5s ease-in-out; }
-
-        /* Logistik Animationen */
-        @keyframes grain-flow { to { stroke-dashoffset: -20; } }
-        .grain-route-line { animation: grain-flow 1s linear infinite; }
-        
-        @keyframes gold-flow { to { stroke-dashoffset: -20; } }
-        .gold-route-line { animation: gold-flow 2s linear infinite; }
-
-        @keyframes iron-flow { to { stroke-dashoffset: -20; } }
-        .iron-route-line { animation: iron-flow 1.5s linear infinite; }
-
-        /* Roms Hunger-Pulsieren */
-        @keyframes famine-pulse {
-            0% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.3); opacity: 0.4; }
-            100% { transform: scale(1); opacity: 0.8; }
-        }
-        .famine-marker {
-            background: radial-gradient(circle, rgba(220, 38, 38, 0.8) 0%, rgba(220, 38, 38, 0) 70%);
-            border-radius: 50%;
-            animation: famine-pulse 2s infinite;
-        }
-
-        /* Kornkammer Animation (Weizen im Wind) */
-        @keyframes wheat-sway {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(5deg); }
-            75% { transform: rotate(-5deg); }
-            100% { transform: rotate(0deg); }
-        }
-        .wheat-icon-inner {
-            animation: wheat-sway 3s ease-in-out infinite;
-            transform-origin: bottom center;
-        }
-
-        /* SCHLACHT ANIMATIONEN (Cinematic - SVG Version) */
+        @keyframes grain-flow { to { stroke-dashoffset: -20; } } .grain-route-line { animation: grain-flow 1s linear infinite; }
+        @keyframes gold-flow { to { stroke-dashoffset: -20; } } .gold-route-line { animation: gold-flow 2s linear infinite; }
+        @keyframes iron-flow { to { stroke-dashoffset: -20; } } .iron-route-line { animation: iron-flow 1.5s linear infinite; }
+        @keyframes famine-pulse { 0% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.3); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.8; } }
+        .famine-marker { background: radial-gradient(circle, rgba(220, 38, 38, 0.8) 0%, rgba(220, 38, 38, 0) 70%); border-radius: 50%; animation: famine-pulse 2s infinite; }
+        @keyframes wheat-sway { 0% { transform: rotate(0deg); } 25% { transform: rotate(5deg); } 75% { transform: rotate(-5deg); } 100% { transform: rotate(0deg); } }
+        .wheat-icon-inner { animation: wheat-sway 3s ease-in-out infinite; transform-origin: bottom center; }
         @keyframes arrow-slide-west { 0% { transform: translateX(-60px) scale(0.5); opacity: 0; } 80% { transform: translateX(-5px) scale(1.1); opacity: 1; } 100% { transform: translateX(0) scale(1); opacity: 1; } }
         @keyframes arrow-slide-east { 0% { transform: translateX(60px) scale(0.5) rotate(180deg); opacity: 0; } 80% { transform: translateX(5px) scale(1.1) rotate(180deg); opacity: 1; } 100% { transform: translateX(0) scale(1) rotate(180deg); opacity: 1; } }
         @keyframes arrow-slide-north { 0% { transform: translateY(-60px) scale(0.5) rotate(90deg); opacity: 0; } 80% { transform: translateY(-5px) scale(1.1) rotate(90deg); opacity: 1; } 100% { transform: translateY(0) scale(1) rotate(90deg); opacity: 1; } }
         @keyframes arrow-slide-south { 0% { transform: translateY(60px) scale(0.5) rotate(-90deg); opacity: 0; } 80% { transform: translateY(5px) scale(1.1) rotate(-90deg); opacity: 1; } 100% { transform: translateY(0) scale(1) rotate(-90deg); opacity: 1; } }
-
-        @keyframes shockwave { 
-            0% { transform: scale(0.1); opacity: 0.8; border-width: 6px; } 
-            100% { transform: scale(5.0); opacity: 0; border-width: 0px; } 
-        }
-        
-        /* Feuerschiff-Animation */
-        @keyframes fireship-attack {
-            0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
-            10% { opacity: 1; }
-            100% { transform: translate(40px, -30px) scale(1.2); opacity: 0; }
-        }
-        .fireship {
-            position: absolute; width: 20px; height: 20px;
-            color: #ea580c;
-            animation: fireship-attack 2s infinite linear;
-        }
-
+        @keyframes shockwave { 0% { transform: scale(0.1); opacity: 0.8; border-width: 6px; } 100% { transform: scale(5.0); opacity: 0; border-width: 0px; } }
+        @keyframes fireship-attack { 0% { transform: translate(0, 0) scale(0.5); opacity: 0; } 10% { opacity: 1; } 100% { transform: translate(40px, -30px) scale(1.2); opacity: 0; } }
+        .fireship { position: absolute; width: 20px; height: 20px; color: #ea580c; animation: fireship-attack 2s infinite linear; }
         .battle-svg-container { width: 64px; height: 64px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); display: flex; align-items: center; justify-content: center; }
         .arrow-anim-west { animation: arrow-slide-west 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
         .arrow-anim-east { animation: arrow-slide-east 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
         .arrow-anim-north { animation: arrow-slide-north 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
         .arrow-anim-south { animation: arrow-slide-south 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
-        
-        .shockwave-effect {
-            position: absolute; width: 20px; height: 20px; top: 50%; left: 50%; margin-top:-10px; margin-left:-10px;
-            border-radius: 50%; border: 4px solid #dc2626;
-            background: rgba(220, 38, 38, 0.1);
-            animation: shockwave 3s infinite ease-out;
-            pointer-events: none;
-        }
+        .shockwave-effect { position: absolute; width: 20px; height: 20px; top: 50%; left: 50%; margin-top:-10px; margin-left:-10px; border-radius: 50%; border: 4px solid #dc2626; background: rgba(220, 38, 38, 0.1); animation: shockwave 3s infinite ease-out; pointer-events: none; }
     </style>
 </head>
 <body class="bg-stone-100">
@@ -200,7 +118,6 @@
             </h1>
             <p class="text-xs text-stone-500 font-mono mt-1">ca. 375 – 568 n. Chr.</p>
         </div>
-
         <div id="narrative-alert" class="hidden ui-element mx-auto md:absolute md:left-1/2 md:-translate-x-1/2 md:top-6 z-[5000]">
             <button id="alert-btn" onclick="askGeminiEvent()" class="alert-card px-6 py-4 rounded-r-lg flex items-center gap-4 cursor-pointer hover:scale-105 transition-transform min-w-[340px] max-w-lg justify-between group">
                 <div class="flex items-center gap-4">
@@ -215,7 +132,6 @@
                 <div class="text-stone-400 group-hover:text-purple-600 transition-colors ml-4"><i class="ph-bold ph-caret-right text-2xl"></i></div>
             </button>
         </div>
-
         <div class="ui-element flex gap-2 pointer-events-auto self-end md:self-auto">
             <button onclick="clearApiKey()" class="bg-white/90 hover:bg-white text-stone-500 border border-stone-200 px-2 py-2 rounded-lg shadow-sm flex items-center gap-2 text-xs" title="API Key löschen">
                 <i class="ph-bold ph-key"></i>
@@ -387,6 +303,28 @@
         let activeBattleAnimations = {};
         let basiliscusRoute = null;
         let basiliscusMarkers = [];
+
+        // BEDROHUNGEN GLOBALS (NEU)
+        let sassanidThreatMarker = null;
+        let balkanThreatMarker = null;
+
+        // DATEN FÜR INTERAKTIVE BEDROHUNGEN (NEU)
+        const easternThreats = [
+            { start: 421, end: 422, title: "Römisch-Persischer Krieg (421–422)", leader: "Bahram V.", desc: "Krieg ausgelöst durch Christenverfolgungen im Sassanidenreich. Theodosius II. entsendet Truppen unter Ardaburius, die den Persern in Mesopotamien Niederlagen zufügen. Der Friedensschluss stellt den Status quo ante wieder her, bindet aber römische Kräfte.", quote: "Das Kreuz gegen das Feuer." },
+            { start: 440, end: 441, title: "Kurzer Krieg mit Yazdegerd II.", leader: "Yazdegerd II.", desc: "Während sich Ostrom auf die Vandalenexpedition vorbereitet (die dann abgesagt wird), greift Yazdegerd II. überraschend im Osten an. Theodosius II. muss hastig Frieden schließen und Tribut zahlen.", quote: "Ein Dolchstoß in den Rücken." },
+            { start: 502, end: 506, title: "Anastasischer Krieg", leader: "Kavadh I.", desc: "Nach langer Friedenszeit bricht ein Großkrieg aus. Kavadh I. erobert die wichtige Festung Amida nach langer Belagerung. Kaiser Anastasius I. reagiert mit einer massiven Gegenoffensive und dem Bau der Festung Dara direkt an der Grenze. Ein teurer Abnutzungskrieg.", quote: "Die Mauern von Amida fielen." },
+            { start: 526, end: 532, title: "Iberischer Krieg", leader: "Kavadh I. / Chosrau I.", desc: "Konflikt um das Königreich Iberien (Georgien) und die Kontrolle der Kaukasus-Pässe. Junge Generäle wie Belisar verdienen sich hier ihre ersten Sporen (Schlacht bei Dara 530). Der 'Ewige Frieden' von 532 beendet den Krieg gegen hohe Tributzahlungen Ostroms, was Justinian die Hände für den Westen freimacht.", quote: "Belisars erste Bewährungsprobe." },
+            { start: 540, end: 562, title: "Lazischer Krieg & Chosrau I.", leader: "Chosrau I. Anushirvan", desc: "Die größte Katastrophe für Justinian. Während Belisar in Italien kämpft, bricht Chosrau I. den 'Ewigen Frieden'. Er plündert Syrien, zerstört Antiochia (die drittgrößte Stadt des Reiches) und deportiert die Bevölkerung. Justinian muss Truppen aus Italien abziehen, was dort zur Rückkehr der Ostgoten unter Totila führt. Der Krieg zieht sich über zwei Jahrzehnte hin.", quote: "Antiochia ist nicht mehr." }
+        ];
+
+        const northernThreats = [
+            { start: 441, end: 443, title: "Attilas erster Balkanfeldzug", leader: "Attila & Bleda", desc: "Während Ostrom Truppen gegen die Perser und Vandalen entsendet, nutzen die Hunnen die Gunst der Stunde. Sie durchbrechen den Donaulimes, erobern Viminacium, Singidunum (Belgrad) und Naissus (Niš). Theodosius II. muss einen demütigenden Frieden schließen.", quote: "Die Geißel Gottes am Limes." },
+            { start: 447, end: 447, title: "Attilas zweiter Balkanfeldzug", leader: "Attila", desc: "Der verheerendste Einfall. Nach einem Erdbeben, das die Mauern Konstantinopels beschädigt, marschiert Attila bis zu den Thermopylen und vor die Hauptstadt. Ein römisches Heer wird in der Schlacht am Utus vernichtet. Ostrom erkauft sich den Frieden mit enormen Goldtributen (6.000 Pfund sofort, 2.100 jährlich), die die Staatskasse leeren.", quote: "Gold oder Vernichtung." },
+            { start: 517, end: 517, title: "Großer Slawen- und Bulgareneinfall", leader: "Unbekannte Stammesführer", desc: "Erstmals dringen slawische und bulgarische Gruppen tief in den Balkan ein, plündern Makedonien, Thessalien und Epirus bis zu den Thermopylen. Kaiser Anastasius I. baut die 'Lange Mauer' zum Schutz Konstantinopels.", quote: "Eine neue Völkerwanderung beginnt." },
+            { start: 540, end: 540, title: "Raubzug der Hunnen/Bulgaren", leader: "Unbekannt", desc: "Während Justinian im Osten gegen Perser und im Westen gegen Goten kämpft, dringen plündernde Horden bis vor die Vorstädte von Konstantinopel und auf den Peloponnes vor.", quote: "Kein Ort ist sicher." },
+            { start: 550, end: 551, title: "Slawische Plünderungen", leader: "Unbekannt", desc: "Slawische Gruppen überwintern erstmals auf römischem Boden südlich der Donau und plündern Thrakien und Illyrien. Ein Vorbote der späteren Landnahme.", quote: "Sie kamen, um zu bleiben." },
+            { start: 558, end: 559, title: "Zabergan vor Konstantinopel", leader: "Zabergan (Kutriguren)", desc: "Die Kutriguren-Bulgaren unter Zabergan überqueren die gefrorene Donau und stehen plötzlich vor Konstantinopel. Der greise Belisar wird aus dem Ruhestand geholt und wehrt die Gefahr mit einer hastig zusammengestellten Truppe aus Veteranen und Zivilisten ab.", quote: "Belisars letzter Sieg." }
+        ];
         
         const grainPathCoords = [
             [36.8, 10.1], // Karthago
@@ -530,27 +468,35 @@
                 L.tooltip({ permanent: true, direction: 'center', className: 'region-label', opacity: 0.8 }).setContent(`<span style="font-size:${reg.s}px; color:${color}">${reg.t}</span>`).setLatLng(reg.c).addTo(map);
             });
 
-            // Ost-Bedrohung (Sassaniden)
+            // Ost-Bedrohung (Sassaniden) - MIT LABEL
             const sassanidIcon = L.divIcon({
                 className: 'bg-transparent',
-                html: `<div class="flex items-center gap-2 opacity-0 transition-opacity duration-500" id="sassanid-threat">
+                html: `<div class="flex flex-col items-end opacity-0 transition-opacity duration-500 cursor-pointer group" id="sassanid-threat">
+                        <div class="mb-1 px-2 py-1 bg-white/95 text-red-800 text-xs font-bold uppercase tracking-wider rounded shadow-sm border-r-4 border-red-600 group-hover:scale-105 transition-transform">
+                             Sassanidenreich
+                        </div>
                         <i class="ph-fill ph-arrow-left text-5xl text-red-600 animate-pulse drop-shadow-md"></i>
                        </div>`,
-                iconSize: [60, 60],
-                iconAnchor: [30, 30]
+                iconSize: [150, 80], // Größer für Label
+                iconAnchor: [150, 40]
             });
-            L.marker([36.0, 40.0], { icon: sassanidIcon }).addTo(map); 
+            sassanidThreatMarker = L.marker([36.0, 42.0], { icon: sassanidIcon }).addTo(map);
+            sassanidThreatMarker.on('click', () => showThreatInfo('east'));
 
-            // Nord-Bedrohung (Balkan)
+            // Nord-Bedrohung (Balkan) - MIT LABEL
             const balkanIcon = L.divIcon({
                 className: 'bg-transparent',
-                html: `<div class="flex flex-col items-center gap-1 opacity-0 transition-opacity duration-500" id="balkan-threat">
+                html: `<div class="flex flex-col items-center opacity-0 transition-opacity duration-500 cursor-pointer group" id="balkan-threat">
+                        <div class="mb-1 px-2 py-1 bg-white/95 text-red-800 text-xs font-bold uppercase tracking-wider rounded shadow-sm border-b-4 border-red-600 group-hover:scale-105 transition-transform">
+                             Balkan-Front
+                        </div>
                         <i class="ph-fill ph-arrow-down text-5xl text-red-600 animate-pulse drop-shadow-md"></i>
                        </div>`,
-                iconSize: [40, 60],
-                iconAnchor: [20, 60]
+                iconSize: [120, 80], // Größer für Label
+                iconAnchor: [60, 80]
             });
-            L.marker([43.0, 25.0], { icon: balkanIcon }).addTo(map); 
+            balkanThreatMarker = L.marker([43.5, 25.0], { icon: balkanIcon }).addTo(map); 
+            balkanThreatMarker.on('click', () => showThreatInfo('north'));
 
             dynamicCities.forEach((city, idx) => {
                 let color = '#666'; if (city.type === 'capital') color = '#7e22ce'; if (city.type === 'barbarian') color = '#d97706'; if (city.type === 'monastery') color = '#0ea5e9'; 
@@ -841,14 +787,14 @@
             const balkanThreat = document.getElementById('balkan-threat');
 
             if (sassanidThreat) {
-                 // Zeige Pfeil bei Perserkriegen (421, 502, 540)
-                 const isPersianWar = (year >= 421 && year <= 422) || (year >= 502 && year <= 506) || (year >= 540 && year <= 562);
+                 // Zeige Pfeil bei Perserkriegen (421, 440, 502, 526, 540)
+                 const isPersianWar = (year >= 421 && year <= 422) || (year >= 440 && year <= 441) || (year >= 502 && year <= 506) || (year >= 526 && year <= 532) || (year >= 540 && year <= 562);
                  if (isPersianWar) sassanidThreat.classList.remove('opacity-0');
                  else sassanidThreat.classList.add('opacity-0');
             }
             if (balkanThreat) {
-                // Zeige Pfeil bei Balkan-Raids (441-447 Hunnen, 517 Bulgaren)
-                const isBalkanRaid = (year >= 441 && year <= 447) || (year >= 517 && year <= 519);
+                // Zeige Pfeil bei Balkan-Raids (Hunnen, Bulgaren, Slawen)
+                const isBalkanRaid = (year >= 441 && year <= 443) || (year >= 447 && year <= 447) || (year >= 517 && year <= 519) || (year >= 540 && year <= 540) || (year >= 550 && year <= 551) || (year >= 558 && year <= 559);
                 if (isBalkanRaid) balkanThreat.classList.remove('opacity-0');
                 else balkanThreat.classList.add('opacity-0');
             }
@@ -1024,6 +970,26 @@
             
             document.getElementById('tribe-ai-response').classList.add('hidden'); document.getElementById('tribe-ai-response').innerHTML = '';
             box.classList.remove('hidden');
+        }
+
+        // NEU: Funktion für Bedrohungs-Infos
+        function showThreatInfo(type) {
+            const year = currentYear;
+            let threats = type === 'east' ? easternThreats : northernThreats;
+            let activeThreat = threats.find(t => year >= t.start && year <= t.end);
+
+            if (activeThreat) {
+                let title = activeThreat.title;
+                if (activeThreat.leader) title += ` (${activeThreat.leader})`;
+                // Nutze das passende Artefakt-Bild für Sassaniden oder Balkan
+                let artifact = type === 'east' ? { img: artifacts.sassanid, title: "Sassanidisches Emblem", text: "Symbol des Großkönigs." } : { img: artifacts.balkan, title: "Hunnischer Bogen", text: "Gefürchtete Waffe der Steppenreiter." };
+                showInfo(title, activeThreat.desc, activeThreat.quote, "#dc2626", null, artifact);
+            } else {
+                // Fallback, falls der Pfeil an ist, aber kein spezifisches Event gefunden wird (sollte nicht passieren)
+                let title = type === 'east' ? "Bedrohung durch das Sassanidenreich" : "Bedrohung an der Balkanfront";
+                let text = type === 'east' ? "Das neupersische Reich ist der einzige ebenbürtige Gegner Roms. Es bindet permanent massive Truppenkontingente im Osten." : "Der Donaulimes ist durchlässig geworden. Hunnen, Goten, Slawen und Bulgaren bedrohen regelmäßig das Hinterland von Konstantinopel.";
+                showInfo(title, text, "Der Feind steht vor den Toren.", "#dc2626", null, null);
+            }
         }
 
         function closeInfo() { document.getElementById('info-box').classList.add('hidden'); }

@@ -380,13 +380,13 @@
             [44.4, 12.2]   // Ravenna
         ];
 
-        // EISEN-ROUTEN (Erweitert für das ganze Rheingebiet)
+        // EISEN-ROUTEN (Massiv erweitert für Limes-Versorgung)
         const ironPaths = [
             // Trier -> Verteiler Rhein (Nord & Süd)
-            { path: [[49.75, 6.63], [50.35, 7.6], [50.9, 6.9]], start: 0, end: 413, id: 'trier-nord' }, // Nach Köln/Xanten
+            { path: [[49.75, 6.63], [50.35, 7.6], [50.93, 6.96], [51.66, 6.45]], start: 0, end: 413, id: 'trier-nord' }, // Nach Köln/Xanten
             { path: [[49.75, 6.63], [49.99, 8.24], [48.58, 7.75]], start: 0, end: 413, id: 'trier-sued' }, // Nach Mainz/Straßburg
             // Sirmium -> Donau
-            { path: [[44.9, 19.6], [44.8, 20.4], [45.2, 22.0]], start: 0, end: 441, id: 'sirmium' } 
+            { path: [[44.9, 19.6], [45.2, 20.0], [44.8, 20.4], [45.0, 21.0]], start: 0, end: 441, id: 'sirmium' } 
         ];
 
         const kingdoms = {
@@ -572,18 +572,18 @@
 
         // NEU: Eisen/Rüstung Logistik (Optimiert)
         function initIronLogistics() {
-            // Amboss-Icon mit dunklem Hintergrund für besseren Kontrast
-            const ironHtml = `<div class="flex items-center justify-center w-8 h-8 bg-slate-800 rounded-full shadow-lg border border-slate-500 text-white"><i class="ph-fill ph-anvil text-lg"></i></div>`;
-            const ironIcon = L.divIcon({ className: 'bg-transparent', html: ironHtml, iconSize: [32, 32], iconAnchor: [16, 16] });
+            // Amboss-Icon mit weißem Hintergrund und dunklem Rahmen
+            const ironHtml = `<div class="flex items-center justify-center w-10 h-10 bg-slate-100 rounded-lg border-2 border-slate-600 shadow-lg"><i class="ph-fill ph-anvil text-slate-700 text-xl"></i></div>`;
+            const ironIcon = L.divIcon({ className: 'bg-transparent', html: ironHtml, iconSize: [40, 40], iconAnchor: [20, 20] });
             
             // Fabrica Trier (Mit permanentem Label)
             let m1 = L.marker([49.75, 6.63], { icon: ironIcon, opacity: 1 }).addTo(map);
-            m1.bindTooltip("Fabrica (Waffen)", { permanent: true, direction: 'right', className: 'custom-label', offset: [12, 0] });
+            m1.bindTooltip("Fabrica (Waffen)", { permanent: true, direction: 'right', className: 'custom-label', offset: [20, 0] });
             fabricaeMarkers.push({ m: m1, end: 413 });
 
             // Fabrica Sirmium
             let m2 = L.marker([44.9, 19.6], { icon: ironIcon, opacity: 1 }).addTo(map);
-            m2.bindTooltip("Fabrica (Waffen)", { permanent: true, direction: 'right', className: 'custom-label', offset: [12, 0] });
+            m2.bindTooltip("Fabrica (Waffen)", { permanent: true, direction: 'right', className: 'custom-label', offset: [20, 0] });
             fabricaeMarkers.push({ m: m2, end: 441 });
 
             ironPaths.forEach(p => {

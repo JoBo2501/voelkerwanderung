@@ -48,7 +48,8 @@
             franken: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 80 C220 80 240 100 240 130 C240 160 200 220 200 220 C200 220 160 160 160 130 C160 100 180 80 200 80' fill='%23fbbf24' stroke='%23b45309' stroke-width='2'/%3E%3Cpath d='M160 130 L120 110' fill='%23ef4444'/%3E%3Cpath d='M240 130 L280 110' fill='%23ef4444'/%3E%3C/svg%3E`,
             ostgoten: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 40 L240 80 L220 180 L200 260 L180 180 L160 80 Z' fill='%23be123c' stroke='%23fbbf24' stroke-width='4'/%3E%3C/svg%3E`,
             rom: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cdefs%3E%3CradialGradient id='shield' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' style='stop-color:%237e22ce;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23581c87;stop-opacity:1' /%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='200' cy='150' r='110' fill='url(%23shield)' stroke='%23fbbf24' stroke-width='8'/%3E%3Cpath d='M200 60 L200 240 M150 100 L250 200 M250 100 L150 200' stroke='%23fbbf24' stroke-width='12' stroke-linecap='round'/%3E%3Cpath d='M200 60 C220 40 240 60 230 80' stroke='%23fbbf24' stroke-width='8' fill='none'/%3E%3C/svg%3E`,
-            pest: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M100 150 Q150 50 250 150 T350 150' fill='none' stroke='%2310b981' stroke-width='10'/%3E%3Ccircle cx='200' cy='120' r='40' fill='%23064e3b'/%3E%3Crect x='180' y='180' width='40' height='60' fill='%23064e3b'/%3E%3Cpath d='M180 240 L220 280 M220 240 L180 280' stroke='%2310b981' stroke-width='5'/%3E%3Ctext x='200' y='280' text-anchor='middle' fill='%2310b981' font-family='sans-serif' font-weight='bold' font-size='24' letter-spacing='2'%3EYERSINIA PESTIS%3C/text%3E%3C/svg%3E`
+            pest: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M100 150 Q150 50 250 150 T350 150' fill='none' stroke='%2310b981' stroke-width='10'/%3E%3Ccircle cx='200' cy='120' r='40' fill='%23064e3b'/%3E%3Crect x='180' y='180' width='40' height='60' fill='%23064e3b'/%3E%3Cpath d='M180 240 L220 280 M220 240 L180 280' stroke='%2310b981' stroke-width='5'/%3E%3Ctext x='200' y='280' text-anchor='middle' fill='%2310b981' font-family='sans-serif' font-weight='bold' font-size='24' letter-spacing='2'%3EYERSINIA PESTIS%3C/text%3E%3C/svg%3E`,
+            fabrica: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Crect x='50' y='50' width='300' height='200' fill='%23e5e5e5' stroke='%23333' stroke-width='10'/%3E%3Cpath d='M100 200 L300 200 L280 150 L120 150 Z' fill='%23333'/%3E%3Ccircle cx='200' cy='120' r='30' fill='%23b91c1c'/%3E%3C/svg%3E` 
         };
 
         // Robuste SVG-Pfeile für die Schlacht-Animation
@@ -570,26 +571,32 @@
             mineMarker = L.marker([42.46, -6.8], { icon: mineIcon, opacity: 1 }).addTo(map);
         }
 
-        // NEU: Eisen/Rüstung Logistik (Optimiert)
+        // NEU: Eisen/Rüstung Logistik (Optimiert: Kreis-Design, Tooltip on Hover, Klick-Info)
         function initIronLogistics() {
-            // Amboss-Icon angepasst an Gold/Getreide Stil
-            const ironHtml = `<div class="flex items-center justify-center w-8 h-8 bg-white rounded-full border-2 border-slate-500 shadow-md"><i class="ph-fill ph-anvil text-slate-600 text-lg"></i></div>`;
+            // Design: Weißer Kreis, grauer Rand, Hammer-Icon (wie Gold/Getreide)
+            const ironHtml = `<div class="flex items-center justify-center w-8 h-8 bg-white rounded-full border-2 border-slate-500 shadow-md cursor-pointer hover:scale-110 transition-transform"><i class="ph-fill ph-hammer text-slate-600 text-lg"></i></div>`;
             const ironIcon = L.divIcon({ className: 'bg-transparent', html: ironHtml, iconSize: [32, 32], iconAnchor: [16, 16] });
             
-            // Fabrica Trier (Mit permanentem Label)
+            const infoTitle = "Römische Rüstungsindustrie (Fabricae)";
+            const infoText = "Seit der Reform Diokletians war die Waffenproduktion staatlich zentralisiert. Riesige Manufakturen (Fabricae) produzierten am Fließband: Trier lieferte Schilde und Geschütze für den Rhein, Sirmium Waffen für den Balkan. Die Arbeiter waren militärisch organisiert und 'gebrandmarkt', um Flucht zu verhindern. Der Verlust dieser Zentren bedeutete das technologische Ende der Legionen.";
+            const infoArtifact = { img: artifacts.fabrica, title: "Fabrica", text: "Stilisierte Darstellung einer Waffenfabrik." }; // Platzhalter
+
+            // Fabrica Trier
             let m1 = L.marker([49.75, 6.63], { icon: ironIcon, opacity: 1 }).addTo(map);
-            m1.bindTooltip("Fabrica (Waffen)", { permanent: true, direction: 'right', className: 'custom-label', offset: [12, 0] });
+            m1.bindTooltip("Fabrica (Waffen)", { direction: 'top', className: 'custom-label', offset: [0, -10] }); // Tooltip on Hover
+            m1.on('click', () => showInfo(infoTitle, infoText, "Ferrum vincit omnia.", "#475569", null, infoArtifact));
             fabricaeMarkers.push({ m: m1, end: 413 });
 
             // Fabrica Sirmium
             let m2 = L.marker([44.9, 19.6], { icon: ironIcon, opacity: 1 }).addTo(map);
-            m2.bindTooltip("Fabrica (Waffen)", { permanent: true, direction: 'right', className: 'custom-label', offset: [12, 0] });
+            m2.bindTooltip("Fabrica (Waffen)", { direction: 'top', className: 'custom-label', offset: [0, -10] }); // Tooltip on Hover
+            m2.on('click', () => showInfo(infoTitle, infoText, "Ferrum vincit omnia.", "#475569", null, infoArtifact));
             fabricaeMarkers.push({ m: m2, end: 441 });
 
             ironPaths.forEach(p => {
                 let line = L.polyline(p.path, {
-                    color: '#475569', // Dunkleres Slate für Sichtbarkeit
-                    weight: 4,        // Etwas dicker
+                    color: '#475569', 
+                    weight: 4,        
                     dashArray: '5, 10',
                     className: 'iron-route-line',
                     opacity: 0.9
@@ -728,10 +735,9 @@
             fabricaeMarkers.forEach(f => {
                 if (year < f.end) {
                     f.m.setOpacity(1); 
-                    if(f.m.getTooltip()) f.m.openTooltip();
+                    // Tooltip logic handled by Leaflet hover default
                 } else {
                     f.m.setOpacity(0.3);
-                    if(f.m.getTooltip()) f.m.closeTooltip();
                 }
             });
             ironRoutes.forEach(r => {

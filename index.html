@@ -572,18 +572,18 @@
 
         // NEU: Eisen/Rüstung Logistik (Optimiert)
         function initIronLogistics() {
-            // Amboss-Icon mit weißem Hintergrund und dunklem Rahmen
-            const ironHtml = `<div class="flex items-center justify-center w-10 h-10 bg-slate-100 rounded-lg border-2 border-slate-600 shadow-lg"><i class="ph-fill ph-anvil text-slate-700 text-xl"></i></div>`;
-            const ironIcon = L.divIcon({ className: 'bg-transparent', html: ironHtml, iconSize: [40, 40], iconAnchor: [20, 20] });
+            // Amboss-Icon angepasst an Gold/Getreide Stil
+            const ironHtml = `<div class="flex items-center justify-center w-8 h-8 bg-white rounded-full border-2 border-slate-500 shadow-md"><i class="ph-fill ph-anvil text-slate-600 text-lg"></i></div>`;
+            const ironIcon = L.divIcon({ className: 'bg-transparent', html: ironHtml, iconSize: [32, 32], iconAnchor: [16, 16] });
             
             // Fabrica Trier (Mit permanentem Label)
             let m1 = L.marker([49.75, 6.63], { icon: ironIcon, opacity: 1 }).addTo(map);
-            m1.bindTooltip("Fabrica (Waffen)", { permanent: true, direction: 'right', className: 'custom-label', offset: [20, 0] });
+            m1.bindTooltip("Fabrica (Waffen)", { permanent: true, direction: 'right', className: 'custom-label', offset: [12, 0] });
             fabricaeMarkers.push({ m: m1, end: 413 });
 
             // Fabrica Sirmium
             let m2 = L.marker([44.9, 19.6], { icon: ironIcon, opacity: 1 }).addTo(map);
-            m2.bindTooltip("Fabrica (Waffen)", { permanent: true, direction: 'right', className: 'custom-label', offset: [20, 0] });
+            m2.bindTooltip("Fabrica (Waffen)", { permanent: true, direction: 'right', className: 'custom-label', offset: [12, 0] });
             fabricaeMarkers.push({ m: m2, end: 441 });
 
             ironPaths.forEach(p => {

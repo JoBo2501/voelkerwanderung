@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: Cinematic History & Economics</title>
+    <title>Völkerwanderung: The East Roman Dilemma</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -439,16 +439,23 @@
                 vectors: [{dir: 'west', color: '#7e22ce'}, {dir: 'east', color: '#b91c1c'}] 
             }, 
             { year: 401, lat: 45.4, lng: 9.2, title: "Alarichs Einfall", type: "move", desc: "Goten fallen in Italien ein.", quote: "Die Mauern erzittern." },
-            { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Vandalen & Sueben brechen durch.", quote: "Ganz Gallien rauchte." }, 
+            { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Vandalen & Sueben brechen durch.", quote: "Ganz Gallien rauchte." },
+            { year: 409, lat: 42.0, lng: -6.0, title: "Verlust Spaniens", type: "crisis", icon: "ph-coins", desc: "Sueben besetzen die Goldminen. Der Sold für die Legionen versiegt.", quote: "Der Staat verliert sein Gold." },
             { year: 410, lat: 41.9, lng: 12.5, title: "Plünderung Roms", type: "battle", desc: "Alarich in Rom.", quote: "Die Stadt ist erobert." }, 
+            { year: 421, lat: 36.0, lng: 38.0, title: "Perserkrieg (Bahram V.)", type: "crisis", icon: "ph-sword", desc: "Ostrom muss Truppen an die Euphrat-Grenze werfen.", quote: "Der Osten ist gebunden." },
             { year: 429, lat: 35.9, lng: -5.6, title: "Zug nach Afrika", type: "move", desc: "Vandalen setzen über.", quote: "Das Brot geht aus." },
             { year: 438, lat: 41.0, lng: 28.9, title: "Codex Theodosianus", type: "law", icon: "ph-scales", desc: "Kaiser Theodosius II. Gesetzessammlung.", quote: "Ordnung in das Chaos der Gesetze bringen.", aiPrompt: "Analysiere die verfassungsrechtliche Bedeutung des Codex Theodosianus." },
+            { year: 441, lat: 44.9, lng: 19.6, title: "Fall von Sirmium", type: "crisis", icon: "ph-anvil", desc: "Hunnen erobern die Waffenfabrik am Balkan.", quote: "Keine Waffen mehr für die Donau." },
             { year: 447, lat: 41.0, lng: 28.0, title: "Hunnen-Tribut", type: "diplomacy", desc: "Ostrom erkauft Frieden von Attila.", quote: "Gold statt Blut." },
             { 
                 year: 451, lat: 49.0, lng: 4.0, title: "Katalaunische Felder", type: "battle", desc: "Die Völkerschlacht. Aetius stoppt Attila in Gallien.", quote: "Ein wilder Kampf.",
                 vectors: [{dir: 'south', color: '#7e22ce'}, {dir: 'east', color: '#16a34a'}]
             }, 
             { year: 455, lat: 41.9, lng: 12.5, title: "Sack von Rom", type: "battle", desc: "Vandalen plündern Rom systematisch.", quote: null }, 
+            { 
+                year: 468, lat: 37.0, lng: 11.0, title: "Schlacht bei Kap Bon", type: "battle", icon: "ph-boat", desc: "Die gemeinsame Flotte von West- und Ostrom verbrennt. Die letzte Chance zur Rettung Westroms ist vertan.", quote: "Ein Meer aus Feuer.",
+                vectors: [{dir: 'north', color: '#7e22ce'}, {dir: 'south', color: '#2563eb'}]
+            },
             { year: 476, lat: 44.4, lng: 12.2, title: "Ende Westroms", type: "treaty", desc: "Odoaker setzt den letzten Kaiser ab.", quote: "Kein Kaiser mehr im Westen." }, 
             { year: 486, lat: 49.3, lng: 3.3, title: "Schlacht von Soissons", type: "battle", desc: "Chlodwig besiegt Syagrius.", quote: "Ende Roms in Gallien." }, 
             { year: 493, lat: 44.4, lng: 12.2, title: "Rabenschlacht", type: "treaty", desc: "Theoderich tötet Odoaker.", quote: "Der Verrat von Ravenna." },
@@ -461,7 +468,7 @@
             { year: 533, lat: 36.8, lng: 10.1, title: "Vandalenkrieg", type: "battle", desc: "Belisar landet in Afrika.", quote: "Justinians Traum." },
             { year: 533, lat: 41.0, lng: 28.9, title: "Digesten & Institutionen", type: "law", icon: "ph-book-open", desc: "Corpus Iuris Civilis.", quote: "Suum cuique tribuere." },
             { year: 536, lat: 42.0, lng: 12.5, title: "Vulkanischer Winter", type: "climate", icon: "ph-snowflake", duration: 10, desc: "Ein Jahr ohne Sommer.", quote: "Die Sonne gab ihr Licht ohne Strahl." },
-            { year: 540, lat: 36.2, lng: 36.1, title: "Perserkrieg", type: "crisis", desc: "Sassaniden plündern Antiochia.", quote: "Die zweite Front." },
+            { year: 540, lat: 36.2, lng: 36.1, title: "Perserkrieg (Chosrau)", type: "crisis", desc: "Sassaniden plündern Antiochia.", quote: "Die zweite Front." },
             { year: 542, lat: 41.0, lng: 28.9, title: "Justinianische Pest", type: "plague", icon: "ph-skull", duration: 20, desc: "Pandemie tötet Millionen.", quote: "Gottes Zorn." },
             { year: 552, lat: 43.2, lng: 12.8, title: "Busta Gallorum", type: "battle", desc: "Narses besiegt Totila.", quote: "Ein blutiges Ende." }
         ];
@@ -497,6 +504,18 @@
                 const color = reg.color || '#78716c';
                 L.tooltip({ permanent: true, direction: 'center', className: 'region-label', opacity: 0.8 }).setContent(`<span style="font-size:${reg.s}px; color:${color}">${reg.t}</span>`).setLatLng(reg.c).addTo(map);
             });
+
+            // Ost-Bedrohung (Pfeil)
+            const threatIcon = L.divIcon({
+                className: 'bg-transparent',
+                html: `<div class="flex items-center gap-2 opacity-0 transition-opacity duration-500" id="eastern-threat">
+                        <i class="ph-fill ph-arrow-left text-4xl text-red-600 animate-pulse"></i>
+                        <span class="text-xs font-bold text-red-800 bg-white/80 px-2 py-1 rounded">Sassaniden</span>
+                       </div>`,
+                iconSize: [120, 40],
+                iconAnchor: [60, 20]
+            });
+            L.marker([36.0, 40.0], { icon: threatIcon }).addTo(map); // Nahe Antiochia
 
             dynamicCities.forEach((city, idx) => {
                 let color = '#666'; if (city.type === 'capital') color = '#7e22ce'; if (city.type === 'barbarian') color = '#d97706'; if (city.type === 'monastery') color = '#0ea5e9'; 
@@ -590,9 +609,7 @@
             mineMarker = L.marker([42.46, -6.8], { icon: mineIcon, opacity: 1 }).addTo(map);
         }
 
-        // NEU: Eisen/Rüstung Logistik (Optimiert: Kreis-Design, Tooltip on Hover, Klick-Info)
         function initIronLogistics() {
-            // Design: Weißer Kreis, grauer Rand, Hammer-Icon (wie Gold/Getreide)
             const ironHtml = `<div class="flex items-center justify-center w-8 h-8 bg-white rounded-full border-2 border-slate-500 shadow-md cursor-pointer hover:scale-110 transition-transform"><i class="ph-fill ph-hammer text-slate-600 text-lg"></i></div>`;
             const ironIcon = L.divIcon({ className: 'bg-transparent', html: ironHtml, iconSize: [32, 32], iconAnchor: [16, 16] });
             
@@ -600,15 +617,13 @@
             const infoText = "Seit der Reform Diokletians war die Waffenproduktion staatlich zentralisiert. Riesige Manufakturen (Fabricae) produzierten am Fließband: Trier lieferte Schilde und Geschütze für den Rhein, Sirmium Waffen für den Balkan. Die Arbeiter waren militärisch organisiert und 'gebrandmarkt', um Flucht zu verhindern. Der Verlust dieser Zentren bedeutete das technologische Ende der Legionen.";
             const infoArtifact = { img: artifacts.fabrica, title: "Fabrica", text: "Stilisierte Darstellung einer Waffenfabrik." };
 
-            // Fabrica Trier
             let m1 = L.marker([49.75, 6.63], { icon: ironIcon, opacity: 1 }).addTo(map);
-            m1.bindTooltip("Fabrica (Waffen)", { direction: 'top', className: 'custom-label', offset: [0, -10] }); // Tooltip on Hover
+            m1.bindTooltip("Fabrica (Waffen)", { direction: 'top', className: 'custom-label', offset: [0, -10] });
             m1.on('click', () => showInfo(infoTitle, infoText, "Ferrum vincit omnia.", "#475569", null, infoArtifact));
             fabricaeMarkers.push({ m: m1, end: 413 });
 
-            // Fabrica Sirmium
             let m2 = L.marker([44.9, 19.6], { icon: ironIcon, opacity: 1 }).addTo(map);
-            m2.bindTooltip("Fabrica (Waffen)", { direction: 'top', className: 'custom-label', offset: [0, -10] }); // Tooltip on Hover
+            m2.bindTooltip("Fabrica (Waffen)", { direction: 'top', className: 'custom-label', offset: [0, -10] });
             m2.on('click', () => showInfo(infoTitle, infoText, "Ferrum vincit omnia.", "#475569", null, infoArtifact));
             fabricaeMarkers.push({ m: m2, end: 441 });
 
@@ -651,13 +666,11 @@
 
             activeBattleAnimations[event.year] = [];
 
-            // 1. Schockwelle im Zentrum (Sehr hoch im Z-Index)
             const shockHtml = `<div class="shockwave-effect"></div>`;
             const shockIcon = L.divIcon({ className: 'bg-transparent', html: shockHtml, iconSize: [40, 40], iconAnchor: [20, 20] });
             const shockMarker = L.marker([event.lat, event.lng], { icon: shockIcon, zIndexOffset: 5000, interactive: false }).addTo(map);
             activeBattleAnimations[event.year].push(shockMarker);
 
-            // 2. Vektoren (SVG Pfeile) (Ebenfalls sehr hoch)
             event.vectors.forEach(v => {
                 const vecHtml = `<div class="battle-svg-container arrow-anim-${v.dir}" style="color:${v.color}">${battleArrowSVG}</div>`;
                 const vecIcon = L.divIcon({ className: 'bg-transparent', html: vecHtml, iconSize: [64, 64], iconAnchor: [32, 32] });
@@ -665,7 +678,6 @@
                 activeBattleAnimations[event.year].push(vecMarker);
             });
 
-            // Cleanup nach 4 Sekunden (wenn Event vorbei)
             setTimeout(() => {
                 if (activeBattleAnimations[event.year]) {
                     activeBattleAnimations[event.year].forEach(m => map.removeLayer(m));
@@ -683,7 +695,6 @@
                 if (year >= cm.start && year <= cm.end) { cm.marker.setStyle({ opacity: 1, fillOpacity: 1 }); cm.tooltip.setOpacity(1); } else { cm.marker.setStyle({ opacity: 0, fillOpacity: 0 }); cm.tooltip.setOpacity(0); }
             });
 
-            // --- NARRATIVER ALERT (Redesigned) ---
             const alertDiv = document.getElementById('narrative-alert');
             const alertBtn = document.getElementById('alert-btn');
             const alertIcon = document.getElementById('alert-icon');
@@ -759,6 +770,16 @@
                 if (year < r.end) { if(!map.hasLayer(r.l)) map.addLayer(r.l); } else { if(map.hasLayer(r.l)) map.removeLayer(r.l); }
             });
 
+            // Ostrom-Bedrohung (Pulsieren bei Konflikt)
+            const easternThreat = document.getElementById('eastern-threat');
+            if (easternThreat) {
+                 if (activeAlertEvent && activeAlertEvent.title.includes('Perser')) {
+                     easternThreat.classList.remove('opacity-0');
+                 } else {
+                     easternThreat.classList.add('opacity-0');
+                 }
+            }
+
             Object.keys(kingdoms).forEach(k => {
                 const kd = kingdoms[k];
                 if (year >= kd.start && year <= kd.end) {
@@ -812,7 +833,6 @@
                     alertType.innerText = typeText;
                     alertTitle.innerText = ev.title;
 
-                    // TRIGGER BATTLE ANIMATION (SVG Version)
                     if (ev.type === 'battle') {
                         updateBattleVisuals(ev);
                     }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Völkerwanderung: The Complete Simulation</title>
+    <title>Völkerwanderung: Cinematic History & Economics</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     
@@ -380,9 +380,13 @@
             [44.4, 12.2]   // Ravenna
         ];
 
+        // EISEN-ROUTEN (Erweitert für das ganze Rheingebiet)
         const ironPaths = [
-            { path: [[49.75, 6.63], [50.0, 8.2]], start: 0, end: 413, id: 'trier' }, // Trier -> Mainz
-            { path: [[44.9, 19.6], [44.8, 20.4]], start: 0, end: 441, id: 'sirmium' } // Sirmium -> Limes
+            // Trier -> Verteiler Rhein (Nord & Süd)
+            { path: [[49.75, 6.63], [50.35, 7.6], [50.9, 6.9]], start: 0, end: 413, id: 'trier-nord' }, // Nach Köln/Xanten
+            { path: [[49.75, 6.63], [49.99, 8.24], [48.58, 7.75]], start: 0, end: 413, id: 'trier-sued' }, // Nach Mainz/Straßburg
+            // Sirmium -> Donau
+            { path: [[44.9, 19.6], [44.8, 20.4], [45.2, 22.0]], start: 0, end: 441, id: 'sirmium' } 
         ];
 
         const kingdoms = {
@@ -497,7 +501,7 @@
 
             initGrainLogistics();
             initGoldLogistics(); 
-            initIronLogistics(); // NEU
+            initIronLogistics(); 
             initGranary(); 
 
             Object.keys(routes).forEach(key => {
@@ -566,28 +570,29 @@
             mineMarker = L.marker([42.46, -6.8], { icon: mineIcon, opacity: 1 }).addTo(map);
         }
 
-        // NEU: Eisen/Rüstung Logistik
+        // NEU: Eisen/Rüstung Logistik (Optimiert)
         function initIronLogistics() {
-            const ironHtml = `<div class="text-slate-600 drop-shadow-md"><i class="ph-fill ph-anvil text-2xl"></i></div>`;
-            const ironIcon = L.divIcon({ className: 'bg-transparent', html: ironHtml, iconSize: [24, 24], iconAnchor: [12, 12] });
+            // Amboss-Icon mit dunklem Hintergrund für besseren Kontrast
+            const ironHtml = `<div class="flex items-center justify-center w-8 h-8 bg-slate-800 rounded-full shadow-lg border border-slate-500 text-white"><i class="ph-fill ph-anvil text-lg"></i></div>`;
+            const ironIcon = L.divIcon({ className: 'bg-transparent', html: ironHtml, iconSize: [32, 32], iconAnchor: [16, 16] });
             
-            // Fabrica Trier
+            // Fabrica Trier (Mit permanentem Label)
             let m1 = L.marker([49.75, 6.63], { icon: ironIcon, opacity: 1 }).addTo(map);
-            m1.bindTooltip("Fabrica: Trier", { direction: 'top', className: 'custom-label' });
+            m1.bindTooltip("Fabrica (Waffen)", { permanent: true, direction: 'right', className: 'custom-label', offset: [12, 0] });
             fabricaeMarkers.push({ m: m1, end: 413 });
 
             // Fabrica Sirmium
             let m2 = L.marker([44.9, 19.6], { icon: ironIcon, opacity: 1 }).addTo(map);
-            m2.bindTooltip("Fabrica: Sirmium", { direction: 'top', className: 'custom-label' });
+            m2.bindTooltip("Fabrica (Waffen)", { permanent: true, direction: 'right', className: 'custom-label', offset: [12, 0] });
             fabricaeMarkers.push({ m: m2, end: 441 });
 
             ironPaths.forEach(p => {
                 let line = L.polyline(p.path, {
-                    color: '#64748b', // Slate Grey
-                    weight: 3,
-                    dashArray: '5, 5',
+                    color: '#475569', // Dunkleres Slate für Sichtbarkeit
+                    weight: 4,        // Etwas dicker
+                    dashArray: '5, 10',
                     className: 'iron-route-line',
-                    opacity: 0.8
+                    opacity: 0.9
                 }).addTo(map);
                 ironRoutes.push({ l: line, end: p.end });
             });
@@ -721,7 +726,13 @@
 
             // LOGISTIK: EISEN (TRIER/SIRMIUM)
             fabricaeMarkers.forEach(f => {
-                if (year < f.end) f.m.setOpacity(1); else f.m.setOpacity(0.3);
+                if (year < f.end) {
+                    f.m.setOpacity(1); 
+                    if(f.m.getTooltip()) f.m.openTooltip();
+                } else {
+                    f.m.setOpacity(0.3);
+                    if(f.m.getTooltip()) f.m.closeTooltip();
+                }
             });
             ironRoutes.forEach(r => {
                 if (year < r.end) { if(!map.hasLayer(r.l)) map.addLayer(r.l); } else { if(map.hasLayer(r.l)) map.removeLayer(r.l); }

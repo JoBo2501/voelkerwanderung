@@ -43,13 +43,22 @@
 
         /* BILDER-MANAGER (Ihre hochgeladenen Dateien) */
         const localImages = {
+            // Völker & Artefakte
             westgoten: './img/adlerfibel_westgoten.jpg', 
             vandalen: './img/vandalen_muenzegelimer.jpg',
-            hunnen: './img/attila_muenze.jpg', // Nutzung für Hunnen, da Attila-Münze hochgeladen
+            hunnen: './img/attila_muenze.jpg', 
             langobarden: './img/goldblattkreuz_langobarden.jpg',
             franken: './img/franken_muenze.jpg', 
-            ostgoten: './img/zikadenfibel_ostgoten.JPG', // Achtung: .JPG (groß)
-            // Fallbacks für noch nicht hochgeladene Bilder (nutzen SVG Artifacts vorerst)
+            ostgoten: './img/zikadenfibel_ostgoten.JPG', 
+            
+            // Narrative Events (NEU HINZUGEFÜGT)
+            alarich: './img/alarich_rom.jpg',
+            codex: './img/codex_theodosianus.jpg',
+            hunne_gold: './img/hunne_gold.jpg',
+            romulus: './img/romulus_augustulus.jpg',
+            akademie: './img/akademie_athen.jpg',
+
+            // Fallbacks
             rom: null, 
             pest: null 
         };
@@ -70,11 +79,11 @@
             },
             langobarden: {
                 img: localImages.langobarden,
-                fallback: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Crect x='180' y='50' width='40' height='200' fill='%23fcd34d' stroke='%23b45309' stroke-width='2'/%3E%3C/svg%3E`
+                fallback: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Crect x='180' y='50' width='40' height='200' fill='%23fcd34d' stroke='%23b45309' stroke-width='2'/%3E%3Crect x='100' y='110' width='200' height='40' fill='%23fcd34d' stroke='%23b45309' stroke-width='2'/%3E%3C/svg%3E`
             },
             franken: {
                 img: localImages.franken,
-                fallback: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 80 C220 80 240 100 240 130 C240 160 200 220 200 220 C200 220 160 160 160 130 C160 100 180 80 200 80' fill='%23fbbf24' stroke='%23b45309' stroke-width='2'/%3E%3C/svg%3E`
+                fallback: `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' style='background:%23f5f5f4'%3E%3Cpath d='M200 80 C220 80 240 100 240 130 C240 160 200 220 200 220 C200 220 160 160 160 130 C160 100 180 80 200 80' fill='%23fbbf24' stroke='%23b45309' stroke-width='2'/%3E%3Cpath d='M160 130 L120 110' fill='%23ef4444'/%3E%3Cpath d='M240 130 L280 110' fill='%23ef4444'/%3E%3C/svg%3E`
             },
             ostgoten: {
                 img: localImages.ostgoten,
@@ -511,12 +520,21 @@
             { year: 401, lat: 45.4, lng: 9.2, title: "Alarichs Einfall", type: "move", desc: "Goten fallen in Italien ein.", quote: "Die Mauern erzittern." },
             { year: 406, lat: 49.9, lng: 8.2, title: "Rheinübergang", type: "move", desc: "Vandalen & Sueben brechen durch.", quote: "Ganz Gallien rauchte." },
             { year: 409, lat: 42.0, lng: -6.0, title: "Verlust Spaniens", type: "crisis", icon: "ph-coins", desc: "Sueben besetzen die Goldminen. Der Sold für die Legionen versiegt.", quote: "Der Staat verliert sein Gold." },
-            { year: 410, lat: 41.9, lng: 12.5, title: "Plünderung Roms", type: "battle", desc: "Alarich in Rom.", quote: "Die Stadt ist erobert." }, 
+            { 
+                year: 410, lat: 41.9, lng: 12.5, title: "Plünderung Roms", type: "battle", desc: "Alarich in Rom.", quote: "Die Stadt ist erobert.",
+                artifact: { img: localImages.alarich, title: "Einzug Alarichs", text: "Rom wird erstmals seit 800 Jahren von Feinden betreten. Ein psychologischer Schock." }
+            }, 
             { year: 421, lat: 36.0, lng: 38.0, title: "Perserkrieg (Bahram V.)", type: "crisis", icon: "ph-sword", desc: "Ostrom muss Truppen an die Euphrat-Grenze werfen.", quote: "Der Osten ist gebunden." },
             { year: 429, lat: 35.9, lng: -5.6, title: "Zug nach Afrika", type: "move", desc: "Vandalen setzen über.", quote: "Das Brot geht aus." },
-            { year: 438, lat: 41.0, lng: 28.9, title: "Codex Theodosianus", type: "law", icon: "ph-scales", desc: "Kaiser Theodosius II. Gesetzessammlung.", quote: "Ordnung in das Chaos der Gesetze bringen.", aiPrompt: "Analysiere die verfassungsrechtliche Bedeutung des Codex Theodosianus." },
+            { 
+                year: 438, lat: 41.0, lng: 28.9, title: "Codex Theodosianus", type: "law", icon: "ph-scales", desc: "Kaiser Theodosius II. Gesetzessammlung.", quote: "Ordnung in das Chaos der Gesetze bringen.", aiPrompt: "Analysiere die verfassungsrechtliche Bedeutung des Codex Theodosianus.",
+                artifact: { img: localImages.codex, title: "Codex Theodosianus", text: "Ein Meilenstein der Rechtsgeschichte: Die erste offizielle Gesetzessammlung seit den Zwölftafelgesetzen." }
+            },
             { year: 441, lat: 44.9, lng: 19.6, title: "Fall von Sirmium", type: "crisis", icon: "ph-anvil", desc: "Hunnen erobern die Waffenfabrik am Balkan.", quote: "Keine Waffen mehr für die Donau." },
-            { year: 447, lat: 41.0, lng: 28.0, title: "Attila vor den Mauern", type: "battle", icon: "ph-wall", desc: "Hunnen dringen bis Konstantinopel vor. Theodosius II. muss Frieden erkaufen.", quote: "Die Mauern halten stand, doch der Preis ist hoch." },
+            { 
+                year: 447, lat: 41.0, lng: 28.0, title: "Hunnen-Tribut", type: "diplomacy", desc: "Ostrom erkauft Frieden von Attila.", quote: "Gold statt Blut.",
+                artifact: { img: localImages.hunne_gold, title: "Hunnisches Gold", text: "Der Schatz von Szilágysomlyó. Römische Solidi, umgeschmolzen zu barbarischem Prunk." }
+            },
             { 
                 year: 451, lat: 49.0, lng: 4.0, title: "Katalaunische Felder", type: "battle", desc: "Die Völkerschlacht. Aetius stoppt Attila in Gallien.", quote: "Ein wilder Kampf.",
                 vectors: [{dir: 'south', color: '#7e22ce'}, {dir: 'east', color: '#16a34a'}]
@@ -526,7 +544,10 @@
                 year: 468, lat: 37.0, lng: 11.0, duration: 4, title: "Schlacht bei Kap Bon", type: "battle", icon: "ph-boat", desc: "Die Vandalen vernichten die römische Flotte mit Brandern.", quote: "Das Ende aller Hoffnung.",
                 vectors: [{dir: 'north', color: '#7e22ce'}, {dir: 'south', color: '#2563eb'}]
             },
-            { year: 476, lat: 44.4, lng: 12.2, title: "Ende Westroms", type: "treaty", desc: "Odoaker setzt den letzten Kaiser ab.", quote: "Kein Kaiser mehr im Westen." }, 
+            { 
+                year: 476, lat: 44.4, lng: 12.2, title: "Ende Westroms", type: "treaty", desc: "Odoaker setzt den letzten Kaiser ab.", quote: "Kein Kaiser mehr im Westen.",
+                artifact: { img: localImages.romulus, title: "Romulus Augustulus", text: "Der letzte weströmische Kaiser auf einem Solidus. Ein Kind auf dem Thron einer untergehenden Welt." }
+            }, 
             { year: 486, lat: 49.3, lng: 3.3, title: "Schlacht von Soissons", type: "battle", desc: "Chlodwig besiegt Syagrius.", quote: "Ende Roms in Gallien." }, 
             { year: 493, lat: 44.4, lng: 12.2, title: "Rabenschlacht", type: "treaty", desc: "Theoderich tötet Odoaker.", quote: "Der Verrat von Ravenna." },
             { year: 502, lat: 36.5, lng: 39.0, title: "Anastasischer Krieg", type: "crisis", icon: "ph-sword", desc: "Großangriff der Sassaniden auf Amida und Edessa.", quote: "Der ewige Friede ist gebrochen." },
@@ -536,7 +557,10 @@
                 vectors: [{dir: 'north', color: '#9333ea'}, {dir: 'south', color: '#dc2626'}]
             },
             { year: 517, lat: 42.0, lng: 24.0, title: "Bulgaren-Einfälle", type: "move", icon: "ph-skull", desc: "Slawen und Bulgaren verwüsten den Balkan bis zu den Thermopylen.", quote: "Der Limes existiert nicht mehr." },
-            { year: 529, lat: 37.98, lng: 23.72, title: "Ende der Akademie", type: "philosophy", icon: "ph-columns", desc: "Justinian schließt die Akademie.", quote: "Das Schweigen der Philosophen." },
+            { 
+                year: 529, lat: 37.98, lng: 23.72, title: "Ende der Akademie", type: "philosophy", icon: "ph-columns", desc: "Justinian schließt die Akademie.", quote: "Das Schweigen der Philosophen.",
+                artifact: { img: localImages.akademie, title: "Akademie von Athen", text: "Das Mosaik der sieben Weisen. Mit der Schließung endet die pagane Bildungstradition der Antike." }
+            },
             { year: 533, lat: 36.8, lng: 10.1, title: "Vandalenkrieg", type: "battle", desc: "Belisar landet in Afrika.", quote: "Justinians Traum." },
             { year: 533, lat: 41.0, lng: 28.9, title: "Digesten & Institutionen", type: "law", icon: "ph-book-open", desc: "Corpus Iuris Civilis.", quote: "Suum cuique tribuere." },
             { year: 536, lat: 42.0, lng: 12.5, title: "Vulkanischer Winter", type: "climate", icon: "ph-snowflake", duration: 10, desc: "Ein Jahr ohne Sommer.", quote: "Die Sonne gab ihr Licht ohne Strahl." },
@@ -649,7 +673,7 @@
                 const html = `<div class="battle-marker flex items-center justify-center w-8 h-8 bg-white rounded-full shadow-md border border-stone-200 text-[${color}] ${pulseClass}"><i class="ph-fill ${iconType} text-lg" style="color:${color}"></i></div>`;
                 const icon = L.divIcon({ className: 'bg-transparent', html: html, iconSize: [32, 32], iconAnchor: [16, 16] });
                 const marker = L.marker([ev.lat, ev.lng], { icon: icon, opacity: 0 }).addTo(map);
-                marker.on('click', () => showInfo(ev.title, ev.desc, ev.quote, color, null, null));
+                marker.on('click', () => showInfo(ev.title, ev.desc, ev.quote, color, null, ev.artifact));
                 eventMarkers[ev.year] = marker;
             });
         }
@@ -879,8 +903,7 @@
                 if (year < r.end) { if(!map.hasLayer(r.l)) map.addLayer(r.l); } else { if(map.hasLayer(r.l)) map.removeLayer(r.l); }
             });
 
-            // UPDATE EXPEDITION 468
-            if (year >= 468 && year < 472) { // Länger anzeigen
+            if (year >= 468 && year < 472) { 
                 if(basiliscusRoute && !map.hasLayer(basiliscusRoute)) {
                     basiliscusRoute.setStyle({opacity: 0.8});
                     map.addLayer(basiliscusRoute);
@@ -891,18 +914,15 @@
                 basiliscusMarkers.forEach(m => m.setOpacity(0));
             }
 
-            // Ost-Bedrohung (Logik: Konflikte mit Persern/Balkan)
             const sassanidThreat = document.getElementById('sassanid-threat');
             const balkanThreat = document.getElementById('balkan-threat');
 
             if (sassanidThreat) {
-                 // Zeige Pfeil bei Perserkriegen (421, 440, 502, 526, 540)
                  const isPersianWar = (year >= 421 && year <= 422) || (year >= 440 && year <= 441) || (year >= 502 && year <= 506) || (year >= 526 && year <= 532) || (year >= 540 && year <= 562);
                  if (isPersianWar) sassanidThreat.classList.remove('opacity-0');
                  else sassanidThreat.classList.add('opacity-0');
             }
             if (balkanThreat) {
-                // Zeige Pfeil bei Balkan-Raids (Hunnen, Bulgaren, Slawen)
                 const isBalkanRaid = (year >= 441 && year <= 443) || (year >= 447 && year <= 447) || (year >= 517 && year <= 519) || (year >= 540 && year <= 540) || (year >= 550 && year <= 551) || (year >= 558 && year <= 559);
                 if (isBalkanRaid) balkanThreat.classList.remove('opacity-0');
                 else balkanThreat.classList.add('opacity-0');
@@ -961,7 +981,6 @@
                     alertType.innerText = typeText;
                     alertTitle.innerText = ev.title;
 
-                    // TRIGGER BATTLE ANIMATION (SVG Version)
                     if (ev.type === 'battle') {
                         updateBattleVisuals(ev);
                     }
@@ -997,7 +1016,6 @@
             });
         }
 
-        // WIRD VOM SLIDER AUFGERUFEN (MANUELL)
         function updateYear(val) { 
             const y = parseFloat(val); 
             currentYear = y; // Sync manuell -> intern
@@ -1012,7 +1030,6 @@
 
             if (deltaTime >= 33) { // ca 30 FPS Limit
                 
-                // BULLET TIME LOGIK
                 let effectiveStep = yearStep;
                 if (activeAlertEvent) {
                     effectiveStep = yearStep * 0.10; 
@@ -1091,11 +1108,9 @@
             if (activeThreat) {
                 let title = activeThreat.title;
                 if (activeThreat.leader) title += ` (${activeThreat.leader})`;
-                // Nutze das passende Artefakt-Bild für Sassaniden oder Balkan
                 let artifact = type === 'east' ? { img: artifacts.sassanid, title: "Sassanidisches Emblem", text: "Symbol des Großkönigs." } : { img: artifacts.balkan, title: "Hunnischer Bogen", text: "Gefürchtete Waffe der Steppenreiter." };
                 showInfo(title, activeThreat.desc, activeThreat.quote, "#dc2626", null, artifact);
             } else {
-                // Fallback, falls der Pfeil an ist, aber kein spezifisches Event gefunden wird (sollte nicht passieren)
                 let title = type === 'east' ? "Bedrohung durch das Sassanidenreich" : "Bedrohung an der Balkanfront";
                 let text = type === 'east' ? "Das neupersische Reich ist der einzige ebenbürtige Gegner Roms. Es bindet permanent massive Truppenkontingente im Osten." : "Der Donaulimes ist durchlässig geworden. Hunnen, Goten, Slawen und Bulgaren bedrohen regelmäßig das Hinterland von Konstantinopel.";
                 showInfo(title, text, "Der Feind steht vor den Toren.", "#dc2626", null, null);
@@ -1120,7 +1135,6 @@
             } catch (error) { return `<b>Netzwerkfehler:</b> ${error.message}`; }
         }
         
-        // --- CHAT SYSTEM ---
         function appendMessage(role, text) {
             const historyDiv = document.getElementById('ai-chat-history');
             const isUser = role === 'user';

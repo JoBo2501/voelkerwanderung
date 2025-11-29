@@ -41,7 +41,7 @@
             return text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
         }
 
-        /* BILDER-MANAGER (Ihre hochgeladenen Dateien) */
+        /* BILDER-MANAGER */
         const localImages = {
             // Artefakte & Völker
             westgoten: './img/adlerfibel_westgoten.jpg', 
@@ -52,6 +52,7 @@
             ostgoten: './img/zikadenfibel_ostgoten.JPG', 
             
             // Narrative Events (Slideshow Megadürre)
+            // megaduerre1 = Schädel, megaduerre2 = Pferde/Menschen
             megaduerre1: './img/megaduerre1.jpg', 
             megaduerre2: './img/megaduerre2.jpg',
 
@@ -509,7 +510,8 @@
             { 
                 year: 375, lat: 48.0, lng: 45.0, title: "Megadürre", type: "climate", icon: "ph-sun-dim", duration: 25, desc: "Jahrzehntelange Trockenheit treibt die Hunnen nach Westen.", quote: "Die Steppe verdorrte.",
                 artifact: { 
-                    slideshow: [localImages.megaduerre1, localImages.megaduerre2], // DYNAMISCHE SLIDESHOW
+                    // REIHENFOLGE GEÄNDERT: Erst Pferde (megaduerre2), dann Schädel (megaduerre1)
+                    slideshow: [localImages.megaduerre2, localImages.megaduerre1], 
                     title: "Die vertrocknete Steppe", 
                     text: "Klimahistorische Untersuchungen belegen eine extreme Dürreperiode in Zentralasien um 375 n. Chr., die den 'Dominoeffekt' der Hunnenwanderung auslöste." 
                 } 
@@ -941,20 +943,6 @@
                 basiliscusMarkers.forEach(m => m.setOpacity(0));
             }
 
-            const sassanidThreat = document.getElementById('sassanid-threat');
-            const balkanThreat = document.getElementById('balkan-threat');
-
-            if (sassanidThreat) {
-                 const isPersianWar = (year >= 421 && year <= 422) || (year >= 440 && year <= 441) || (year >= 502 && year <= 506) || (year >= 526 && year <= 532) || (year >= 540 && year <= 562);
-                 if (isPersianWar) sassanidThreat.classList.remove('opacity-0');
-                 else sassanidThreat.classList.add('opacity-0');
-            }
-            if (balkanThreat) {
-                const isBalkanRaid = (year >= 441 && year <= 443) || (year >= 447 && year <= 447) || (year >= 517 && year <= 519) || (year >= 540 && year <= 540) || (year >= 550 && year <= 551) || (year >= 558 && year <= 559);
-                if (isBalkanRaid) balkanThreat.classList.remove('opacity-0');
-                else balkanThreat.classList.add('opacity-0');
-            }
-
             Object.keys(kingdoms).forEach(k => {
                 const kd = kingdoms[k];
                 if (year >= kd.start && year <= kd.end) {
@@ -1005,15 +993,12 @@
 
                     alertBtn.className = `alert-card px-6 py-4 rounded-r-lg flex items-center gap-4 cursor-pointer hover:scale-105 transition-transform min-w-[340px] max-w-lg justify-between group border-l-4 ${borderClass}`;
                     
-                    // SLIDESHOW LOGIK für Megadürre (oder andere Events mit Slideshow)
+                    // SLIDESHOW LOGIK
                     let displayImage = null;
                     if (ev.artifact) {
                         if (ev.artifact.slideshow) {
-                            // Berechne Fortschritt: (Aktuelles Jahr - Startjahr) / Dauer
                             const progress = (year - ev.year) / (ev.duration || 2);
-                            // Index berechnen: z.B. 0 oder 1 bei 2 Bildern
                             const index = Math.floor(progress * ev.artifact.slideshow.length);
-                            // Sicherheits-Check
                             const safeIndex = Math.min(index, ev.artifact.slideshow.length - 1);
                             displayImage = ev.artifact.slideshow[safeIndex];
                         } else if (ev.artifact.img) {
@@ -1080,10 +1065,12 @@
 
             if (deltaTime >= 33) { // ca 30 FPS Limit
                 
-                // BULLET TIME LOGIK
+                // BULLET TIME LOGIK - DRASTISCH VERLANGSAMT
                 let effectiveStep = yearStep;
                 if (activeAlertEvent) {
-                    effectiveStep = yearStep * 0.10; 
+                    // HIER IST DIE ÄNDERUNG: Von 0.10 auf 0.03 reduziert.
+                    // Die Zeit läuft nur noch mit 3% der normalen Geschwindigkeit weiter.
+                    effectiveStep = yearStep * 0.03; 
                 }
 
                 if (currentYear >= 568) currentYear = 375;
